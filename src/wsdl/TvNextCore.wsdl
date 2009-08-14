@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://schemas.exozet.com/tvnext/services/core/" xmlns:types="http://schemas.exozet.com/tvnext/services/core/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="TvNextCore" targetNamespace="http://schemas.exozet.com/tvnext/services/core/">
+  <wsdl:types>
+    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://schemas.exozet.com/tvnext/services/core/" targetNamespace="http://schemas.exozet.com/tvnext/services/core/" elementFormDefault="qualified">
+      <element name="getClipsByRessortId">
+        <complexType>
+          <sequence>
+            <element name="ressortId" minOccurs="1" maxOccurs="1" type="xsd:int"/>
+            <element name="offset" minOccurs="0" maxOccurs="1" type="xsd:int"/>
+            <element name="limit" minOccurs="0" maxOccurs="1" type="xsd:int"/>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="getClipsByRessortIdResponse">
+        <complexType>
+          <sequence>
+            <element name="getClipsByRessortIdResult" minOccurs="1" maxOccurs="1" type="tns:ArrayOfTvNext_Clip"/>
+          </sequence>
+        </complexType>
+      </element>
+      <xsd:complexType name="Exo_CMS_ImageBinaryFilePeer">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="instances" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="Exo_CMS_ImageBinaryFile">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="peer" type="tns:Exo_CMS_ImageBinaryFilePeer"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="id" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="filename" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="mimetype" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="filesize" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="guid" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="width" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="height" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="colorspace" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="type_cleartext" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="alreadyInSave" type="xsd:boolean"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="alreadyInValidation" type="xsd:boolean"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="validationFailures" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="modifiedColumns" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="TvNext_Clip">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="clip_status_label" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="clip_type_label" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="streamPath" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="flv_duration" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="id" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="modified_timestamp" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="created_timestamp" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="header" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="title" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="subtitle" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="preview_offset" type="xsd:double"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="preview_duration" type="xsd:double"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="display_preroll" type="xsd:boolean"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="cleanfeed" type="xsd:boolean"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="source" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="download_podcast" type="xsd:boolean"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="aExo_CMS_ImageBinaryFileRelatedBySource" type="tns:Exo_CMS_ImageBinaryFile"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="ressortIds" type="tns:ArrayOfint"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="ArrayOfTvNext_Clip">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" maxOccurs="unbounded" nillable="true" name="TvNext_Clip" type="tns:TvNext_Clip"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <element name="getClipCountByRessortId">
+        <complexType>
+          <sequence>
+            <element name="ressortId" minOccurs="1" maxOccurs="1" type="xsd:int"/>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="getClipCountByRessortIdResponse">
+        <complexType>
+          <sequence>
+            <element name="getClipCountByRessortIdResult" minOccurs="1" maxOccurs="1" type="xsd:int"/>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="getClipsByIdList">
+        <complexType>
+          <sequence>
+            <element name="idList" minOccurs="0" maxOccurs="1" type="tns:ArrayOfint"/>
+          </sequence>
+        </complexType>
+      </element>
+      <xsd:complexType name="ArrayOfint">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" maxOccurs="unbounded" nillable="true" name="int" type="xsd:int"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <element name="getClipsByIdListResponse">
+        <complexType>
+          <sequence>
+            <element name="getClipsByIdListResult" minOccurs="1" maxOccurs="1" type="tns:ArrayOfTvNext_Clip"/>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="getRessorts">
+        <complexType>
+          <sequence>
+            <element name="dummy" minOccurs="0" maxOccurs="1" type="xsd:int"/>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="getRessortsResponse">
+        <complexType>
+          <sequence>
+            <element name="getRessortsResult" minOccurs="1" maxOccurs="1" type="tns:ArrayOfN24_Ressort"/>
+          </sequence>
+        </complexType>
+      </element>
+      <xsd:complexType name="N24_Ressort">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="id" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="livedate" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="killdate" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="wakeuptime" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="sleeptime" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="created_timestamp" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="modified_timestamp" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="state" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="dataset_name" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="clickcounter_counter" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="clickcounter_correction" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="clickcounter_corrected" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="keywords" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="copyright" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="cr_source" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="title" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="tracking_code" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="description" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="set_left" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="set_right" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="set_level" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="agofid" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="soi_subsite" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="soi_subsite2" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="soi_subsite3" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="ArrayOfN24_Ressort">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" maxOccurs="unbounded" nillable="true" name="N24_Ressort" type="tns:N24_Ressort"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <element name="getClipsByIsin">
+        <complexType>
+          <sequence>
+            <element name="isin" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="getClipsByIsinResponse">
+        <complexType>
+          <sequence>
+            <element name="getClipsByIsinResult" minOccurs="1" maxOccurs="1" type="tns:ArrayOfTvNext_Clip"/>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="getNewestClips">
+        <complexType>
+          <sequence>
+            <element name="offset" minOccurs="0" maxOccurs="1" type="xsd:int"/>
+            <element name="limit" minOccurs="0" maxOccurs="1" type="xsd:int"/>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="getNewestClipsResponse">
+        <complexType>
+          <sequence>
+            <element name="getNewestClipsResult" minOccurs="1" maxOccurs="1" type="tns:ArrayOfTvNext_Clip"/>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="search">
+        <complexType>
+          <sequence>
+            <element name="searchPhrase" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <element name="offset" minOccurs="0" maxOccurs="1" type="xsd:int"/>
+            <element name="limit" minOccurs="0" maxOccurs="1" type="xsd:int"/>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="searchResponse">
+        <complexType>
+          <sequence>
+            <element name="searchResult" minOccurs="1" maxOccurs="1" type="tns:ArrayOfTvNext_Clip"/>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="getNavigationTreeByNodeName">
+        <complexType>
+          <sequence>
+            <element name="name" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="getNavigationTreeByNodeNameResponse">
+        <complexType>
+          <sequence>
+            <element name="getNavigationTreeByNodeNameResult" minOccurs="1" maxOccurs="1" type="tns:ArrayOfN24_NavigationStructure"/>
+          </sequence>
+        </complexType>
+      </element>
+      <xsd:complexType name="N24_NavigationStructure">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="navigation_type_label" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="url_target_label" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="video_id" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="id" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="livedate" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="killdate" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="wakeuptime" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="sleeptime" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="created_timestamp" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="modified_timestamp" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="state" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="dataset_name" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="clickcounter_counter" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="clickcounter_correction" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="clickcounter_corrected" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="keywords" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="copyright" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="cr_source" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="label" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="url" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="set_left" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="set_right" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="set_level" type="xsd:int"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="livestream_id" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="agofid" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="soi_subsite" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="soi_subsite2" type="xsd:string"/>
+          <xsd:element minOccurs="0" maxOccurs="1" nillable="true" name="soi_subsite3" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="ArrayOfN24_NavigationStructure">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" maxOccurs="unbounded" nillable="true" name="N24_NavigationStructure" type="tns:N24_NavigationStructure"/>
+        </xsd:sequence>
+      </xsd:complexType>
+    </xsd:schema>
+  </wsdl:types>
+  <message name="getClipsByRessortIdIn">
+    <part name="parameters" element="types:getClipsByRessortId"/>
+  </message>
+  <message name="getClipsByRessortIdOut">
+    <part name="parameters" element="types:getClipsByRessortIdResponse"/>
+  </message>
+  <message name="getClipCountByRessortIdIn">
+    <part name="parameters" element="types:getClipCountByRessortId"/>
+  </message>
+  <message name="getClipCountByRessortIdOut">
+    <part name="parameters" element="types:getClipCountByRessortIdResponse"/>
+  </message>
+  <message name="getClipsByIdListIn">
+    <part name="parameters" element="types:getClipsByIdList"/>
+  </message>
+  <message name="getClipsByIdListOut">
+    <part name="parameters" element="types:getClipsByIdListResponse"/>
+  </message>
+  <message name="getRessortsIn">
+    <part name="parameters" element="types:getRessorts"/>
+  </message>
+  <message name="getRessortsOut">
+    <part name="parameters" element="types:getRessortsResponse"/>
+  </message>
+  <message name="getClipsByIsinIn">
+    <part name="parameters" element="types:getClipsByIsin"/>
+  </message>
+  <message name="getClipsByIsinOut">
+    <part name="parameters" element="types:getClipsByIsinResponse"/>
+  </message>
+  <message name="getNewestClipsIn">
+    <part name="parameters" element="types:getNewestClips"/>
+  </message>
+  <message name="getNewestClipsOut">
+    <part name="parameters" element="types:getNewestClipsResponse"/>
+  </message>
+  <message name="searchIn">
+    <part name="parameters" element="types:search"/>
+  </message>
+  <message name="searchOut">
+    <part name="parameters" element="types:searchResponse"/>
+  </message>
+  <message name="getNavigationTreeByNodeNameIn">
+    <part name="parameters" element="types:getNavigationTreeByNodeName"/>
+  </message>
+  <message name="getNavigationTreeByNodeNameOut">
+    <part name="parameters" element="types:getNavigationTreeByNodeNameResponse"/>
+  </message>
+  <wsdl:portType name="TvNextCorePortType">
+    <operation name="getClipsByRessortId">
+      <input message="tns:getClipsByRessortIdIn"/>
+      <output message="tns:getClipsByRessortIdOut"/>
+    </operation>
+    <operation name="getClipCountByRessortId">
+      <input message="tns:getClipCountByRessortIdIn"/>
+      <output message="tns:getClipCountByRessortIdOut"/>
+    </operation>
+    <operation name="getClipsByIdList">
+      <input message="tns:getClipsByIdListIn"/>
+      <output message="tns:getClipsByIdListOut"/>
+    </operation>
+    <operation name="getRessorts">
+      <input message="tns:getRessortsIn"/>
+      <output message="tns:getRessortsOut"/>
+    </operation>
+    <operation name="getClipsByIsin">
+      <input message="tns:getClipsByIsinIn"/>
+      <output message="tns:getClipsByIsinOut"/>
+    </operation>
+    <operation name="getNewestClips">
+      <input message="tns:getNewestClipsIn"/>
+      <output message="tns:getNewestClipsOut"/>
+    </operation>
+    <operation name="search">
+      <input message="tns:searchIn"/>
+      <output message="tns:searchOut"/>
+    </operation>
+    <operation name="getNavigationTreeByNodeName">
+      <input message="tns:getNavigationTreeByNodeNameIn"/>
+      <output message="tns:getNavigationTreeByNodeNameOut"/>
+    </operation>
+  </wsdl:portType>
+  <wsdl:binding xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" name="TvNextCoreBinding" type="tns:TvNextCorePortType">
+    <soap:binding xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+    <operation name="getClipsByRessortId">
+      <soap:operation soapAction="getClipsByRessortId"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="getClipCountByRessortId">
+      <soap:operation soapAction="getClipCountByRessortId"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="getClipsByIdList">
+      <soap:operation soapAction="getClipsByIdList"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="getRessorts">
+      <soap:operation soapAction="getRessorts"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="getClipsByIsin">
+      <soap:operation soapAction="getClipsByIsin"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="getNewestClips">
+      <soap:operation soapAction="getNewestClips"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="search">
+      <soap:operation soapAction="search"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="getNavigationTreeByNodeName">
+      <soap:operation soapAction="getNavigationTreeByNodeName"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+  </wsdl:binding>
+  <wsdl:service name="TvNextCore">
+    <port name="TvNextCorePort" binding="tns:TvNextCoreBinding">
+      <soap:address location="http://mediencenter.n24.de/index.php/service/default"/>
+    </port>
+  </wsdl:service>
+</wsdl:definitions>

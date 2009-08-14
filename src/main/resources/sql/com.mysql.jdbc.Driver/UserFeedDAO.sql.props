@@ -1,0 +1,15 @@
+SQL_FIND_BY_KEY = select {USER_FEED_TABLE}.link as feedUri, title, {CHANNEL_TABLE}.link, description, thumbnail, copyright, pubdate, language \
+					from {USER_FEED_TABLE},{CHANNEL_TABLE} where channelkey={CHANNEL_TABLE}.link \
+					and {USER_FEED_TABLE}.link = ?
+					
+SQL_FIND_BY_CHANNEL = select {USER_FEED_TABLE}.link as feedUri, title, {CHANNEL_TABLE}.link, description, thumbnail, copyright, pubdate, language \
+					from {USER_FEED_TABLE},{CHANNEL_TABLE} where channelkey={CHANNEL_TABLE}.link \
+					and channelkey = ?
+					
+SQL_LIST_ALL = select {USER_FEED_TABLE}.link as feedUri, title, {CHANNEL_TABLE}.link, description, thumbnail, copyright, pubdate, language \
+					from {USER_FEED_TABLE},{CHANNEL_TABLE} where channelkey={CHANNEL_TABLE}.link
+					
+SQL_INSERT = insert into {USER_FEED_TABLE} values(?,?)
+
+SQL_DELETE = delete from {USER_FEED_TABLE} where link = ?
+					

@@ -1,0 +1,17 @@
+SQL_FIND_BY_KEY = SELECT * FROM {ENCLOSURE_TABLE} WHERE link = ?
+
+SQL_INSERT_ENCLOSURE = INSERT INTO {ENCLOSURE_TABLE} \
+                           (link, type, length, duration, ondemand) \
+                           values(?,?,?,?,?)
+
+SQL_UPDATE_ENCLOSURE = UPDATE {ENCLOSURE_TABLE} SET \
+                           type = ?, \
+                           length = ?, \
+                           duration = ?, \
+                           ondemand = ? \
+                       WHERE link = ?
+    
+SQL_DELETE_ENCLOSURE = DELETE FROM {ENCLOSURE_TABLE} WHERE link = ?
+
+SQL_DELETE_ORPHAN_ENCLOSURE = DELETE FROM {ENCLOSURE_TABLE} \
+                              WHERE link NOT IN (SELECT enclosurekey FROM {ITEM_TABLE})

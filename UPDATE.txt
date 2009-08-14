@@ -1,0 +1,25 @@
+Update information to update to version >= 0.3.1
+================================================================================
+These update information only apply to users, who update from version 0.3 or 
+earlier. Later versions will do all necessary updates on their own. 
+
+You only have to do these steps, if you want to keep your current configuration.
+If you don't care about your current configuration you may delete your current
+installation and then start with the new one from scratch.
+
+There are some steps to do before you run the new version:
+1. Create a file vodcatcherhelper.properties in the main directory
+2. Insert the following statement into vodcatcherhelper.properties
+   db.version=0.1   , if you are updating from version 0.2 or below
+   db.version=0.3   , if you are updating from version 0.3 or above
+3. Start your _OLD_ version of Vodcatcher Helper
+4. Vodcatcher Helper now inserts the new parameter db.version into the database.
+   After Vodcatcher Helper started, you can stop it again.
+5. Delete the vodcatcherhelper.properties again, if you want to.
+6. Copy the new version of Vodcatcher Helper to the main directory.
+7. Start the new version.
+
+General update routine
+================================================================================
+1. Delete the lib directory
+2. Extract the zip content into the old directory

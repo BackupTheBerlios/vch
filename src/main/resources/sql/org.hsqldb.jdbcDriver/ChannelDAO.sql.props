@@ -1,0 +1,20 @@
+SQL_FIND_BY_KEY = SELECT * FROM {CHANNEL_TABLE} WHERE link = ?
+
+SQL_FIND_BY_NAME = SELECT * FROM {CHANNEL_TABLE} WHERE TITLE = ?
+
+SQL_INSERT_CHANNEL = INSERT INTO {CHANNEL_TABLE} \
+                         (title, link, description, thumbnail ,copyright, pubdate, language) \
+                         values(?,?,?,?,?,?,?)
+
+SQL_UPDATE_CHANNEL = UPDATE {CHANNEL_TABLE} SET \
+                         title = ?, \
+                         description = ?, \
+                         thumbnail = ?, \
+                         copyright = ?, \
+                         pubdate = ?, \
+                         language = ? \
+                     WHERE link = ?
+
+SQL_DELETE_CHANNEL = DELETE FROM {CHANNEL_TABLE} WHERE link = ?
+
+SQL_LIST_ALL = SELECT * FROM {CHANNEL_TABLE} ORDER BY title

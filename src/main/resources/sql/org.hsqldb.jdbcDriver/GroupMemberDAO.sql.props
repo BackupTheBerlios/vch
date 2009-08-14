@@ -1,0 +1,25 @@
+SQL_FIND_MEMBER_BY_KEY = select t3.title, t3.link, t3.DESCRIPTION, t3.thumbnail, t3.copyright, t3.pubdate, t3.language \
+							from {GROUPS_TABLE} t1, \
+							{GROUPS_INTER_CHANNEL_TABLE} t2, \
+							{CHANNEL_TABLE} t3 \
+							where t1.name = ? and \
+							t2.group_name = t1.name and \
+							t3.link = t2.channel_link \
+							ORDER BY t3.title
+    
+SQL_INSERT_GROUP_MEMBER = ;
+    
+SQL_UPDATE_GROUP_MEMBER = ;
+    
+SQL_DELETE_GROUP_MEMBER = ;
+
+SQL_GROUP_MEMBER_ADD = insert into {GROUPS_INTER_CHANNEL_TABLE} \
+			(group_name, channel_link) \
+			values \
+			(? , ?)
+
+SQL_DELETE_GROUP_MEMBER_BY_USER_KEY = delete from {GROUPS_INTER_CHANNEL_TABLE} where group_name = ? and channel_link = ?
+
+SQL_DELETE_CHANNEL = delete from {GROUPS_INTER_CHANNEL_TABLE} where channel_link = ?
+
+SQL_DELETE_GROUP = delete from {GROUPS_INTER_CHANNEL_TABLE} where group_name = ?

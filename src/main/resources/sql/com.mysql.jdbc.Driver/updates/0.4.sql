@@ -1,0 +1,1 @@
+alter table ENCLOSURE add ONDEMAND BOOLEAN DEFAULT false;

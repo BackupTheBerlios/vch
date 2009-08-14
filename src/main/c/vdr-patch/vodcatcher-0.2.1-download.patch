@@ -1,0 +1,47 @@
+diff -Nur vodcatcher-0.2.1_orig/src/ItemMenuPresenter.cc vodcatcher-0.2.1/src/ItemMenuPresenter.cc
+--- vodcatcher-0.2.1_orig/src/ItemMenuPresenter.cc	2008-08-06 20:40:33.000000000 +0200
++++ vodcatcher-0.2.1/src/ItemMenuPresenter.cc	2008-08-28 20:36:00.000000000 +0200
+@@ -20,6 +20,7 @@
+  *
+  */
+ 
++#include <curl/curl.h>
+ #include <vdr/player.h>
+ #include "ItemMenuPresenter.h"
+ #include "IServiceLocator.h"
+@@ -80,6 +81,7 @@
+ 
+ eOSState ItemMenuPresenter::ProcessItemAction(eKeys key, Item item)
+ {
++    ostringstream os;
+     switch (key)
+     {
+         case kOk:
+@@ -118,6 +120,19 @@
+             }
+             UpdateYellowButton();
+             break;
++        case kBlue:
++			CURL *curl;
++			curl = curl_easy_init();
++	
++			os << "http://";
++			os << "localhost";
++			os << ":";
++			os << "8080";
++			os << "/downloads?action=download_item&url=";
++			os << curl_easy_escape(curl, item.GetVideoCastStream(_configuration.GetPlayBackQuality()).c_str(), 0);
++			serviceLocator.GetDownloadPool()->AddDownload(os.str());
++			curl_easy_cleanup(curl);
++        	break;
+         default:
+             break;
+     }
+@@ -212,6 +227,7 @@
+         {
+             menu->SetGreenHelp(tr("Play"));
+             menu->SetRedHelp(tr("Record"));
++            menu->SetBlueHelp("Download");
+             UpdateYellowButton();
+         }
+     }
