@@ -2,12 +2,11 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.berlios.vch</groupId>
-	<artifactId>vodcatcherhelper</artifactId>
+	<artifactId>core</artifactId>
 	<packaging>jar</packaging>
 	<version>0.6</version>
 	<name>Vodcatcher Helper</name>
-	<description>This projekt aims for a generic Website parser to provide
-		RSS Feeds which are compatible to the VDR-Plugin vodcatcher.</description>
+	<description>Vodcatcher Helper is a bridge between VDR and video websites. It parses several websites and makes the found videos available through an OSD menu.</description>
 	<url>http://developer.berlios.de/projects/vch</url>
 
 	<scm>
