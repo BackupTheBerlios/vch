@@ -12,6 +12,11 @@
 	<name>VCH Bundle</name>
 	<version>0.0.1</version>
 	<description>Parent POM for all VCH bundles</description>
+	
+	<properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+	
 	<build>
 		<plugins>
 			<plugin>
