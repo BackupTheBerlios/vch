@@ -27,7 +27,7 @@
                             date.setTime(node.pubDate);
                             html += '<br/>' + date.toLocaleString();
                          }
-                        if(node.thumb) html += '<br/>' + node.thumb; 
+                        if(node.thumb) html += '<br/><img src="' + node.thumb + '" alt="preview"/>'; 
                         if(node.desc) html += '<br/>' + node.desc;
                         $('#content').html(html + '</p>');
                     }
