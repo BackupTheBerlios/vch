@@ -66,6 +66,5 @@
 		<artifactId>bundle</artifactId>
 		<groupId>de.berlios.vch</groupId>
 		<version>0.0.1</version>
-		<relativePath>../vch-bundle</relativePath>
 	</parent>
 </project>
