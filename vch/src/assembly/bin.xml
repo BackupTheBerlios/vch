@@ -43,9 +43,7 @@
 				<include>de.berlios.vch:osdserver</include>
 				<include>de.berlios.vch:parser</include>
 				<include>de.berlios.vch:parser.ard</include>
-				<!-- 
 				<include>de.berlios.vch:parser.arte</include>
-				 -->
 				<include>de.berlios.vch:parser.brainblog</include>
 				<include>de.berlios.vch:parser.console</include>
 				<include>de.berlios.vch:parser.dmax</include>
