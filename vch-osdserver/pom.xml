@@ -1,0 +1,55 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>osdserver</artifactId>
+	<packaging>bundle</packaging>
+	<name>VCH osdserver</name>
+	<version>0.0.1</version>
+	<description>This bundle provides an VDR osd menu with the help of the VDR osdserver-Plugin</description>
+	<dependencies>
+		<dependency>
+			<groupId>org.hampelratte</groupId>
+			<artifactId>svdrp4j</artifactId>
+			<version>0.0.2</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.berlios.vch</groupId>
+			<artifactId>i18n</artifactId>
+			<version>0.0.1</version>
+			<type>bundle</type>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.berlios.vch</groupId>
+			<artifactId>parser</artifactId>
+			<version>0.0.1</version>
+			<type>bundle</type>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.osgi.compendium</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.3</version>
+			<type>jar</type>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+	<parent>
+		<artifactId>bundle</artifactId>
+		<groupId>de.berlios.vch</groupId>
+		<version>0.0.1</version>
+		<relativePath>../vch-bundle</relativePath>
+	</parent>
+</project>
