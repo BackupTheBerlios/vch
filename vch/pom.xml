@@ -11,7 +11,7 @@
     <packaging>pom</packaging>
     <version>1.0.0-SNAPSHOT</version>
     <name>Vodcatcher Helper</name>
-    <description>Webcrawler for video discovery and streaming to VDR</description>
+    <description>Webcrawler for video discovery and streaming bridge to VDR</description>
     <url>http://sourceforge.net/projects/jmp3renamer</url>
 
     <dependencyManagement>
