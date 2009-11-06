@@ -1,0 +1,23 @@
+<project>
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>slf4j-logger</artifactId>
+	<packaging>bundle</packaging>
+	<name>LogListener</name>
+	<version>0.0.1</version>
+	<description>This bundle provides an OSGi R4 LogListener, which uses SLF4J to log the messages</description>
+
+	<parent>
+		<artifactId>bundle</artifactId>
+		<groupId>de.berlios.vch</groupId>
+		<version>0.0.1</version>
+		<relativePath>../Plugins</relativePath>
+	</parent>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+</project>
