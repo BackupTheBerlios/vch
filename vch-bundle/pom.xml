@@ -3,7 +3,6 @@
 		<artifactId>vch</artifactId>
 		<groupId>de.berlios.vch</groupId>
 		<version>1.0.0-SNAPSHOT</version>
-		<relativePath>../vch</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.berlios.vch</groupId>
@@ -25,6 +24,7 @@
 				<configuration>
 					<source>1.6</source>
 					<target>1.6</target>
+					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
 			<plugin>
