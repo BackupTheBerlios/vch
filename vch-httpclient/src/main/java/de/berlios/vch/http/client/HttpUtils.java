@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPInputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,11 +43,15 @@ public class HttpUtils {
                     con.setRequestProperty(entry.getKey(), entry.getValue());
                 }
             }
+            con.setRequestProperty("Accept-Encoding", "gzip");
             
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             int length = -1;
             byte[] b = new byte[1024];
             InputStream in = con.getInputStream();
+            if("gzip".equalsIgnoreCase(con.getHeaderField("Content-Encoding"))) {
+                in = new GZIPInputStream(in);
+            }
             while( (length = in.read(b)) > 0 ) {
                 bos.write(b, 0, length);
             }
@@ -72,11 +77,15 @@ public class HttpUtils {
                     con.setRequestProperty(entry.getKey(), entry.getValue());
                 }
             }
+            con.setRequestProperty("Accept-Encoding", "gzip");
             
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             int length = -1;
             byte[] b = new byte[1024];
             InputStream in = con.getInputStream();
+            if("gzip".equalsIgnoreCase(con.getHeaderField("Content-Encoding"))) {
+                in = new GZIPInputStream(in);
+            }
             while( (length = in.read(b)) > 0 ) {
                 bos.write(b, 0, length);
             }
@@ -107,6 +116,7 @@ public class HttpUtils {
                 con.setRequestProperty(entry.getKey(), entry.getValue());
             }
         }
+        con.setRequestProperty("Accept-Encoding", "gzip");
         con.setDoOutput(true);
         
         //send the post
@@ -119,6 +129,9 @@ public class HttpUtils {
         int length = -1;
         byte[] b = new byte[1024];
         InputStream in = con.getInputStream();
+        if("gzip".equalsIgnoreCase(con.getHeaderField("Content-Encoding"))) {
+            in = new GZIPInputStream(in);
+        }
         while( (length = in.read(b)) > 0 ) {
             bos.write(b, 0, length);
         }
