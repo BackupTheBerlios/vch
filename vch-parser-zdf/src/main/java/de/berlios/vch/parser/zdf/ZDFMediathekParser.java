@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.htmlparser.Node;
+import org.htmlparser.tags.HeadingTag;
 import org.htmlparser.tags.LinkTag;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
@@ -30,9 +31,9 @@ import de.berlios.vch.parser.VideoPage;
 import de.berlios.vch.parser.WebPageTitleComparator;
 
 public class ZDFMediathekParser implements IWebParser, BundleActivator {
-    private static final String RSS_OVERVIEW_PAGE = "http://www.zdf.de/ZDFmediathek/inhalt";
+    private static final String RSS_OVERVIEW_PAGE = "http://www.zdf.de/ZDFde/inhalt/19/0,1872,5247443_pi:1600000-ps:PO-pt:HP,00.html";
     
-    public static final String CHARSET = "utf-8";
+    public static final String CHARSET = "ISO-8859-1";
     
     public static final String ID = ZDFMediathekParser.class.getName();
     
@@ -46,16 +47,19 @@ public class ZDFMediathekParser implements IWebParser, BundleActivator {
         
         // add all rss feeds to 
         String landingPage = HttpUtils.get(RSS_OVERVIEW_PAGE, null, CHARSET);
-        NodeList links = HtmlParserUtils.getTags(landingPage, CHARSET, "li.channel");
-        NodeIterator iter = links.elements();
+        NodeList titles = HtmlParserUtils.getTags(landingPage, CHARSET, "div#rss6 h3");
+        NodeIterator iter = titles.elements();
         Set<IWebPage> pages = new HashSet<IWebPage>();
         while(iter.hasMoreNodes()) {
-            Node child = iter.nextNode();
-            LinkTag contentPageLink = (LinkTag) HtmlParserUtils.getTag(child.toHtml(), CHARSET, "a");
-            LinkTag rssLink = (LinkTag) HtmlParserUtils.getTag(child.toHtml(), CHARSET, "a.rss");
-            
+            HeadingTag h3 = (HeadingTag) iter.nextNode();
+            Node next = h3;
+            while ( !"ul".equalsIgnoreCase((next = next.getNextSibling()).getText()) ) {
+                continue;
+            }
+            Node ul = next;
+            LinkTag rssLink = (LinkTag) HtmlParserUtils.getTag(ul.toHtml(), CHARSET, "li a");
             String pageUri = rssLink.extractLink();
-            String title = Translate.decode(contentPageLink.getLinkText()).trim();
+            String title = Translate.decode(h3.getStringText()).trim();
             OverviewPage feedPage = new OverviewPage();
             feedPage.setParser(ID);
             feedPage.setTitle(title);
