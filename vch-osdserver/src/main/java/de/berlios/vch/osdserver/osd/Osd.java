@@ -3,6 +3,7 @@ package de.berlios.vch.osdserver.osd;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -17,8 +18,9 @@ import de.berlios.vch.osdserver.io.command.OsdMessage;
 import de.berlios.vch.osdserver.io.response.Event;
 import de.berlios.vch.osdserver.io.response.Response;
 import de.berlios.vch.osdserver.osd.menu.Menu;
+import de.berlios.vch.osdserver.osd.menu.actions.IOsdAction;
 
-public class Osd implements IEventDispatcher, IEventListener {
+public class Osd implements IEventDispatcher {
     
     private static transient Logger logger = LoggerFactory.getLogger(Osd.class);
     
@@ -51,24 +53,49 @@ public class Osd implements IEventDispatcher, IEventListener {
     }
     
     public void createMenu(Menu menu) throws IOException, OsdException {
+        // add menu close action:
+        // automatically remove a menu from the stack and
+        // delete it on the osdserver, if a close events happen
+        menu.registerAction(new IOsdAction() {
+            @Override
+            public String getName() {
+                return "close menu";
+            }
+            
+            @Override
+            public String getModifier() {
+                return null;
+            }
+            
+            @Override
+            public String getEvent() {
+                return Event.CLOSE;
+            }
+            
+            @Override
+            public void execute(OsdObject oo) {
+                Menu current = menuStack.pop(); // first pop the current menu.
+                try {
+                    conn.send("delete " + current.getId());
+                } catch (Exception e) {
+                    logger.error("Couldn't delete menu {}", current.getId());
+                }
+                logger.trace("Menu stack: {} {}", menuStack.size(), menuStack);
+            }
+        });
+        
         // create menu
         conn.send(menu.getId() + " = new menu '" + StringUtils.escape(menu.getTitle()) + "'");
-
+        
         // register events for the menu
-        StringBuilder sb = new StringBuilder(menu.getId()+".enableevent");
-        for (Event event : menu.getRegisteredEvents()) {
-            sb.append(' ').append(event.getType());
-        }
-        sb.append(" close");
-        conn.send(sb.toString());
+        registerEvents(menu, new String[] {"close"});
+        
         context.put(menu.getId(), menu);
         
         // create all menu items
         for (OsdItem item : menu.getItems()) {
             createOsdItem(menu, item);
         }
-        
-        menu.addEventListener(this);
     }
     
     public void createOsdItem(Menu menu, OsdItem item) throws IOException, OsdException {
@@ -82,11 +109,8 @@ public class Osd implements IEventDispatcher, IEventListener {
         conn.send(sb.toString());
 
         // register events for the item
-        sb = new StringBuilder(item.getId()+".enableevent");
-        for (Event event : item.getRegisteredEvents()) {
-            sb.append(' ').append(event.getType());
-        }
-        conn.send(sb.toString());
+        registerEvents(item, null);
+        
         context.put(item.getId(), item);
     }
     
@@ -154,29 +178,15 @@ public class Osd implements IEventDispatcher, IEventListener {
             event.setSource(oo);
             if(oo instanceof IEventBased) {
                 IEventBased ieb = (IEventBased) oo;
-                for (IEventListener l : ieb.getEventListeners()) {
-                    l.eventHappened(event);
+                for (Iterator<IOsdAction> iterator = ieb.getRegisteredActions().iterator(); iterator.hasNext();) {
+                    IOsdAction action = iterator.next();
+                    if(action.getEvent().equals(event.getType())) {
+                        action.execute(oo);
+                    }
                 }
             }
         } else {
             logger.warn("Event source {} not found in context", srcId);
-        }
-    }
-    
-    /*
-     * Implemented to automatically catch menu close events.
-     * For each closed menu we send a delete command to free the memory 
-     */
-    @Override
-    public void eventHappened(Event event) {
-        if(event.getType().equals(Event.CLOSE)) {
-            Menu current = menuStack.pop(); // first pop the current menu.
-            try {
-                conn.send("delete " + current.getId());
-            } catch (Exception e) {
-                logger.error("Couldn't delete menu {}", event.getType());
-            }
-            logger.trace("Menu stack: {} {}", menuStack.size(), menuStack);
         }
     }
     
@@ -186,6 +196,26 @@ public class Osd implements IEventDispatcher, IEventListener {
         }
         
         return menuStack.peek(); 
+    }
+    
+    private void registerEvents(InteractiveOsdObject ioo, String[] additionalEvents) throws IOException, OsdException {
+        StringBuilder sb = new StringBuilder(ioo.getId()+".enableevent");
+        for (IOsdAction action : ioo.getRegisteredActions()) {
+            sb.append(' ').append(action.getEvent());
+            if(action.getEvent().equals(Event.KEY_RED)
+                    || action.getEvent().equals(Event.KEY_GREEN)
+                    || action.getEvent().equals(Event.KEY_YELLOW)
+                    || action.getEvent().equals(Event.KEY_BLUE)) 
+            {
+                setColorKeyText((Menu) ioo, action.getName(), action.getEvent());
+            }
+        }
+        if(additionalEvents != null) {
+            for (String event : additionalEvents) {
+                sb.append(' ').append(event);
+            }
+        }
+        conn.send(sb.toString());
     }
     
     public void setColorKeyText(Menu menu, String text, String key) throws IOException, OsdException {

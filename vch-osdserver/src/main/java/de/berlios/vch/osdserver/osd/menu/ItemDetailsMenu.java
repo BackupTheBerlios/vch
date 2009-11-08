@@ -2,22 +2,22 @@ package de.berlios.vch.osdserver.osd.menu;
 
 import java.util.StringTokenizer;
 
+import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.osdserver.ID;
-import de.berlios.vch.osdserver.io.response.Event;
 import de.berlios.vch.osdserver.osd.OsdItem;
-import de.berlios.vch.osdserver.osd.listener.ItemListener;
+import de.berlios.vch.osdserver.osd.menu.actions.PlayAction;
 import de.berlios.vch.parser.IVideoPage;
 
 public class ItemDetailsMenu extends Menu {
 
     private int index = 0;
     
-    public ItemDetailsMenu(IVideoPage page) {
+    public ItemDetailsMenu(IVideoPage page, Messages i18n) {
         super(ID.randomId(), page.getTitle());
+        
         if(page.getVideoUri() != null && !page.getVideoUri().toString().isEmpty()) {
-            registerEvent(new Event(getId(), Event.KEY_GREEN, null));
+            registerAction(new PlayAction(i18n));
         }
-        // TODO activate for downloads registerEvent(new Event(getId(), Event.KEY_BLUE, null));
         
         int rowlen = 50;
         String desc = page.getDescription();
@@ -40,8 +40,6 @@ public class ItemDetailsMenu extends Menu {
                 addLine(line.toString(), page);
             }
         }
-        
-        addEventListener(new ItemListener());
     }
     
     private void addLine(String line, IVideoPage page) {

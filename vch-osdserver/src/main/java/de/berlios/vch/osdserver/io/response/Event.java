@@ -30,13 +30,6 @@ public class Event extends Response {
             }
         }
     }
-    
-    public Event(String src, String type, String modifier) {
-        super(300, src + " " + type);
-        this.sourceId = src;
-        this.type = type;
-        this.modifier = modifier;
-    }
 
     public String getSourceId() {
         return sourceId;
@@ -58,7 +51,7 @@ public class Event extends Response {
     public OsdObject getSource() {
         return source;
     }
-
+    
     public void setSource(OsdObject source) {
         this.source = source;
     }

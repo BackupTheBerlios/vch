@@ -2,18 +2,12 @@ package de.berlios.vch.osdserver.osd;
 
 import java.util.Set;
 
-import de.berlios.vch.osdserver.io.response.Event;
+import de.berlios.vch.osdserver.osd.menu.actions.IOsdAction;
 
 public interface IEventBased {
-    public void addEventListener(IEventListener l);
+    public void registerAction(IOsdAction action);
     
-    public void removeEventListener(IEventListener l);
+    public void unregisterAction(IOsdAction action);
     
-    public void registerEvent(Event event);
-    
-    public void unregisterEvent(Event event);
-    
-    public Set<Event> getRegisteredEvents();
-    
-    public Set<IEventListener> getEventListeners();
+    public Set<IOsdAction> getRegisteredActions();
 }
