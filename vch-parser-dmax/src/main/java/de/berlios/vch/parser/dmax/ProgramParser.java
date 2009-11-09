@@ -52,7 +52,10 @@ public class ProgramParser {
             
             // parse the page title
             String title = HtmlParserUtils.getText(episodeCellHtml, DmaxParser.CHARSET, "span.vp-promo-subtitle-title");
-            episode.setTitle(title.trim());
+            title = title.trim();
+            title = title.replaceAll(" [Tt]eil \\d+$", "");
+            title = title.replaceAll(" \\d+$", "");
+            episode.setTitle(title);
             
             // parse the video page uri
             LinkTag videoPageLink = (LinkTag) HtmlParserUtils.getTag(episodeCellHtml, DmaxParser.CHARSET,
