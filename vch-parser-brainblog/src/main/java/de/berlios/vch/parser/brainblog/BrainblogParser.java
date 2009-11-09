@@ -96,7 +96,7 @@ private static transient Logger logger = LoggerFactory.getLogger(BrainblogParser
         List<SyndEntry> items = feed.getEntries();
         Iterator<SyndEntry> i = items.iterator();
 
-        // löschliste holen für nicht video inhalte
+        // löschliste für nicht video inhalte
         List<SyndEntry> toRemove = new ArrayList<SyndEntry>();
 
         while (i.hasNext()) {
@@ -113,7 +113,7 @@ private static transient Logger logger = LoggerFactory.getLogger(BrainblogParser
             }
             
             if (!isVideo) {
-                // Wenn das Video nicht auf brainblog liegt --> raus damit
+                // wenn das item nicht in kategorie videos ist -> raus damit
                 toRemove.add(current);
             }
 
