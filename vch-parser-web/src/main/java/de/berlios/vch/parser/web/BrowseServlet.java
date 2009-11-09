@@ -158,10 +158,17 @@ public class BrowseServlet extends BundleContextServlet {
 
     private String toJSON(IWebPage page) {
         Map<String, Object> object = new HashMap<String, Object>();
+        // copy the values, which were transmitted from the browser
+        for (Entry<String, Object> entry : page.getUserData().entrySet()) {
+            object.put(entry.getKey(), entry.getValue().toString());
+        }
+        
+        // set the title
         object.put("label", page.getTitle());
         if (page.getUri() != null) {
             object.put("href", page.getUri().toString());
         }
+        
         if (page instanceof IVideoPage) {
             IVideoPage vpage = (IVideoPage) page;
             object.put("desc", vpage.getDescription());
@@ -171,9 +178,7 @@ public class BrowseServlet extends BundleContextServlet {
             object.put("duration", vpage.getDuration());
             object.put("isLeaf", true);
         }
-        for (Entry<String, Object> entry : page.getUserData().entrySet()) {
-            object.put(entry.getKey(), entry.getValue().toString());
-        }
+        
         if (object.get("type") == null) {
             if(page instanceof IVideoPage) {
                 object.put("type", IVideoPage.class.getSimpleName());
