@@ -171,10 +171,10 @@ public class BrowseServlet extends BundleContextServlet {
         
         if (page instanceof IVideoPage) {
             IVideoPage vpage = (IVideoPage) page;
-            object.put("desc", vpage.getDescription());
             if(vpage.getVideoUri() != null) object.put("video", vpage.getVideoUri().toString());
-            if(vpage.getThumbnail() != null) object.put("thumb", vpage.getThumbnail().toString());
-            if(vpage.getPublishDate() != null) object.put("pubDate", vpage.getPublishDate().getTimeInMillis());
+            if(object.get("desc") == null) object.put("desc", vpage.getDescription());
+            if(object.get("thumb") == null && vpage.getThumbnail() != null) object.put("thumb", vpage.getThumbnail().toString());
+            if(object.get("pubDate") == null && vpage.getPublishDate() != null) object.put("pubDate", vpage.getPublishDate().getTimeInMillis());
             object.put("duration", vpage.getDuration());
             object.put("isLeaf", true);
         }
