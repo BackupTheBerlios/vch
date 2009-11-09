@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.htmlparser.Node;
+import org.htmlparser.tags.ImageTag;
 import org.htmlparser.tags.LinkTag;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
@@ -23,7 +24,6 @@ import de.berlios.vch.http.client.HttpUtils;
 import de.berlios.vch.parser.AsxParser;
 import de.berlios.vch.parser.HtmlParserUtils;
 import de.berlios.vch.parser.IOverviewPage;
-import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
@@ -32,9 +32,11 @@ import de.berlios.vch.parser.WebPageTitleComparator;
 
 public class DreisatParser implements IWebParser, BundleActivator {
 
-    public static final String BASE_URL = "http://www.3sat.de/mediathek/";
+    public static final String BASE_URL = "http://www.3sat.de";
     
-    private static final String LANDING_PAGE = BASE_URL + "mediathek.php?mode=rss";
+    public static final String MEDIATHEK_URL = BASE_URL + "/mediathek/";
+    
+    private static final String LANDING_PAGE = MEDIATHEK_URL + "mediathek.php?mode=rss";
     
     public static final String CHARSET = "iso-8859-15";
     
@@ -56,13 +58,13 @@ public class DreisatParser implements IWebParser, BundleActivator {
         
         // add all rss feeds to 
         String landingPage = HttpUtils.get(LANDING_PAGE, HTTP_HEADERS, CHARSET);
-        NodeList links = HtmlParserUtils.getTags(landingPage, CHARSET, "div[class=rss] a[class=link]");
+        NodeList links = HtmlParserUtils.getTags(landingPage, CHARSET, "div.rss a.link");
         NodeIterator iter = links.elements();
         while(iter.hasMoreNodes()) {
             Node child = iter.nextNode();
             if(child instanceof LinkTag) {
                 LinkTag link = (LinkTag) child;
-                String pageUri = BASE_URL + link.extractLink();
+                String pageUri = MEDIATHEK_URL + link.extractLink();
                 String title = Translate.decode(link.getLinkText()).trim().substring(1);
                 OverviewPage feedPage = new OverviewPage();
                 feedPage.setParser(ID);
@@ -76,7 +78,7 @@ public class DreisatParser implements IWebParser, BundleActivator {
         OverviewPage feedPage = new OverviewPage();
         feedPage.setParser(ID);
         feedPage.setTitle("3sat-Mediathek allgemein");
-        feedPage.setUri(new URI(BASE_URL + "rss/mediathek.xml"));
+        feedPage.setUri(new URI(MEDIATHEK_URL + "rss/mediathek.xml"));
         page.getPages().add(feedPage);
         Collections.sort(page.getPages(), new WebPageTitleComparator());
         return page;
@@ -89,13 +91,20 @@ public class DreisatParser implements IWebParser, BundleActivator {
 
     @Override
     public IWebPage parse(IWebPage page) throws Exception {
-        if(page instanceof IVideoPage) {
-            IVideoPage vpage = (IVideoPage) page;
+        if(page instanceof VideoPage) {
+            VideoPage vpage = (VideoPage) page;
             if (vpage.getVideoUri().toString().endsWith(".asx")) {
                 String uri = AsxParser.getUri(vpage.getVideoUri().toString());
                 vpage.setVideoUri(new URI(uri));
                 page.getUserData().remove("video");
             }
+            
+            String content = HttpUtils.get(vpage.getUri().toString(), null, CHARSET);
+            ImageTag img = (ImageTag) HtmlParserUtils.getTag(content, CHARSET, "div.seite div.media img.still");
+            if(img != null) {
+                vpage.setThumbUri(new URI(BASE_URL + img.getImageURL()));
+            }
+            
             return page;
         } else {
             SyndFeed feed = feedParser.parse(page);
@@ -110,6 +119,7 @@ public class DreisatParser implements IWebParser, BundleActivator {
                 video.setParser(ID);
                 video.setTitle(entry.getTitle());
                 video.setDescription(entry.getDescription().getValue());
+                video.setUri(new URI(entry.getLink()));
                 Calendar pubCal = Calendar.getInstance();
                 pubCal.setTime(entry.getPublishedDate());
                 video.setPublishDate(pubCal);
