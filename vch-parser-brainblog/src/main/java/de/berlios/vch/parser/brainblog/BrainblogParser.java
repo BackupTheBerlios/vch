@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.htmlparser.tags.ImageTag;
 import org.htmlparser.util.Translate;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.log.LogService;
@@ -128,15 +129,26 @@ private static transient Logger logger = LoggerFactory.getLogger(BrainblogParser
             video.setParser(ID);
             video.setTitle(item.getTitle().replaceAll("Videos: ", ""));
             video.setUri(new URI(item.getLink()));
+            
+            // description
             String desc = "";
             if(item.getDescription() != null) {
                 desc = HtmlParserUtils.getText(item.getDescription().getValue(), CHARSET, "div");
                 desc = Translate.decode(desc);
             }
             video.setDescription(desc);
+            
+            // publish date
             Calendar pubDate = Calendar.getInstance();
             pubDate.setTime(item.getPublishedDate());
             video.setPublishDate(pubDate);
+            
+            // thumb aus beschreibung holen und beschreibung löschen
+            ImageTag img = (ImageTag) HtmlParserUtils.getTag(item.getDescription().getValue(), CHARSET, "img");
+            if(img != null) {
+                video.setThumbUri(new URI(img.getImageURL()));
+            }
+            
             page.getPages().add(video);
         }
         
