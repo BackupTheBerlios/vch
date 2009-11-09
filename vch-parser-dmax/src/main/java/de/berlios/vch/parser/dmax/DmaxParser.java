@@ -111,7 +111,6 @@ public class DmaxParser implements IWebParser, BundleActivator {
                 VideoPage videoPage = new VideoPage();
                 videoPage.setParser(ID);
                 String title = page.getTitle();
-                title = title.substring(0, title.lastIndexOf(" "));
                 title += " " + i;
                 videoPage.setTitle(title);
                 videoPage.setUri(new URI(videoPageUriTemplate + i + '/'));
