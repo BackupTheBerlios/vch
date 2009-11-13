@@ -118,7 +118,9 @@ public class DreisatParser implements IWebParser, BundleActivator {
                 VideoPage video = new VideoPage();
                 video.setParser(ID);
                 video.setTitle(entry.getTitle());
-                video.setDescription(entry.getDescription().getValue());
+                if(entry.getDescription() != null) {
+                	video.setDescription(entry.getDescription().getValue());
+                }
                 video.setUri(new URI(entry.getLink()));
                 Calendar pubCal = Calendar.getInstance();
                 pubCal.setTime(entry.getPublishedDate());
