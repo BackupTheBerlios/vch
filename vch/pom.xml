@@ -210,6 +210,9 @@
     <modules>
         <module>../vch-bundle</module>
         <module>../vch-bundle-loader</module>
+        <module>../vch-config</module>
+        <module>../vch-download</module>
+        <module>../vch-download-http</module>
         <module>../vch-feed-support</module>
         <module>../vch-httpclient</module>
         <module>../vch-i18n</module>

@@ -37,6 +37,9 @@
 	<moduleSets>
 		<moduleSet>
 			<includes>
+                <include>de.berlios.vch:config</include>
+                <include>de.berlios.vch:download</include>
+                <include>de.berlios.vch:download.http</include>
 				<include>de.berlios.vch:feedsupport</include>
 				<include>de.berlios.vch:httpclient</include>
 				<include>de.berlios.vch:i18n</include>
