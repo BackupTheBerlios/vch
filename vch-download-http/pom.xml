@@ -1,0 +1,37 @@
+<project>
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>download.http</artifactId>
+	<packaging>bundle</packaging>
+	<name>VCH Http Download Support</name>
+	<version>0.0.1</version>
+
+	<parent>
+		<artifactId>bundle</artifactId>
+		<groupId>de.berlios.vch</groupId>
+		<version>0.0.1</version>
+		<relativePath>../Plugins</relativePath>
+	</parent>
+
+	<description>Adds HTTP support for the download manager</description>
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.berlios.vch</groupId>
+			<artifactId>download</artifactId>
+			<version>0.0.1</version>
+			<type>bundle</type>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.berlios.vch</groupId>
+			<artifactId>parser</artifactId>
+			<version>0.0.1</version>
+			<type>bundle</type>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+</project>
