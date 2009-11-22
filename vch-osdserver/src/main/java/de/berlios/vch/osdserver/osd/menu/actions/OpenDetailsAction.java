@@ -1,5 +1,6 @@
 package de.berlios.vch.osdserver.osd.menu.actions;
 
+import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,8 +24,11 @@ public class OpenDetailsAction implements IOsdAction {
     
     private Osd osd = Osd.getInstance();
     
-    public OpenDetailsAction(Messages i18n) {
+    private BundleContext ctx;
+    
+    public OpenDetailsAction(BundleContext ctx, Messages i18n) {
         this.i18n = i18n;
+        this.ctx = ctx;
     }
 
     @Override
@@ -41,7 +45,7 @@ public class OpenDetailsAction implements IOsdAction {
             }
             
             page = (IVideoPage) parser.parse(page);
-            Menu itemDetailsMenu = new ItemDetailsMenu(page, i18n);
+            Menu itemDetailsMenu = new ItemDetailsMenu(ctx, page, i18n);
             osd.createMenu(itemDetailsMenu);
             osd.appendToFocus(itemDetailsMenu);
             osd.showMessage(new OsdMessage("", OsdMessage.STATUSCLEAR));

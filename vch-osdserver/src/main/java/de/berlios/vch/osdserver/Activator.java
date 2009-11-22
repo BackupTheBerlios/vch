@@ -48,7 +48,7 @@ public class Activator implements ResourceBundleProvider {
         parserTracker.open();
         
         try {
-            httpService.registerServlet("/osdserver", new ActivatorServlet(i18n), null, null);
+            httpService.registerServlet("/osdserver", new ActivatorServlet(ctx, i18n), null, null);
         } catch (Exception e) {
             logger.error("Couldn't register osdserver startup servlet", e);
         }

@@ -6,5 +6,5 @@ public interface IOsdAction {
     public String getName();
     public String getEvent();
     public String getModifier();
-    public void execute(OsdObject oo);
+    public void execute(OsdObject oo) throws Exception;
 }

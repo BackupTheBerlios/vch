@@ -181,7 +181,14 @@ public class Osd implements IEventDispatcher {
                 for (Iterator<IOsdAction> iterator = ieb.getRegisteredActions().iterator(); iterator.hasNext();) {
                     IOsdAction action = iterator.next();
                     if(action.getEvent().equals(event.getType())) {
-                        action.execute(oo);
+                        try {
+                            action.execute(oo);
+                        } catch (Exception e) {
+                            String s = "Couldn't execute action [" + action.getName() + "] " + e.getLocalizedMessage();
+                            logger.error(s, e);
+                            OsdMessage msg = new OsdMessage(s, OsdMessage.ERROR);
+                            Osd.getInstance().showMessageSilent(msg);
+                        }
                     }
                 }
             }
@@ -202,10 +209,12 @@ public class Osd implements IEventDispatcher {
         StringBuilder sb = new StringBuilder(ioo.getId()+".enableevent");
         for (IOsdAction action : ioo.getRegisteredActions()) {
             sb.append(' ').append(action.getEvent());
-            if(action.getEvent().equals(Event.KEY_RED)
-                    || action.getEvent().equals(Event.KEY_GREEN)
-                    || action.getEvent().equals(Event.KEY_YELLOW)
-                    || action.getEvent().equals(Event.KEY_BLUE)) 
+            if(ioo instanceof Menu && 
+                    (   action.getEvent().equals(Event.KEY_RED)
+                        || action.getEvent().equals(Event.KEY_GREEN)
+                        || action.getEvent().equals(Event.KEY_YELLOW)
+                        || action.getEvent().equals(Event.KEY_BLUE)
+                    ))
             {
                 setColorKeyText((Menu) ioo, action.getName(), action.getEvent());
             }
@@ -214,6 +223,21 @@ public class Osd implements IEventDispatcher {
             for (String event : additionalEvents) {
                 sb.append(' ').append(event);
             }
+        }
+        conn.send(sb.toString());
+    }
+    
+    public void registerEvent(InteractiveOsdObject ioo, IOsdAction action) throws IOException, OsdException {
+        StringBuilder sb = new StringBuilder(ioo.getId()+".enableevent");
+        sb.append(' ').append(action.getEvent());
+        if(ioo instanceof Menu && 
+                (   action.getEvent().equals(Event.KEY_RED)
+                    || action.getEvent().equals(Event.KEY_GREEN)
+                    || action.getEvent().equals(Event.KEY_YELLOW)
+                    || action.getEvent().equals(Event.KEY_BLUE)
+                ))
+        {
+            setColorKeyText((Menu) ioo, action.getName(), action.getEvent());
         }
         conn.send(sb.toString());
     }
@@ -234,6 +258,12 @@ public class Osd implements IEventDispatcher {
         conn.send(sb.toString());
     }
     
+    /**
+     * 
+     * @return the current selected OsdItem or null
+     * @throws IOException
+     * @throws OsdException
+     */
     public OsdItem getCurrentItem() throws IOException, OsdException {
         List<Response> list = (List<Response>) conn.send(menuStack.peek().getId() + ".getcurrent");
         for (Response response : list) {

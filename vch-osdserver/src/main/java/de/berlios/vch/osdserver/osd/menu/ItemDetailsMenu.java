@@ -2,9 +2,14 @@ package de.berlios.vch.osdserver.osd.menu;
 
 import java.util.StringTokenizer;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.util.tracker.ServiceTracker;
+
 import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.osdserver.ID;
 import de.berlios.vch.osdserver.osd.OsdItem;
+import de.berlios.vch.osdserver.osd.menu.actions.IOsdAction;
+import de.berlios.vch.osdserver.osd.menu.actions.ItemDetailsAction;
 import de.berlios.vch.osdserver.osd.menu.actions.PlayAction;
 import de.berlios.vch.parser.IVideoPage;
 
@@ -12,11 +17,21 @@ public class ItemDetailsMenu extends Menu {
 
     private int index = 0;
     
-    public ItemDetailsMenu(IVideoPage page, Messages i18n) {
+    public ItemDetailsMenu(BundleContext ctx, IVideoPage page, Messages i18n) {
         super(ID.randomId(), page.getTitle());
         
         if(page.getVideoUri() != null && !page.getVideoUri().toString().isEmpty()) {
+            // register play action
             registerAction(new PlayAction(i18n));
+            
+            // register actions from other osgi bundles
+            Object[] actions = getOsdActions(ctx);
+            if(actions != null) {
+                for (Object a : actions) {
+                    IOsdAction action = (IOsdAction) a;
+                    registerAction(action);
+                }
+            }
         }
         
         int rowlen = 50;
@@ -42,6 +57,14 @@ public class ItemDetailsMenu extends Menu {
         }
     }
     
+    private Object[] getOsdActions(BundleContext ctx) {
+        ServiceTracker st = new ServiceTracker(ctx, ItemDetailsAction.class.getName(), null);
+        st.open();
+        Object[] actions = st.getServices();
+        st.close();
+        return actions;
+    }
+
     private void addLine(String line, IVideoPage page) {
         OsdItem description = new OsdItem("item_desc" + index++, line.toString());
         description.setSelectable(false);

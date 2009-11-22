@@ -9,6 +9,7 @@ import java.util.Collections;
 
 import org.hampelratte.svdrp.Command;
 import org.hampelratte.svdrp.Response;
+import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +22,6 @@ import de.berlios.vch.osdserver.osd.OsdException;
 import de.berlios.vch.osdserver.osd.menu.Menu;
 import de.berlios.vch.osdserver.osd.menu.OverviewMenu;
 import de.berlios.vch.parser.IOverviewPage;
-import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
 import de.berlios.vch.parser.WebPageTitleComparator;
@@ -48,8 +48,11 @@ public class OsdSession implements Runnable {
     
     private Messages i18n;
     
-    public OsdSession(Messages i18n) {
+    private BundleContext ctx;
+    
+    public OsdSession(BundleContext ctx, Messages i18n) {
         this.i18n = i18n;
+        this.ctx = ctx;
     }
 
     @Override
@@ -74,12 +77,12 @@ public class OsdSession implements Runnable {
 
         try {
             Menu menu;
-            if (osd.getCurrentMenu() != null) {
-                logger.debug("Found previous menu");
-                menu = osd.getCurrentMenu();
-            } else {
-                menu = new OverviewMenu(getParsers(), i18n);
-            }
+//            if (osd.getCurrentMenu() != null) {
+//                logger.debug("Found previous menu");
+//                menu = osd.getCurrentMenu();
+//            } else {
+                menu = new OverviewMenu(ctx, getParsers(), i18n);
+//            }
             osd.createMenu(menu);
             // TODO activate for downloads
 //            try {
@@ -111,35 +114,17 @@ public class OsdSession implements Runnable {
         logger.info("osdserver session ended");
     }
     
-    public static void play(Object o) throws IOException {
-        String playlistEntry = null;
-        String title = null;
-        
-        if(o instanceof IVideoPage) {
-            IVideoPage page = (IVideoPage) o;
-            title = page.getTitle();
-            playlistEntry = page.getVideoUri().toString();
-//        if(o instanceof AbstractDownload) {
-//            AbstractDownload ad = (AbstractDownload) o;
-//            playlistEntry = ad.getLocalFile();
-//            title = ad.getItem().getTitle();
-//        } else if(o instanceof Download) {
-//            Download d = (Download) o;
-//            playlistEntry = d.getLocalFile();
-//            title = d.getItem().getTitle();
-//        } else if(o instanceof Item) {
-//            Item item = (Item) o;
-//            playlistEntry = item.getEnclosure().getLink();
-//            title = item.getTitle();
-        } else {
-            throw new IOException("Couldn't determine enclosure URI");
-        }
-        
-        logger.debug("Requested playback of video {}", playlistEntry);
+    /**
+     * Starts the mplayer plugin with the given playlist
+     * @param playlist a list of URIs to play
+     * @throws IOException
+     */
+    public static void play(PlaylistEntry...playlist) throws IOException {
+        logger.debug("Requested playback of {}", playlist);
         String host = "localhost";
         int port = 2001;
         Osd.getInstance().showMessageSilent(new OsdMessage("Wiedergabe wird gestartet. Bitte warten...", OsdMessage.STATUS));
-        logger.info("Starting media player plugin with SVDRP on {}:{} for {}", new Object[] {host, port, playlistEntry});
+        logger.info("Starting media player plugin with SVDRP on {}:{} for {}", new Object[] {host, port, playlist});
         org.hampelratte.svdrp.Connection svdrp = null;
         try {
             svdrp = new org.hampelratte.svdrp.Connection(host, port);
@@ -148,10 +133,14 @@ public class OsdSession implements Runnable {
             Osd.getInstance().showMessageSilent(new OsdMessage("Wiedergabeliste wird erstellt...", OsdMessage.STATUS));
             FileWriter fw = new FileWriter(new File("/tmp/vch.pls"));
             if(player == MediaPlayer.MPLAYER) {
-                fw.write(playlistEntry);
+                for (PlaylistEntry playlistEntry : playlist) {
+                    fw.write(playlistEntry.getUrl() + '\n');
+                }
             } else if(player == MediaPlayer.XINELIBOUTPUT) {
-                fw.write("File1="+URLDecoder.decode(playlistEntry, "utf-8")+"\n");
-                fw.write("Title1="+title);
+                for (int i = 0; i < playlist.length; i++) {
+                    fw.write("File"+(i+1)+"="+URLDecoder.decode(playlist[i].getUrl(), "utf-8")+"\n");
+                    fw.write("Title"+(i+1)+"="+playlist[i].getTitle()+'\n');
+                }
             }
             fw.close();
             

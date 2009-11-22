@@ -1,5 +1,6 @@
 package de.berlios.vch.osdserver.osd.menu.actions;
 
+import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,9 +23,12 @@ public class OpenMenuAction implements IOsdAction {
     private Messages i18n;
     
     private Osd osd = Osd.getInstance();
+    
+    private BundleContext ctx;
 
-    public OpenMenuAction(Messages i18n) {
+    public OpenMenuAction(BundleContext ctx, Messages i18n) {
         this.i18n = i18n;
+        this.ctx = ctx;
     }
     
     @Override
@@ -46,7 +50,7 @@ public class OpenMenuAction implements IOsdAction {
                 page = (IOverviewPage) parser.parse(page);
             }
             
-            Menu siteMenu = new OverviewMenu((IOverviewPage) page, i18n);
+            Menu siteMenu = new OverviewMenu(ctx, (IOverviewPage) page, i18n);
             osd.createMenu(siteMenu);
             osd.appendToFocus(siteMenu);
             osd.showMessage(new OsdMessage("", OsdMessage.STATUSCLEAR));

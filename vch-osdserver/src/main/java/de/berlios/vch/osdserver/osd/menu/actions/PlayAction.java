@@ -1,21 +1,19 @@
 package de.berlios.vch.osdserver.osd.menu.actions;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.IOException;
 
 import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.osdserver.OsdSession;
-import de.berlios.vch.osdserver.io.command.OsdMessage;
+import de.berlios.vch.osdserver.PlaylistEntry;
 import de.berlios.vch.osdserver.io.response.Event;
 import de.berlios.vch.osdserver.osd.Osd;
+import de.berlios.vch.osdserver.osd.OsdException;
 import de.berlios.vch.osdserver.osd.OsdItem;
 import de.berlios.vch.osdserver.osd.OsdObject;
 import de.berlios.vch.parser.IVideoPage;
 
 public class PlayAction implements IOsdAction {
 
-    private static transient Logger logger = LoggerFactory.getLogger(PlayAction.class);
-    
     private Messages i18n;
     
     private Osd osd = Osd.getInstance();
@@ -25,17 +23,10 @@ public class PlayAction implements IOsdAction {
     }
 
     @Override
-    public void execute(OsdObject oo) {
-        try {
-            OsdItem osditem = osd.getCurrentItem();
-            IVideoPage page = (IVideoPage) osditem.getUserData();
-            OsdSession.play(page);
-        } catch (Exception e) {
-            logger.error("Couldn't start video playback", e);
-            osd.showMessageSilent(new OsdMessage("", OsdMessage.STATUSCLEAR));
-            osd.showMessageSilent(new OsdMessage(i18n.translate("error_start_playback") + ": " + e.getMessage(),
-                    OsdMessage.ERROR));
-        }
+    public void execute(OsdObject oo) throws IOException, OsdException {
+        OsdItem osditem = osd.getCurrentItem();
+        IVideoPage page = (IVideoPage) osditem.getUserData();
+        OsdSession.play(new PlaylistEntry(page.getTitle(), page.getVideoUri().toString()));
     }
 
     @Override
