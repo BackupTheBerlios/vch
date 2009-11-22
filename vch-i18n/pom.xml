@@ -11,6 +11,7 @@
 		<artifactId>bundle</artifactId>
 		<groupId>de.berlios.vch</groupId>
 		<version>0.0.1</version>
+		<relativePath>../Plugins</relativePath>
 	</parent>
 
 	<dependencies>
