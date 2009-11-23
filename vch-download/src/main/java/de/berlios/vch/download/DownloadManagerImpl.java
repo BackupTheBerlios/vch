@@ -279,8 +279,12 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
                 dto.setDescription(download.getVideoPage().getDescription());
                 dto.setDuration(download.getVideoPage().getDuration());
                 dto.setId(download.getId());
-                dto.setPublishDate(DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar)download.getVideoPage().getPublishDate()));
-                dto.setThumbUri(download.getVideoPage().getThumbnail().toString());
+                if(download.getVideoPage().getPublishDate() != null) {
+                    dto.setPublishDate(DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar)download.getVideoPage().getPublishDate()));
+                }
+                if(download.getVideoPage().getThumbnail() != null) {
+                    dto.setThumbUri(download.getVideoPage().getThumbnail().toString());
+                }
                 dto.setTitle(download.getVideoPage().getTitle());
                 dto.setVideoUri(download.getVideoPage().getVideoUri().toString());
                 marshaller.marshal(dto, data);
