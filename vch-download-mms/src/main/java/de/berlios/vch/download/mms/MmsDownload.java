@@ -63,6 +63,14 @@ public class MmsDownload extends AbstractDownload implements MMSMessageListener,
     public MmsDownload(IVideoPage video, LogService logger) {
         super(video);
         this.logger = logger;
+        
+        // file
+        URI uri = video.getVideoUri();
+        String p = uri.getPath();
+        file = p.substring(p.lastIndexOf('/'));
+        if(uri.getQuery() != null) {
+            file += "?" + uri.getQuery();
+        }
     }
     
     @Override
@@ -121,17 +129,10 @@ public class MmsDownload extends AbstractDownload implements MMSMessageListener,
         }
         path = path.substring(0, path.lastIndexOf('/'));
         
-        // file
-        String p = uri.getPath();
-        file = p.substring(p.lastIndexOf('/'));
-        if(uri.getQuery() != null) {
-            file += "?" + uri.getQuery();
-        }
-        
-        logger.log(LogService.LOG_DEBUG, host);
-        logger.log(LogService.LOG_DEBUG, Integer.toString(port));
-        logger.log(LogService.LOG_DEBUG, path);
-        logger.log(LogService.LOG_DEBUG, file);
+        logger.log(LogService.LOG_DEBUG, "Host: " + host);
+        logger.log(LogService.LOG_DEBUG, "Port: " + Integer.toString(port));
+        logger.log(LogService.LOG_DEBUG, "Path: " + path);
+        logger.log(LogService.LOG_DEBUG, "File: " + file);
     }
 
     @Override
@@ -321,7 +322,7 @@ public class MmsDownload extends AbstractDownload implements MMSMessageListener,
     }
 
     @Override
-    public String getLocalFile() {
+    public synchronized String getLocalFile() {
         String filename = file.substring(1);
         
         // cut off query parameters
