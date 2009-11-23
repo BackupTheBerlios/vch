@@ -40,7 +40,6 @@ public class HttpDownloadFactory implements DownloadFactory {
     @Validate
     public void start() {
         valid = true;
-        logger.log(LogService.LOG_INFO, "HttpDownloadFactory up and running");
     }
     
     @Invalidate
