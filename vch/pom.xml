@@ -84,7 +84,7 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-    
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <felix.main.version>1.8.1</felix.main.version>
@@ -229,6 +229,7 @@
         <module>../vch-parser-web</module>
         <module>../vch-parser-youporn</module>
         <module>../vch-parser-zdf</module>
+        <module>../vch-update</module>
         <module>../vch-web</module>
     </modules>
 
@@ -236,7 +237,13 @@
         <repository>
             <id>berlios-vch</id>
             <name>VCH Plugin Repository</name>
-            <url>scp://shell.berlios.de/home/groups/vch/htdocs/osgi</url>
+            <url>scp://shell.berlios.de/home/groups/vch/htdocs/repo/releases</url>
         </repository>
+        <snapshotRepository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>berlios-vch</id>
+            <name>VCH SNAPSHOT Plugin Repository</name>
+            <url>scp://shell.berlios.de/home/groups/vch/htdocs/repo/snapshots</url>
+        </snapshotRepository>
     </distributionManagement>
 </project> 
