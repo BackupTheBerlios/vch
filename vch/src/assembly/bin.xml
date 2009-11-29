@@ -54,6 +54,7 @@
                 <include>de.berlios.vch:parser.dreisat</include>
                 <include>de.berlios.vch:parser.web</include>
 				<include>de.berlios.vch:parser.zdf</include>
+                <include>de.berlios.vch:update</include>
 				<include>de.berlios.vch:web</include>
 			</includes>
 			<binaries>
