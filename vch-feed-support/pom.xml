@@ -35,7 +35,7 @@
 				<configuration>
 					<instructions>
 						<Import-Package>!oracle.*,!org.jaxen.*,!org.apache.xerces.*,*</Import-Package>
-						<Export-Package>com.sun.syndication.*,de.berlios.vch.parser.rss.*,org.jdom.*</Export-Package>
+						<Export-Package>com.sun.syndication.*,de.berlios.vch.rss.*,org.jdom.*</Export-Package>
 					</instructions>
 				</configuration>
 			</plugin>
