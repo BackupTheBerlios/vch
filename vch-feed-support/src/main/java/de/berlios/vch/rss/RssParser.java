@@ -1,4 +1,4 @@
-package de.berlios.vch.parser.rss;
+package de.berlios.vch.rss;
 
 import java.io.IOException;
 import java.io.StringReader;
