@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.service.log.LogService;
 
 import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.web.TemplateLoader;
@@ -26,6 +27,8 @@ public abstract class BundleContextServlet extends HttpServlet {
     protected Messages i18n;
     
     protected TemplateLoader templateLoader;
+    
+    protected LogService logger;
     
     public BundleContext getBundleContext() {
         return bundleContext;
@@ -104,5 +107,7 @@ public abstract class BundleContextServlet extends HttpServlet {
         this.templateLoader = templateLoader;
     }
     
-    
+    public void setLogger(LogService logger) {
+        this.logger = logger;
+    }
 }
