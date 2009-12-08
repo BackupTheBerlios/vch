@@ -61,6 +61,7 @@ public class Activator implements ResourceBundleProvider {
         servlet.setBundleContext(ctx);
         servlet.setMessages(messages);
         servlet.setTemplateLoader(templateLoader);
+        servlet.setLogger(logger);
         httpService.registerServlet(UpdateServlet.PATH, servlet, null, null);
         
         // register web interface menu

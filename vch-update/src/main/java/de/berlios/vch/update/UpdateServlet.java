@@ -20,14 +20,13 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.LogService;
 import org.osgi.service.obr.Capability;
 import org.osgi.service.obr.Repository;
 import org.osgi.service.obr.RepositoryAdmin;
 import org.osgi.service.obr.Requirement;
 import org.osgi.service.obr.Resolver;
 import org.osgi.service.obr.Resource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import de.berlios.vch.config.ConfigService;
 import de.berlios.vch.web.servlets.BundleContextServlet;
@@ -35,8 +34,6 @@ import de.berlios.vch.web.servlets.BundleContextServlet;
 public class UpdateServlet extends BundleContextServlet {
     
     public static final String PATH = "/extensions";
-    
-    private static transient Logger logger = LoggerFactory.getLogger(UpdateServlet.class); // TODO use LogService
     
     private Preferences prefs;
     
@@ -88,7 +85,7 @@ public class UpdateServlet extends BundleContextServlet {
                 try {
                     bundle.uninstall();
                 } catch (BundleException e) {
-                    logger.error("Couldn't uninstall bundle", e); // TODO show error on webpage
+                    logger.log(LogService.LOG_ERROR, "Couldn't uninstall bundle", e); // TODO show error on webpage
                 }
             }
         }
@@ -98,12 +95,12 @@ public class UpdateServlet extends BundleContextServlet {
         // lookup RepositoryAdmin
         ServiceReference sr = getBundleContext().getServiceReference(RepositoryAdmin.class.getName());
         if (sr == null) {
-            logger.error("OBR service not available"); // TODO show error on webpage
+            logger.log(LogService.LOG_ERROR, "OBR service not available"); // TODO show error on webpage
             return;
         }
         RepositoryAdmin adm = (RepositoryAdmin) getBundleContext().getService(sr);
         if (adm == null) {
-            logger.error("OBR service not available"); // TODO show error on webpage
+            logger.log(LogService.LOG_ERROR, "OBR service not available"); // TODO show error on webpage
             return;
         }
         Resolver resolver = adm.resolver();
@@ -124,7 +121,7 @@ public class UpdateServlet extends BundleContextServlet {
         } else {
             // TODO show error on webpage
             for (Requirement req : resolver.getUnsatisfiedRequirements()) {
-                logger.info("Unsatisfied requirement: " + req.getName() + " " + req.toString());
+                logger.log(LogService.LOG_INFO, "Unsatisfied requirement: " + req.getName() + " " + req.toString());
             }
         }
     }
@@ -138,7 +135,7 @@ public class UpdateServlet extends BundleContextServlet {
             try {
                 adm.addRepository(new URL(uri));
             } catch (Exception e) {
-                logger.warn("Couldn't add repository", e);
+                logger.log(LogService.LOG_WARNING, "Couldn't add repository", e);
             }
         }
         
@@ -147,25 +144,24 @@ public class UpdateServlet extends BundleContextServlet {
         for (Repository repo : repos) {
             sb.append('\n').append(repo.getName()).append(' ').append(repo.getURL().toString());
         }
-        logger.info("Loading extensions list");
+        logger.log(LogService.LOG_INFO, "Loading extensions list");
         String filter = "(symbolicname=*)"; // get all bundles
-        logger.info("Resolving {}", filter);
+        logger.log(LogService.LOG_INFO, "Resolving " + filter);
         Resource[] res = adm.discoverResources(filter);
         Collection<Resource> resources = filterByVersion(res);
-        // TODO filter
-//        for (Iterator<Resource> iterator = resources.iterator(); iterator.hasNext();) {
-//            Resource resource = iterator.next();
-//            Capability[] caps = resource.getCapabilities();
-//            Capability capability = getCapability(caps, "jmp3renamer");
-//            if (capability != null) {
-//                if (!"true".equals(capability.getProperties().get("Plugin"))) {
-//                    iterator.remove();
-//                }
-//            } else {
-//                iterator.remove();
-//            }
-//        }
-        logger.info("Found {} resources", resources.size());
+        for (Iterator<Resource> iterator = resources.iterator(); iterator.hasNext();) {
+            Resource resource = iterator.next();
+            Capability[] caps = resource.getCapabilities();
+            Capability capability = getCapability(caps, "vch");
+            if (capability != null) {
+                if (!"true".equals(capability.getProperties().get("bundle"))) {
+                    iterator.remove();
+                }
+            } else {
+                iterator.remove();
+            }
+        }
+        logger.log(LogService.LOG_INFO, "Found " + resources.size() + " resources");
         List<Resource> allResources = new ArrayList<Resource>();
         allResources.addAll(resources);
         Collections.sort(allResources, new ResourceNameComparator());
@@ -193,12 +189,15 @@ public class UpdateServlet extends BundleContextServlet {
                 Resource r1 = filterMap.get(res[i].getSymbolicName());
                 Resource r2 = res[i];
                 if (r2.getVersion().compareTo(r1.getVersion()) == 1) {
-                    logger.debug("Bundle {} with version {} will be dropped", r1.getSymbolicName(), r1.getVersion());
-                    logger.info("Adding {} with version {}", res[i].getPresentationName(), res[i].getVersion());
+                    logger.log(LogService.LOG_DEBUG, "Bundle " + r1.getSymbolicName() + " with version "
+                            + r1.getVersion() + " will be dropped");
+                    logger.log(LogService.LOG_INFO, "Adding " + res[i].getPresentationName() + " with version "
+                            + res[i].getVersion());
                     filterMap.put(res[i].getSymbolicName(), r2);
                 }
             } else {
-                logger.info("Adding {} with version {}", res[i].getPresentationName(), res[i].getVersion());
+                logger.log(LogService.LOG_INFO, "Adding " + res[i].getPresentationName() + " with version "
+                        + res[i].getVersion());
                 filterMap.put(res[i].getSymbolicName(), res[i]);
             }
         }
@@ -216,7 +215,7 @@ public class UpdateServlet extends BundleContextServlet {
     
     private List<String> getRepoUris() {
         List<String> list = new ArrayList<String>();
-        String repos = prefs.get("plugin_repos", "VCH Bundle Repository,http://www.hampelratte.org/maven/repository.xml");
+        String repos = prefs.get("plugin_repos", "VCH Bundle Repository,http://vch.berlios.de/repo/releases/repository.xml");
         String[] keyValues = repos.split(";");
         for (String string : keyValues) {
             String[] keyValue = string.split(",");
