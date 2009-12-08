@@ -16,7 +16,7 @@ import com.sun.syndication.io.FeedException;
 
 import de.berlios.vch.http.client.HttpUtils;
 import de.berlios.vch.parser.IWebPage;
-import de.berlios.vch.parser.rss.RssParser;
+import de.berlios.vch.rss.RssParser;
 
 public class DreisatFeedParser {
     private static transient Logger logger = LoggerFactory.getLogger(DreisatFeedParser.class);
