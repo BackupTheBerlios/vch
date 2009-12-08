@@ -8,6 +8,7 @@ import java.io.Writer;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -57,6 +58,7 @@ public class TemplateLoaderImpl implements TemplateLoader {
     public String loadTemplate(String filename, Map<String, Object> params) {
         addDefaultParameters(params);
         addI18nParams(params);
+        addIncludes(params);
         
         String page = null;
         try {
@@ -74,9 +76,12 @@ public class TemplateLoaderImpl implements TemplateLoader {
         return page;
     }
     
+    
+
     public void processTemplate(String filename, Map<String, Object> params, Writer writer) {
         addDefaultParameters(params);
         addI18nParams(params);
+        addIncludes(params);
 
         try {
             Template tpl = config.getTemplate(filename);
@@ -113,6 +118,34 @@ public class TemplateLoaderImpl implements TemplateLoader {
         
         // navigation 
         params.put("NAVIGATION", menuBuilder.getMenu());
+    }
+    
+    private void addIncludes(Map<String, Object> params) {
+        // add javascripts
+        StringBuilder includes = new StringBuilder();
+        @SuppressWarnings("unchecked")
+        List<String> js = (List<String>) params.get("JS_INCLUDES");
+        if(js != null) {
+            for (String uri : js) {
+                includes.append("<script type=\"text/javascript\" src=\"");
+                includes.append(uri);
+                includes.append("\"></script>\n");
+            }
+        }
+        params.put("JAVASCRIPT", includes.toString());
+        
+        // add stylesheets
+        includes = new StringBuilder();
+        @SuppressWarnings("unchecked")
+        List<String> css = (List<String>) params.get("CSS_INCLUDES");
+        if(css != null) {
+            for (String uri : css) {
+                includes.append("<link type=\"text/css\" rel=\"stylesheet\" href=\"");
+                includes.append(uri);
+                includes.append("\" />\n");
+            }
+        }
+        params.put("CSS", includes.toString());
     }
     
     class BundleTemplateLoader implements freemarker.cache.TemplateLoader {

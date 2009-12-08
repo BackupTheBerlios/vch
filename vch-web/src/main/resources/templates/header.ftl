@@ -10,14 +10,10 @@
       <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.7.0/build/menu/assets/skins/sam/menu.css" />
       <script type="text/javascript" src="http://yui.yahooapis.com/2.7.0/build/container/container_core-min.js"></script>
       <script type="text/javascript" src="http://yui.yahooapis.com/2.7.0/build/menu/menu-min.js"></script>
-      <!-- Yui TreeView -->
-      <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.7.0/build/treeview/assets/skins/sam/treeview.css" />
-      <script type="text/javascript" src="http://yui.yahooapis.com/2.7.0/build/connection/connection-min.js"></script>
-      <script type="text/javascript" src="http://yui.yahooapis.com/2.7.0/build/treeview/treeview-min.js"></script>
-      <!-- logging -->
-      <link type="text/css" rel="stylesheet" href="http://yui.yahooapis.com/2.7.0/build/logger/assets/skins/sam/logger.css" />
-      <script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/logger/logger-min.js"></script>
     <!-- End YUI Includes -->
+    
+    ${JAVASCRIPT}
+    ${CSS}
     
     <link rel="stylesheet" href="/styles.css" type="text/css" media="screen" />
     <script type="text/javascript" src="/jquery.js"></script>
