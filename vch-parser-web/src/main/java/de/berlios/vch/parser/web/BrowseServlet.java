@@ -3,6 +3,7 @@ package de.berlios.vch.parser.web;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -103,6 +104,18 @@ public class BrowseServlet extends BundleContextServlet {
                 params.put("SERVLET_URI", req.getScheme() + "://" + req.getServerName() + ":" + req.getServerPort()
                         + req.getServletPath());
                 params.put("PARSER", parserId);
+                
+                // add css and javascript for the treeview and for log console
+                List<String> css = new ArrayList<String>();
+                css.add("http://yui.yahooapis.com/2.7.0/build/treeview/assets/skins/sam/treeview.css");
+                css.add("http://yui.yahooapis.com/2.7.0/build/logger/assets/skins/sam/logger.css");
+                params.put("CSS_INCLUDES", css);
+                List<String> js = new ArrayList<String>();
+                js.add("http://yui.yahooapis.com/2.7.0/build/connection/connection-min.js");
+                js.add("http://yui.yahooapis.com/2.7.0/build/treeview/treeview-min.js");
+                js.add("http://yui.yahooapis.com/2.8.0r4/build/logger/logger-min.js");
+                params.put("JS_INCLUDES", js);
+                
                 try {
                     // IOverviewPage page = parser.getRoot();
                     IOverviewPage page = new OverviewPage();

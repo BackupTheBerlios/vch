@@ -17,7 +17,6 @@
         function showDetails(node) {
             var callback = {
                 success: function(oResponse) {
-                    YAHOO.log("XHR transaction was successful.", "info");
                     var oResults = eval("(" + oResponse.responseText + ")");
                     if((oResults.ResultSet.Result)) {
                         var node = oResults.ResultSet.Result;
@@ -35,7 +34,6 @@
                 
                 failure: function(oResponse) {
                     error(oResponse.responseText);
-                    YAHOO.log("Failed to process XHR transaction.", "error");
                 },
                 
                 argument: {
@@ -147,7 +145,6 @@
                 //proceed with its business.
                 failure: function(oResponse) {
                     error(oResponse.responseText);
-                    YAHOO.log("Failed to process XHR transaction: " + oResponse.responseText, "error");
                     oResponse.argument.fnLoadComplete();
                 },
                 
