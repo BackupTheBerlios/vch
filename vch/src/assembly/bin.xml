@@ -52,6 +52,7 @@
 				<include>de.berlios.vch:parser.console</include>
 				<include>de.berlios.vch:parser.dmax</include>
                 <include>de.berlios.vch:parser.dreisat</include>
+                <include>de.berlios.vch:parser.rss</include>
                 <include>de.berlios.vch:parser.web</include>
 				<include>de.berlios.vch:parser.zdf</include>
                 <include>de.berlios.vch:update</include>
