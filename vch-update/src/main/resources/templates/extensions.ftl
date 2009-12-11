@@ -41,7 +41,7 @@
     
     <fieldset id="bundles_installed"><legend>${I18N_BUNDLES_INSTALLED}</legend>
         <div style="overflow: hidden">
-            <select name="installed" size="30" style="width: 100%" multiple="multiple">
+            <select name="installed" size="20" style="width: 100%" multiple="multiple">
                 <#list INSTALLED as bundle>
                 <option value="${bundle.bundleId}">${bundle.name} (${bundle.version})</option> 
                 </#list>
@@ -59,7 +59,7 @@
     
     <fieldset id="bundles_available"><legend>${I18N_BUNDLES_AVAILABLE}</legend>
         <div style="overflow: hidden">
-            <select name="available" size="30" style="width: 100%" multiple="multiple">
+            <select name="available" size="20" style="width: 100%" multiple="multiple">
                 <#list AVAILABLE as resource>
                 <option value="${resource.symbolicName}">${resource.presentationName} (${resource.version})</option> 
                 </#list>
