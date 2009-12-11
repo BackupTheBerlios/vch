@@ -61,6 +61,13 @@
 			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>de.berlios.vch</groupId>
+			<artifactId>i18n</artifactId>
+			<version>0.0.1</version>
+			<type>bundle</type>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 	<parent>
 		<artifactId>bundle</artifactId>
