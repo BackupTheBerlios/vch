@@ -20,7 +20,7 @@
                     var oResults = eval("(" + oResponse.responseText + ")");
                     if((oResults.ResultSet.Result)) {
                         var node = oResults.ResultSet.Result;
-                        var html = '<p><a href=\"'+encodeURI(node.video)+'\">'+node.label+'</a>';
+                        var html = '<p><a href=\"'+node.video+'\">'+node.label+'</a>';
                         if(node.pubDate) {
                             var date = new Date();
                             date.setTime(node.pubDate);
@@ -43,10 +43,10 @@
                 timeout: 30000
             };
 
-            var sUrl = "${SERVLET_URI}/?id=${PARSER}&uri=" + encodeURI(node.href) + "&title=" + encodeURI(node.label);
+            var sUrl = "${SERVLET_URI}/?id=${PARSER}&uri=" + encodeURIComponent(node.href) + "&title=" + encodeURIComponent(node.label);
             for(var item in node.data) {
                 var value = node.data[item];
-                sUrl += "&node.data." + item + "=" + encodeURI(value);
+                sUrl += "&node.data." + item + "=" + encodeURIComponent(value);
             }
             YAHOO.util.Connect.asyncRequest('GET', sUrl, callback);
             YAHOO.log("URI " + sUrl);
@@ -101,10 +101,10 @@
             //and then return fnLoadComplete back to the tree.
             
             //prepare URL for XHR request:
-            var sUrl = "${SERVLET_URI}/?id=${PARSER}&uri=" + escape(node.href) + "&title=" + node.label;
+            var sUrl = "${SERVLET_URI}/?id=${PARSER}&uri=" + encodeURIComponent(node.href) + "&title=" + node.label;
             for(var item in node.data) {
                 var value = node.data[item];
-                sUrl += "&node.data." + item + "=" + escape(value);
+                sUrl += "&node.data." + item + "=" + encodeURIComponent(value);
             }
             
             //prepare our callback object
