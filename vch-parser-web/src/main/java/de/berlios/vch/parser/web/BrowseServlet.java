@@ -31,6 +31,7 @@ import de.berlios.vch.parser.WebPage;
 import de.berlios.vch.parser.exceptions.NoSupportedVideoFoundException;
 import de.berlios.vch.web.servlets.BundleContextServlet;
 
+// TODO videos tatsächlich erst bei bedarf parsen und in json objekte umwandeln
 public class BrowseServlet extends BundleContextServlet {
 
     private ServiceTracker st;
