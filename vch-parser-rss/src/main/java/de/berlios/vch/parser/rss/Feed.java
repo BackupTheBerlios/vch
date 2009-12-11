@@ -1,6 +1,6 @@
 package de.berlios.vch.parser.rss;
 
-public class Feed {
+public class Feed implements Comparable<Feed> {
     private String id;
     private String title;
     private String uri;
@@ -34,5 +34,15 @@ public class Feed {
 
     public void setUri(String uri) {
         this.uri = uri;
+    }
+
+    @Override
+    public int compareTo(Feed o) {
+        return getTitle().compareTo(o.getTitle());
+    }
+    
+    @Override
+    public String toString() {
+        return getTitle() + " [" + getUri() + "]"; 
     }
 }
