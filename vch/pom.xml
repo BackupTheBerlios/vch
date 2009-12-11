@@ -229,6 +229,7 @@
         <module>../vch-parser-rss</module>
         <module>../vch-parser-web</module>
         <module>../vch-parser-youporn</module>
+        <module>../vch-parser-youtube</module>
         <module>../vch-parser-zdf</module>
         <module>../vch-update</module>
         <module>../vch-web</module>
