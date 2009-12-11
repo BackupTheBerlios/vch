@@ -16,7 +16,7 @@
   <td valign="top">
     ${I18N_INSTALLED_FEEDS}
   </td><td>
-    <select name="feeds" size="20" multiple="multiple">
+    <select name="feeds" size="20" multiple="multiple" style="max-width:600px">
         <#list FEEDS as feed>
         <option value="${feed.id}">${feed.title} - ${feed.uri}</option> 
         </#list>
