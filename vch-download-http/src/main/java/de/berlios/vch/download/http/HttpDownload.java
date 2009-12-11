@@ -50,7 +50,7 @@ public class HttpDownload extends AbstractDownload {
                 fileLength = file.length();
             }
             out = new RandomAccessFile(file, "rw");
-            URI uri = getSource();
+            URI uri = getVideoPage().getVideoUri();
             con = (HttpURLConnection) uri.toURL().openConnection();
             con.addRequestProperty("Range", "bytes=" + fileLength + "-");
 
@@ -108,11 +108,11 @@ public class HttpDownload extends AbstractDownload {
             logger.log(LogService.LOG_DEBUG, "AbstractDownload finished " + uri.toString());
             setStatus(Status.FINISHED);
         } catch (MalformedURLException e) {
-            error("Not a valid URL " + getSource().toString(), e);
+            error("Not a valid URL " + getVideoPage().getVideoUri().toString(), e);
             setStatus(Status.FAILED);
             setException(e);
         } catch (IOException e) {
-            error("Couldn't download file from " + getSource().toString(), e);
+            error("Couldn't download file from " + getVideoPage().getVideoUri().toString(), e);
             setStatus(Status.FAILED);
             setException(e);
         } finally {
@@ -132,7 +132,7 @@ public class HttpDownload extends AbstractDownload {
 
     private boolean checkSupportsPause() {
         boolean support = false;
-        URI uri = getSource();
+        URI uri = getVideoPage().getVideoUri();
         HttpURLConnection con = null;
         try {
             con = (HttpURLConnection) uri.toURL().openConnection();
@@ -182,7 +182,7 @@ public class HttpDownload extends AbstractDownload {
 
     @Override
     public String getLocalFile() {
-        URI uri = getSource();
+        URI uri = getVideoPage().getVideoUri();
         String path = uri.getPath();
         String _file = path.substring(path.lastIndexOf('/') + 1);
         String title = getVideoPage().getTitle().replaceAll("[^a-zA-z0-9]", "_");

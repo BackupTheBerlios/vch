@@ -19,8 +19,6 @@ public abstract class AbstractDownload implements Download {
     
     private String id = ID.randomId();
 
-    private URI source;
-    
     private File destinationDir;
     
     private long loadedBytes;
@@ -42,7 +40,6 @@ public abstract class AbstractDownload implements Download {
     
     public AbstractDownload(IVideoPage video) {
         this.videoPage = video;
-        setSource(video.getVideoUri());
         extractConnectInfo();
     }
     
@@ -60,14 +57,6 @@ public abstract class AbstractDownload implements Download {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public URI getSource() {
-        return source;
-    }
-
-    public void setSource(URI source) {
-        this.source = source;
     }
 
     public File getDestinationDir() {
@@ -122,7 +111,7 @@ public abstract class AbstractDownload implements Download {
     }
     
     private void extractConnectInfo() {
-        URI uri = getSource();
+        URI uri = getVideoPage().getVideoUri();
         
         // host
         host = uri.getHost();

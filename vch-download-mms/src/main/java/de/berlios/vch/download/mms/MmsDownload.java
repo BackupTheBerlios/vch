@@ -114,7 +114,7 @@ public class MmsDownload extends AbstractDownload implements MMSMessageListener,
     }
 
     private void extractConnectInfo() {
-        URI uri = getSource();
+        URI uri = getVideoPage().getVideoUri();
         
         // host
         host = uri.getHost();
