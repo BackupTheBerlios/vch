@@ -84,14 +84,6 @@ public class OsdSession implements Runnable {
                 menu = new OverviewMenu(ctx, getParsers(), i18n);
 //            }
             osd.createMenu(menu);
-            // TODO activate for downloads
-//            try {
-//                osd.setColorKeyText(siteMenu, "Downloads", Event.KEY_BLUE);
-//                siteMenu.registerEvent(new Event(siteMenu.getId(), Event.KEY_BLUE, null));
-//            } catch (Exception e) {
-//                logger.error("Couldn't create color button", e);
-//            }
-            
             osd.show(menu);
         } catch (Exception e) {
             logger.error("Couldn't create osd menu", e);
