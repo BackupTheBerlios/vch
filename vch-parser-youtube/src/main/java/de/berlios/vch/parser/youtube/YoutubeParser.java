@@ -126,7 +126,7 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider {
             feedPage.setUri(page.getUri());
             for (Iterator<?> iterator = feed.getEntries().iterator(); iterator.hasNext();) {
                 SyndEntry entry = (SyndEntry) iterator.next();
-                VideoPage video = new YoutubeVideoPageProxy(logger);
+                VideoPage video = new YoutubeVideoPageProxy(logger, prefs);
                 video.setParser(getId());
                 video.setTitle(entry.getTitle());
                 String rawDescription = entry.getDescription().getValue();
@@ -149,7 +149,7 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider {
     }
     
     private void registerServlet() {
-        ConfigServlet servlet = new ConfigServlet(this);
+        ConfigServlet servlet = new ConfigServlet(this, prefs);
         servlet.setLogger(logger);
         servlet.setBundleContext(ctx);
         servlet.setMessages(i18n);

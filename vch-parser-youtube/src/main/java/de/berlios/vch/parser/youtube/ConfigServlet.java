@@ -3,6 +3,7 @@ package de.berlios.vch.parser.youtube;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.prefs.Preferences;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -15,15 +16,17 @@ import com.sun.syndication.feed.synd.SyndFeed;
 import de.berlios.vch.rss.RssParser;
 import de.berlios.vch.web.servlets.BundleContextServlet;
 
-// TODO add param for the video format flv / mp4 / hd
 public class ConfigServlet extends BundleContextServlet {
 
     public static String PATH = "/config/parser/youtube";
     
     private YoutubeParser parser;
     
-    public ConfigServlet(YoutubeParser parser) {
+    private Preferences prefs;
+    
+    public ConfigServlet(YoutubeParser parser, Preferences prefs) {
         this.parser = parser;
+        this.prefs = prefs;
     }
     
     @Override
@@ -46,6 +49,8 @@ public class ConfigServlet extends BundleContextServlet {
                     parser.removeFeed(id);
                 }
             }
+        } else if(req.getParameter("save_config") != null) {
+            prefs.put("video.quality", req.getParameter("quality"));
         }
         
         params.put("TITLE", i18n.translate("I18N_YOUTUBE_CONFIG"));
@@ -53,8 +58,9 @@ public class ConfigServlet extends BundleContextServlet {
                 + req.getServletPath());
         params.put("FEEDS", parser.getFeeds());
         params.put("ACTION", PATH);
+        params.put("QUALITY", prefs.getInt("video.quality", 34));
         
-        String page = templateLoader.loadTemplate("config.ftl", params);
+        String page = templateLoader.loadTemplate("configYoutube.ftl", params);
         resp.getWriter().print(page);
     }
 

@@ -3,6 +3,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.prefs.Preferences;
 
 import org.json.JSONObject;
 import org.osgi.service.log.LogService;
@@ -15,8 +16,11 @@ public class YoutubeVideoPageProxy extends VideoPage {
     
     private LogService logger;
     
-    public YoutubeVideoPageProxy(LogService logger) {
+    private Preferences prefs;
+    
+    public YoutubeVideoPageProxy(LogService logger, Preferences prefs) {
         this.logger = logger;
+        this.prefs = prefs;
     }
     
     @Override
@@ -47,7 +51,8 @@ public class YoutubeVideoPageProxy extends VideoPage {
 //                    }
                     String video_id = jsonObject.getString("video_id");
                     String t = jsonObject.getString("t");
-                    medialink = new URI("http://www.youtube.com/get_video?video_id=" + video_id + "&t=" + t);
+                    int format = prefs.getInt("video.quality", 34);
+                    medialink = new URI("http://www.youtube.com/get_video" + "?video_id=" + video_id + "&t=" + t + "&fmt=" + format);
                     
                     // parse duration
                     try {
