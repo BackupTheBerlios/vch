@@ -85,7 +85,6 @@ public class BrowseServlet extends BundleContextServlet {
                         response += "}}";
                         resp.setContentType("application/json; charset=utf-8"); // TODO config param?
                         resp.getWriter().println(response);
-                        // TODO wird das hier gebraucht? req.getSession().setAttribute("page", parsedPage);
                     } else {
                         resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                         resp.getWriter().print("Couldn't load page");
