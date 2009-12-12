@@ -1,0 +1,11 @@
+.started {
+    color:black;
+}
+
+.stopped {
+    color:lightgrey;
+}
+
+#container {
+    margin-top:30px; margin-bottom:30px
+}

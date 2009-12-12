@@ -8,6 +8,12 @@ public class BundleRepresentation {
     private String symbolicName;
 
     private String version;
+    
+    private int state;
+    
+    private String author;
+    
+    private String description;
 
     public long getBundleId() {
         return bundleId;
@@ -39,5 +45,29 @@ public class BundleRepresentation {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public int getState() {
+        return state;
+    }
+    
+    public void setState(int state) {
+        this.state = state;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

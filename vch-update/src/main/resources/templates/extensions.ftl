@@ -3,70 +3,52 @@
 
 <h1>${I18N_EXTENSIONS}</h1>
 <#include "status_messages.ftl">
-<style type="text/css">
-    #bundles_installed {
-        position: relative;
-        float: left; 
-        width: 40%;
-    }
-    
-    #bundles_available {
-        position: relative;
-        float: left;
-        width: 40%;
-    }
-    
-    #button_uninstall {
-        float: left;
-        position: relative;
-        top: 110px;
-        margin-right: 10px;
-    }
-    
-    #button_install {
-        float: left;
-        position: relative;
-        top: 110px;
-        margin-left: 10px;
-        margin-right: 10px;
-    }
-    
-    #container {
-        margin-top: 30px;
-    }
-</style>
-    
+
 <div id="container">
-    <form id="bundle_form" action="${ACTION}" method="get">
-    
-    <fieldset id="bundles_installed"><legend>${I18N_BUNDLES_INSTALLED}</legend>
-        <div style="overflow: hidden">
-            <select name="installed" size="20" style="width: 100%" multiple="multiple">
-                <#list INSTALLED as bundle>
-                <option value="${bundle.bundleId}">${bundle.name} (${bundle.version})</option> 
-                </#list>
-            </select>
-        </div>
-        <#--
-        <br/>
-        <input id="button_start" type="submit" name="submit_start" value="Start"/>
-        <input id="button_stop" type="submit" name="submit_stop" value="Stop"/>
-        -->
+    <div id="tabs" style="float:left; min-width:455px">
+        <ul>
+            <li><a href="${ACTION}?tab=installed"><span>${I18N_BUNDLES_INSTALLED}</span></a></li>
+            <li><a href="${ACTION}?tab=available"><span>${I18N_BUNDLES_AVAILABLE}</span></a></li>
+        </ul>
+    </div>
+    <fieldset style="float:left; border:1px solid #AAA; padding:0px 20px 0px 20px; margin:0px; margin-left:40px; height: 409px;" class="ui-corner-all">
+        <legend style="padding-top:0px">${I18N_DESCRIPTION}</legend>
+        <table>
+            <tr><td>${I18N_NAME}</td><td id="bundle_name"></td></tr>
+            <tr><td>${I18N_VERSION}</td><td id="bundle_version"></td></tr>
+            <tr><td>${I18N_AUTHOR}</td><td id="bundle_author"></td></tr>
+            <tr><td>${I18N_STATE}</td><td id="bundle_state"></td></tr>
+            <tr><td colspan="2">${I18N_DESCRIPTION}:<br/>
+                <textarea readonly="readonly" id="bundle_description" cols="40" rows="11"></textarea>
+                </td>
+            </tr>
+        </table>
     </fieldset>
-    
-    <input id="button_install" type="submit" name="submit_install" value="<<"/>
-    <input id="button_uninstall" type="submit" name="submit_uninstall" value=">>"/>
-    
-    <fieldset id="bundles_available"><legend>${I18N_BUNDLES_AVAILABLE}</legend>
-        <div style="overflow: hidden">
-            <select name="available" size="20" style="width: 100%" multiple="multiple">
-                <#list AVAILABLE as resource>
-                <option value="${resource.symbolicName}">${resource.presentationName} (${resource.version})</option> 
-                </#list>
-            </select>
-        </div>
-    </fieldset>
-    </form>
+    <div style="clear:both"></div>
 </div>
 
+<script type="text/javascript">
+    $(document).ready(function() {
+        // enable tabs
+        $('#tabs').tabs(); 
+        
+        // tweak the look
+        $('#tabs').removeClass('ui-widget-content');
+        $('.ui-tabs-panel').css('border-left', '1px solid #AAA');
+        $('.ui-tabs-panel').css('border-right', '1px solid #AAA');
+        $('.ui-tabs-panel').css('border-bottom', '1px solid #AAA');
+        $('.ui-tabs-nav').removeClass('ui-corner-all');
+        $('.ui-tabs-nav').addClass('ui-corner-top');
+        $('.ui-tabs').css('padding', '0px');
+    });
+  
+
+    function showDetails(name, author, version, state, description) {
+        $('#bundle_name').text(name);
+        $('#bundle_version').text(version);
+        $('#bundle_author').text(author);
+        $('#bundle_state').text(state);
+        $('#bundle_description').text(description);
+    }
+</script>
 <#include "footer.ftl">

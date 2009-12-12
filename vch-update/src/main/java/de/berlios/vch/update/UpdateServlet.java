@@ -35,6 +35,8 @@ public class UpdateServlet extends BundleContextServlet {
     
     public static final String PATH = "/extensions";
     
+    public static final String STATIC_PATH = PATH + "/static";
+    
     private Preferences prefs;
     
     private List<Resource> availableBundles = new Vector<Resource>();
@@ -53,19 +55,95 @@ public class UpdateServlet extends BundleContextServlet {
             return;
         }
         
+        // if the user has submitted any form, execute the actions
         if(req.getParameter("submit_install") != null) {
             install(req.getParameterValues("available"));
         } else if(req.getParameter("submit_uninstall") != null) {
             uninstall(req.getParameterValues("installed"));
+        } else if(req.getParameter("submit_stop") != null) {
+            stopBundles(req, resp);
+        } else if(req.getParameter("submit_start") != null) {
+            startBundles(req, resp);
         }
         
-        updateInstalledList();
-        updateAvailableList();
-        
+        // render page parts 
+        if(req.getParameter("tab") != null) {
+            String tab = req.getParameter("tab");
+            if("installed".equalsIgnoreCase(tab)) {
+                updateInstalledList();
+                renderInstalled(req, resp);
+            } else if("available".equalsIgnoreCase(tab)) {
+                updateInstalledList();
+                updateAvailableList();
+                renderAvailable(req, resp);
+            }
+        } else if(req.getParameter("updates") != null) {
+            updateInstalledList();
+            updateAvailableList();
+        } else {
+            renderMainPage(req, resp);
+        }
+    }
+    
+    private void stopBundles(HttpServletRequest req, HttpServletResponse resp) {
+        String[] bundleIds = req.getParameterValues("installed");
+        for (String bundleId : bundleIds) {
+            int _bundleId = Integer.parseInt(bundleId);
+            try {
+                getBundleContext().getBundle(_bundleId).stop();
+            } catch (BundleException e) {
+                logger.log(LogService.LOG_ERROR, "Couldn't stop bundle " + _bundleId, e);
+            }
+        }
+    }
+    
+    private void startBundles(HttpServletRequest req, HttpServletResponse resp) {
+        String[] bundleIds = req.getParameterValues("installed");
+        for (String bundleId : bundleIds) {
+            int _bundleId = Integer.parseInt(bundleId);
+            try {
+                getBundleContext().getBundle(_bundleId).start();
+            } catch (BundleException e) {
+                logger.log(LogService.LOG_ERROR, "Couldn't start bundle " + _bundleId, e);
+            }
+        }
+    }
+
+    private void renderAvailable(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, Object> tplParams = new HashMap<String, Object>();
+        List<ResourceRepresentation> list = new ArrayList<ResourceRepresentation>(availableBundles.size());
+        for (Resource resource : availableBundles) {
+            list.add(new ResourceRepresentation(resource));
+        }
+        tplParams.put("ACTION", PATH);
+        tplParams.put("AVAILABLE", list);
+        String template = templateLoader.loadTemplate("extensions_available.ftl", tplParams);
+        resp.getWriter().println(template);
+    }
+
+    private void renderInstalled(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, Object> tplParams = new HashMap<String, Object>();
+        tplParams.put("ACTION", PATH);
+        tplParams.put("INSTALLED", installedBundles);
+        String template = templateLoader.loadTemplate("extensions_installed.ftl", tplParams);
+        resp.getWriter().println(template);
+    }
+
+    private void renderMainPage(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Map<String, Object> tplParams = new HashMap<String, Object>();
         String path = req.getRequestURI();
         tplParams.put("ACTION", path);
         tplParams.put("TITLE", i18n.translate("I18N_EXTENSIONS"));
+        
+        // add additional js and css
+        List<String> js = new ArrayList<String>();
+        js.add("http://jqueryui.com/latest/ui/ui.core.js");
+        js.add("http://jqueryui.com/latest/ui/ui.tabs.js");
+        tplParams.put("JS_INCLUDES", js);
+        List<String> css = new ArrayList<String>();
+        css.add("http://jqueryui.com/latest/themes/base/ui.all.css");
+        css.add(STATIC_PATH + "/extensions.css");
+        tplParams.put("CSS_INCLUDES", css);
         
         // add errors and messages
         tplParams.put("ERRORS", req.getAttribute("errors"));
@@ -76,7 +154,7 @@ public class UpdateServlet extends BundleContextServlet {
         String template = templateLoader.loadTemplate("extensions.ftl", tplParams);
         resp.getWriter().println(template);
     }
-    
+
     private void uninstall(String[] bundleIds) {
         for (String bundleId : bundleIds) {
             long id = Long.parseLong(bundleId);
@@ -133,6 +211,7 @@ public class UpdateServlet extends BundleContextServlet {
         // add repos from configuration
         for (String uri : getRepoUris()) {
             try {
+                logger.log(LogService.LOG_INFO, "Adding bundle repository " + uri);
                 adm.addRepository(new URL(uri));
             } catch (Exception e) {
                 logger.log(LogService.LOG_WARNING, "Couldn't add repository", e);
@@ -249,8 +328,11 @@ public class UpdateServlet extends BundleContextServlet {
                 br.setBundleId(bundle.getBundleId());
                 br.setName(getBundleName(bundle));
                 br.setSymbolicName(bundle.getSymbolicName());
+                br.setAuthor((String) bundle.getHeaders().get(Constants.BUNDLE_VENDOR));
+                br.setDescription((String) bundle.getHeaders().get(Constants.BUNDLE_DESCRIPTION));
                 String version = (String) bundle.getHeaders().get(Constants.BUNDLE_VERSION);
                 br.setVersion(version);
+                br.setState(bundle.getState());
                 installedBundles.add(br);
             }
         }
