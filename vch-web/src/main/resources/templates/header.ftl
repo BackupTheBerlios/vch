@@ -12,9 +12,6 @@
       <script type="text/javascript" src="http://yui.yahooapis.com/2.7.0/build/menu/menu-min.js"></script>
     <!-- End YUI Includes -->
     
-    ${JAVASCRIPT}
-    ${CSS}
-    
     <link rel="stylesheet" href="/styles.css" type="text/css" media="screen" />
     <script type="text/javascript" src="/jquery.js"></script>
     <link rel="shortcut icon" href="/icons/icon.ico" type="image/x-icon" />
@@ -23,5 +20,8 @@
     <link rel="stylesheet" href="/notify/notify.css" type="text/css" media="screen" />
     <script type="text/javascript" src="/jquery.jcorners.js"></script>
     <script type="text/javascript" src="/notify/jquery.notify.js"></script>
+    
+    ${JAVASCRIPT}
+    ${CSS}
 </head>
 <body class="yui-skin-sam">
