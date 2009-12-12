@@ -156,8 +156,8 @@
         <url>http://developer.berlios.de/bugs/?group_id=9242</url>
     </issueManagement>
     <scm>
-        <developerConnection>https://developername@svn.berlios.de/svnroot/repos/vch/trunk</developerConnection>
-        <url>http://svn.berlios.de/svnroot/repos/vch/trunk</url>
+        <developerConnection>https://developername@svn.berlios.de/svnroot/repos/vch</developerConnection>
+        <url>http://svn.berlios.de/svnroot/repos/vch</url>
     </scm>
 
     <organization>
