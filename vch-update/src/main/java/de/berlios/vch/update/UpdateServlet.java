@@ -129,6 +129,7 @@ public class UpdateServlet extends BundleContextServlet {
 
         if (resolver.resolve()) {
             resolver.deploy(true); // deploy and start (true means "start")
+            addNotify(req, new NotifyMessage(TYPE.INFO, i18n.translate("info.please_restart")));
         } else {
             String msg = i18n.translate("error.load_list");
             logger.log(LogService.LOG_ERROR, msg);
@@ -264,6 +265,7 @@ public class UpdateServlet extends BundleContextServlet {
         // try to resolve the bundles and then install them
         if (resolver.resolve()) {
             resolver.deploy(true);
+            addNotify(req, new NotifyMessage(TYPE.INFO, i18n.translate("info.please_restart")));
         } else {
             for (Requirement requirement : resolver.getUnsatisfiedRequirements()) {
                 String msg = "Unsatisfied requirement: " + requirement.getName() + " " + requirement.toString();
