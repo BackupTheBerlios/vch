@@ -92,6 +92,12 @@ public class UpdateServlet extends BundleContextServlet {
     }
     
     private void updateBundles(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String[] bundleIds = req.getParameterValues("installed");
+        if(bundleIds == null) {
+            addNotify(req, new NotifyMessage(TYPE.ERROR, i18n.translate("info.no_extension_selected")));
+            return;
+        }
+        
         ServiceReference sr = getBundleContext().getServiceReference(RepositoryAdmin.class.getName());
         if (sr == null) {
             error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, i18n.translate("error.obr_not_available"));
@@ -101,8 +107,7 @@ public class UpdateServlet extends BundleContextServlet {
             error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, i18n.translate("error.obr_not_available"));
         }
         Resolver resolver = adm.resolver();
-
-        String[] bundleIds = req.getParameterValues("installed");
+        
         for (String bundleId : bundleIds) {
             int _bundleId = Integer.parseInt(bundleId);
             Bundle bundle = getBundleContext().getBundle(_bundleId);
@@ -141,6 +146,10 @@ public class UpdateServlet extends BundleContextServlet {
 
     private void stopBundles(HttpServletRequest req, HttpServletResponse resp) {
         String[] bundleIds = req.getParameterValues("installed");
+        if(bundleIds == null) {
+            addNotify(req, new NotifyMessage(TYPE.ERROR, i18n.translate("info.no_extension_selected")));
+            return;
+        }
         for (String bundleId : bundleIds) {
             int _bundleId = Integer.parseInt(bundleId);
             try {
@@ -160,6 +169,10 @@ public class UpdateServlet extends BundleContextServlet {
     
     private void startBundles(HttpServletRequest req, HttpServletResponse resp) {
         String[] bundleIds = req.getParameterValues("installed");
+        if(bundleIds == null) {
+            addNotify(req, new NotifyMessage(TYPE.ERROR, i18n.translate("info.no_extension_selected")));
+            return;
+        }
         for (String bundleId : bundleIds) {
             int _bundleId = Integer.parseInt(bundleId);
             try {
@@ -224,6 +237,10 @@ public class UpdateServlet extends BundleContextServlet {
 
     private void uninstall(HttpServletRequest req) {
         String[] bundleIds = req.getParameterValues("installed");
+        if(bundleIds == null) {
+            addNotify(req, new NotifyMessage(TYPE.ERROR, i18n.translate("info.no_extension_selected")));
+            return;
+        }
         for (String bundleId : bundleIds) {
             long id = Long.parseLong(bundleId);
             Bundle bundle = getBundleContext().getBundle(id);
@@ -254,6 +271,10 @@ public class UpdateServlet extends BundleContextServlet {
         // resolve given symbolicNames to Resource objects and pass them to the Resolver
         List<Resource> available = downloadAvailableList();
         String[] symbolicNames = req.getParameterValues("available");
+        if(symbolicNames == null) {
+            addNotify(req, new NotifyMessage(TYPE.ERROR, i18n.translate("info.no_extension_selected")));
+            return;
+        }
         for (String symbolicName : symbolicNames) {
             for (Resource resource : available) {
                 if(resource.getSymbolicName().equals(symbolicName)) {
