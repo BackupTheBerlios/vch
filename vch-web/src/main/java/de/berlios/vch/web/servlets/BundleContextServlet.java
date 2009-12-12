@@ -1,10 +1,10 @@
 package de.berlios.vch.web.servlets;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -16,6 +16,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.log.LogService;
 
 import de.berlios.vch.i18n.Messages;
+import de.berlios.vch.web.NotifyMessage;
 import de.berlios.vch.web.TemplateLoader;
 
 public abstract class BundleContextServlet extends HttpServlet {
@@ -81,7 +82,7 @@ public abstract class BundleContextServlet extends HttpServlet {
             tplParams.put("MESSAGE", msg);
             
             if(t != null) {
-                tplParams.put("STACKTRACE", stackTraceToString(t));
+                tplParams.put("STACKTRACE", NotifyMessage.stackTraceToString(t));
             }
             
             res.setHeader("Content-Type", "text/html;charset=utf-8");
@@ -89,14 +90,6 @@ public abstract class BundleContextServlet extends HttpServlet {
             String template = templateLoader.loadTemplate("error.ftl", tplParams);
             res.getWriter().println(template);
         }
-    }
-    
-    public static String stackTraceToString(Throwable e) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-        pw.flush();
-        return sw.toString();
     }
 
     public void setMessages(Messages i18n) {
@@ -109,5 +102,21 @@ public abstract class BundleContextServlet extends HttpServlet {
     
     public void setLogger(LogService logger) {
         this.logger = logger;
+    }
+    
+    private static final String NOTIFY_MESSAGES = "notifyMessages";
+    
+    protected void addNotify(HttpServletRequest req, NotifyMessage msg) {
+        getNotifyMessages(req).add(msg);
+    }
+    
+    protected List<NotifyMessage> getNotifyMessages(HttpServletRequest req) {
+        @SuppressWarnings("unchecked")
+        List<NotifyMessage> msgs = (List<NotifyMessage>) req.getAttribute(NOTIFY_MESSAGES);
+        if(msgs == null) {
+            msgs = new LinkedList<NotifyMessage>();
+            req.setAttribute(NOTIFY_MESSAGES, msgs);
+        }
+        return msgs;
     }
 }
