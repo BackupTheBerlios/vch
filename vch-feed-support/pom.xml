@@ -26,6 +26,7 @@
 		<version>0.0.1</version>
 		<relativePath>../vch-bundle</relativePath>
 	</parent>
+	<description>Adds syndication support to VCH like rss and atom.</description>
 	<build>
 		<plugins>
 			<plugin>

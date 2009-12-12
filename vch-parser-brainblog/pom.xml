@@ -5,6 +5,7 @@
 	<packaging>bundle</packaging>
 	<version>0.0.1</version>
 	<name>VCH Brainblog Parser</name>
+	<description>Parser for www.brainblog.to</description>
 	<dependencies>
 		<dependency>
 			<groupId>de.berlios.vch</groupId>

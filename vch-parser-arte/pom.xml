@@ -55,6 +55,7 @@
 		<groupId>de.berlios.vch</groupId>
 		<version>0.0.1</version>
 	</parent>
+	<description>Parse for Arte+7 at http://plus7.arte.tv</description>
 	<build>
 		<plugins>
 			<plugin>

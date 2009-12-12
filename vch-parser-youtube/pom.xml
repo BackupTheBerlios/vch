@@ -5,6 +5,7 @@
 	<packaging>bundle</packaging>
 	<version>0.0.1</version>
 	<name>VCH Youtube Parser</name>
+	<description>Parser for Youtube RSS feeds. Select the desired youtube page, click on the RSS icon and add the feed to VCH.</description>
 	<dependencies>
 		<dependency>
 			<groupId>de.berlios.vch</groupId>

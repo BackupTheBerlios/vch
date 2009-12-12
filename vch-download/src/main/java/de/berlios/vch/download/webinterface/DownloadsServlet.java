@@ -49,7 +49,7 @@ public class DownloadsServlet extends BundleContextServlet {
         } else if ("delete_finished".equals(action)) {
             String id = req.getParameter("id");
             dm.deleteDownload(id);
-            //addMessage(i18n.translate("I18N_DL_FILE_DELETED")); // TODO addMessage implementieren
+            //addMessage(i18n.translate("I18N_DL_FILE_DELETED")); // TODO notifyMessage
         }
             
         listDownloads(req, resp);

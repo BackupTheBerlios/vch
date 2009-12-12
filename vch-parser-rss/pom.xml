@@ -5,6 +5,7 @@
 	<packaging>bundle</packaging>
 	<version>0.0.1</version>
 	<name>VCH RSS Parser</name>
+	<description>Parser for generic RSS feeds. You may add your own feeds, but they have to contain video enclosures.</description>
 	<dependencies>
 		<dependency>
 			<groupId>de.berlios.vch</groupId>

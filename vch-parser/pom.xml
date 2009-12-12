@@ -36,6 +36,7 @@
 		<groupId>de.berlios.vch</groupId>
 		<version>0.0.1</version>
 	</parent>
+	<description>The parser interface for all web parsers.</description>
 	<build>
 		<plugins>
 			<plugin>

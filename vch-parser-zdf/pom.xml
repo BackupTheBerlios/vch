@@ -55,6 +55,7 @@
 		<groupId>de.berlios.vch</groupId>
 		<version>0.0.1</version>
 	</parent>
+	<description>Parser for the ZDFmediathek http://www.zdf.de/ZDFmediathek</description>
 	<build>
 		<plugins>
 			<plugin>

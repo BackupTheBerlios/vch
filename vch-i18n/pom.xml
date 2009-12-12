@@ -14,6 +14,7 @@
 		<relativePath>../Plugins</relativePath>
 	</parent>
 
+	<description>Support for translations.</description>
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.felix</groupId>

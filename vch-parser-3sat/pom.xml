@@ -55,6 +55,7 @@
 		<groupId>de.berlios.vch</groupId>
 		<version>0.0.1</version>
 	</parent>
+	<description>Parser for the 3sat-Mediathek. Parses all feeds on http://www.3sat.de/mediathek/mediathek.php?mode=rss</description>
 	<build>
 		<plugins>
 			<plugin>

@@ -5,6 +5,7 @@
 	<packaging>bundle</packaging>
 	<version>0.0.1</version>
 	<name>VCH Parser Web Frontend</name>
+	<description>Web frontend for the parsers. Use your favorite browser to browse through the VCH index</description>
 	<dependencies>
 		<dependency>
 			<groupId>de.berlios.vch</groupId>

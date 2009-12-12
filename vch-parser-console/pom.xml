@@ -34,6 +34,7 @@
 		<groupId>de.berlios.vch</groupId>
 		<version>0.0.1</version>
 	</parent>
+	<description>VCH command for the OSGi console</description>
 	<build>
 		<plugins>
 			<plugin>
