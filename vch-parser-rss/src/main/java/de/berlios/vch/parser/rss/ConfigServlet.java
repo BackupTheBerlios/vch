@@ -53,7 +53,7 @@ public class ConfigServlet extends BundleContextServlet {
         params.put("FEEDS", parser.getFeeds());
         params.put("ACTION", PATH);
         
-        String page = templateLoader.loadTemplate("config.ftl", params);
+        String page = templateLoader.loadTemplate("configRss.ftl", params);
         resp.getWriter().print(page);
     }
 
