@@ -1,8 +1,8 @@
 <#include "header.ftl">
+<#include "status_messages.ftl">
 <#include "navigation.ftl">
 
 <h1>${I18N_EXTENSIONS}</h1>
-<#include "status_messages.ftl">
 
 <div id="container">
     <div id="tabs" style="float:left; min-width:455px">

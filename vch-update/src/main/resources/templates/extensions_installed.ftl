@@ -1,6 +1,6 @@
 <form id="installed_form" action="${ACTION}" method="get">
 <div style="overflow: hidden">
-    <select name="installed" size="18" style="width: 100%" multiple="multiple">
+    <select id="installed" name="installed" size="18" style="width: 100%" multiple="multiple">
         <#list INSTALLED as bundle>
             <#if bundle.state == 1>
                 <#assign cls="stopped">
@@ -21,14 +21,51 @@
                 <#assign cls="started">
                 <#assign state=I18N_ACTIVE>
             </#if>
-            <option class="${cls}" value="${bundle.bundleId}" onclick="showDetails('${bundle.name}', '${bundle.author}', '${bundle.version}', '${state}', '${bundle.description}')">
+            <option vch:bundle-symbolicname="${bundle.symbolicName}" vch:bundle-version="${bundle.version}" class="${cls}" value="${bundle.bundleId}" onclick="showDetails('${bundle.name}', '${bundle.author}', '${bundle.version}', '${state}', '${bundle.description}')">
                 ${bundle.name} (${bundle.version})
             </option> 
         </#list>
     </select>
 </div>
 <br/>
+<input id="button_update" type="submit" name="submit_update" value="${I18N_UPDATE}"/>
 <input id="button_start" type="submit" name="submit_start" value="${I18N_START}"/>
 <input id="button_stop" type="submit" name="submit_stop" value="${I18N_STOP}"/>
 <input id="button_uninstall" type="submit" name="submit_uninstall" value="${I18N_UNINSTALL}"/>
 </form>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#installed').before('<div style="display:none" id="update_progress">${I18N_UPDATES_SEARCHING}...<br/><br/></div>');
+        $('#update_progress').fadeIn();
+        $.ajax({
+            type: "GET",
+            url: "${ACTION}",
+            data: "updates",
+            dataType: "json",
+            success: function(data){
+                for(var i=0; i<data.length; i++) {
+                    var res = data[i];
+                    var name = res.symbolicName;
+                    var version = res.version;
+                    var options = $('#installed option');
+                    var updates_available=false;
+                    for(var j=0; j<options.length; j++) {
+                        var option = options[j];
+                        if($(option).attr('vch:bundle-symbolicname') == name) {
+                            if($(option).attr('vch:bundle-version') != version) {
+                                $(option).addClass('update_available');
+                                $(option).text($(option).text() + ' -- ${I18N_UPDATES_AVAILABLE} - ${I18N_VERSION}:' + version);
+                                updates_available = true;
+                            } 
+                        }
+                    }
+                    if(updates_available) {
+                        $.notify({text:'${I18N_UPDATES_AVAILABLE_TEXT}', title:'${I18N_UPDATES_AVAILABLE}', icon:'/notify/dialog-information.png'});
+                    }
+                }
+                $('#update_progress').fadeOut('slow');
+            }
+        });
+    });
+</script>

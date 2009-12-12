@@ -16,6 +16,7 @@ import java.util.prefs.Preferences;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONObject;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
@@ -29,6 +30,8 @@ import org.osgi.service.obr.Resolver;
 import org.osgi.service.obr.Resource;
 
 import de.berlios.vch.config.ConfigService;
+import de.berlios.vch.web.NotifyMessage;
+import de.berlios.vch.web.NotifyMessage.TYPE;
 import de.berlios.vch.web.servlets.BundleContextServlet;
 
 public class UpdateServlet extends BundleContextServlet {
@@ -51,19 +54,21 @@ public class UpdateServlet extends BundleContextServlet {
             ConfigService cs = (ConfigService) bundleContext.getService(sr);
             prefs = cs.getUserPreferences("");
         } else {
-            error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Config service not available"); // TODO show error on webpage
+            error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, i18n.translate("I18N_CONFIG_SERVICE_NOT_AVAILABLE"));
             return;
         }
         
         // if the user has submitted any form, execute the actions
         if(req.getParameter("submit_install") != null) {
-            install(req.getParameterValues("available"));
+            install(req, resp);
         } else if(req.getParameter("submit_uninstall") != null) {
-            uninstall(req.getParameterValues("installed"));
+            uninstall(req);
         } else if(req.getParameter("submit_stop") != null) {
             stopBundles(req, resp);
         } else if(req.getParameter("submit_start") != null) {
             startBundles(req, resp);
+        } else if(req.getParameter("submit_update") != null) {
+            updateBundles(req, resp);
         }
         
         // render page parts 
@@ -78,21 +83,76 @@ public class UpdateServlet extends BundleContextServlet {
                 renderAvailable(req, resp);
             }
         } else if(req.getParameter("updates") != null) {
-            updateInstalledList();
-            updateAvailableList();
+            List<Resource> available = downloadAvailableList();
+            resp.setContentType("application/json; charset=utf-8");
+            resp.getWriter().write(toJSON(available));
         } else {
             renderMainPage(req, resp);
         }
     }
     
+    private void updateBundles(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        ServiceReference sr = getBundleContext().getServiceReference(RepositoryAdmin.class.getName());
+        if (sr == null) {
+            error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, i18n.translate("error.obr_not_available"));
+        }
+        RepositoryAdmin adm = (RepositoryAdmin) getBundleContext().getService(sr);
+        if (adm == null) {
+            error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, i18n.translate("error.obr_not_available"));
+        }
+        Resolver resolver = adm.resolver();
+
+        String[] bundleIds = req.getParameterValues("installed");
+        for (String bundleId : bundleIds) {
+            int _bundleId = Integer.parseInt(bundleId);
+            Bundle bundle = getBundleContext().getBundle(_bundleId);
+            String symbolicName = bundle.getSymbolicName();
+            // String version = (String) bundle.getHeaders().get(Constants.BUNDLE_VERSION);
+            String filter = "(symbolicname=" + symbolicName + ")";
+            logger.log(LogService.LOG_INFO, "Resolving " + filter);
+            Collection<Resource> resources = filterByVersion(adm.discoverResources(filter));
+            logger.log(LogService.LOG_INFO, "Found " + resources.size() + " resources");
+            if (resources.size() > 0) {
+                try {
+                    bundle.uninstall();
+                    for (Resource resource : resources) {
+                        logger.log(LogService.LOG_INFO, "Adding " + resource.getSymbolicName() + " to update list");
+                        resolver.add(resource);
+                    }
+                } catch (BundleException e1) {
+                    String msg = i18n.translate("error.uninstall_extension");
+                    logger.log(LogService.LOG_ERROR, msg, e1);
+                    addNotify(req, new NotifyMessage(TYPE.ERROR, msg, e1));
+                }
+            }
+        }
+
+        if (resolver.resolve()) {
+            resolver.deploy(true); // deploy and start (true means "start")
+        } else {
+            String msg = i18n.translate("error.load_list");
+            logger.log(LogService.LOG_ERROR, msg);
+            addNotify(req, new NotifyMessage(TYPE.ERROR, msg));
+        }
+        updateInstalledList();
+        updateAvailableList();
+    }
+
     private void stopBundles(HttpServletRequest req, HttpServletResponse resp) {
         String[] bundleIds = req.getParameterValues("installed");
         for (String bundleId : bundleIds) {
             int _bundleId = Integer.parseInt(bundleId);
             try {
-                getBundleContext().getBundle(_bundleId).stop();
+                Bundle bundle = getBundleContext().getBundle(_bundleId);
+                if(bundle != null) {
+                    bundle.stop();
+                } else {
+                    addNotify(req, new NotifyMessage(TYPE.WARNING, i18n.translate("warning.bundle_does_not_exist", _bundleId)));
+                }
             } catch (BundleException e) {
-                logger.log(LogService.LOG_ERROR, "Couldn't stop bundle " + _bundleId, e);
+                String msg = i18n.translate("error.stop_bundle", _bundleId);
+                logger.log(LogService.LOG_ERROR, msg, e);
+                addNotify(req, new NotifyMessage(TYPE.ERROR, msg, e));
             }
         }
     }
@@ -102,9 +162,16 @@ public class UpdateServlet extends BundleContextServlet {
         for (String bundleId : bundleIds) {
             int _bundleId = Integer.parseInt(bundleId);
             try {
-                getBundleContext().getBundle(_bundleId).start();
+                Bundle bundle = getBundleContext().getBundle(_bundleId);
+                if(bundle != null) {
+                    bundle.start();
+                } else {
+                    addNotify(req, new NotifyMessage(TYPE.WARNING, i18n.translate("warning.bundle_does_not_exist", _bundleId)));
+                }
             } catch (BundleException e) {
-                logger.log(LogService.LOG_ERROR, "Couldn't start bundle " + _bundleId, e);
+                String msg = i18n.translate("error.start_bundle", _bundleId);
+                logger.log(LogService.LOG_ERROR, msg, e);
+                addNotify(req, new NotifyMessage(TYPE.ERROR, msg, e));
             }
         }
     }
@@ -146,8 +213,7 @@ public class UpdateServlet extends BundleContextServlet {
         tplParams.put("CSS_INCLUDES", css);
         
         // add errors and messages
-        tplParams.put("ERRORS", req.getAttribute("errors"));
-        tplParams.put("MESSAGES", req.getAttribute("messages"));
+        tplParams.put("NOTIFY_MESSAGES", getNotifyMessages(req));
         
         tplParams.put("AVAILABLE", availableBundles);
         tplParams.put("INSTALLED", installedBundles);
@@ -155,7 +221,8 @@ public class UpdateServlet extends BundleContextServlet {
         resp.getWriter().println(template);
     }
 
-    private void uninstall(String[] bundleIds) {
+    private void uninstall(HttpServletRequest req) {
+        String[] bundleIds = req.getParameterValues("installed");
         for (String bundleId : bundleIds) {
             long id = Long.parseLong(bundleId);
             Bundle bundle = getBundleContext().getBundle(id);
@@ -163,28 +230,29 @@ public class UpdateServlet extends BundleContextServlet {
                 try {
                     bundle.uninstall();
                 } catch (BundleException e) {
-                    logger.log(LogService.LOG_ERROR, "Couldn't uninstall bundle", e); // TODO show error on webpage
+                    String msg = i18n.translate("error.uninstall_extension");
+                    logger.log(LogService.LOG_ERROR, msg, e);
+                    addNotify(req, new NotifyMessage(TYPE.ERROR, msg, e));
                 }
             }
         }
     }
 
-    private void install(String[] symbolicNames) {
+    private void install(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         // lookup RepositoryAdmin
         ServiceReference sr = getBundleContext().getServiceReference(RepositoryAdmin.class.getName());
         if (sr == null) {
-            logger.log(LogService.LOG_ERROR, "OBR service not available"); // TODO show error on webpage
-            return;
+            error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, i18n.translate("error.obr_not_available"));
         }
         RepositoryAdmin adm = (RepositoryAdmin) getBundleContext().getService(sr);
         if (adm == null) {
-            logger.log(LogService.LOG_ERROR, "OBR service not available"); // TODO show error on webpage
-            return;
+            error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, i18n.translate("error.obr_not_available"));
         }
         Resolver resolver = adm.resolver();
         
         // resolve given symbolicNames to Resource objects and pass them to the Resolver
         List<Resource> available = downloadAvailableList();
+        String[] symbolicNames = req.getParameterValues("available");
         for (String symbolicName : symbolicNames) {
             for (Resource resource : available) {
                 if(resource.getSymbolicName().equals(symbolicName)) {
@@ -197,9 +265,10 @@ public class UpdateServlet extends BundleContextServlet {
         if (resolver.resolve()) {
             resolver.deploy(true);
         } else {
-            // TODO show error on webpage
-            for (Requirement req : resolver.getUnsatisfiedRequirements()) {
-                logger.log(LogService.LOG_INFO, "Unsatisfied requirement: " + req.getName() + " " + req.toString());
+            for (Requirement requirement : resolver.getUnsatisfiedRequirements()) {
+                String msg = "Unsatisfied requirement: " + requirement.getName() + " " + requirement.toString();
+                logger.log(LogService.LOG_INFO, msg);
+                addNotify(req, new NotifyMessage(TYPE.WARNING, msg));
             }
         }
     }
@@ -363,5 +432,28 @@ public class UpdateServlet extends BundleContextServlet {
     @Override
     protected void post(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         get(req, resp);
+    }
+    
+    private String toJSON(Resource res) {
+        Map<String, Object> object = new HashMap<String, Object>();
+        object.put("symbolicName", res.getSymbolicName());
+        object.put("version", res.getVersion().toString());
+        return new JSONObject(object).toString();
+    }
+
+    private String toJSON(List<Resource> resources) {
+        if (!resources.isEmpty()) {
+            String json = "[";
+            for (Iterator<Resource> iterator = resources.iterator(); iterator.hasNext();) {
+                Resource resource = iterator.next();
+                json += toJSON(resource);
+                if (iterator.hasNext()) {
+                    json += ", ";
+                }
+            }
+            return json += "]";
+        } else {
+            return "[]";
+        }
     }
 }
