@@ -1,8 +1,6 @@
 package de.berlios.vch.web;
 
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -12,6 +10,7 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogService;
 
@@ -23,9 +22,6 @@ import de.berlios.vch.web.menu.WebMenuEntry;
 @Component
 @Provides
 public class WebInterfaceIPojo implements ResourceBundleProvider {
-
-    private List<String> registeredServlets = new LinkedList<String>();
-
     private ResourceBundle resourceBundle;
     
     @Requires
@@ -38,19 +34,20 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
     private HttpService httpService;
 
     private BundleContext ctx;
-
+    
+    private ServiceRegistration menuReg;
+    
     public WebInterfaceIPojo(final BundleContext ctx) throws IOException {
         this.ctx = ctx;
-
-        // load resource bundle and register it
-        ResourceBundle rb = ResourceBundleLoader.load(ctx, Locale.getDefault());
-        ctx.registerService(ResourceBundle.class.getName(), rb, null);
     }
 
     @Validate
     public void validate() {
-        registerAll(ctx, httpService);
+        registerHttpContext();
+        registerMenu();
+    }
 
+    private void registerMenu() {
         log.log(LogService.LOG_DEBUG, "Creating webmenu");
         // register help menu entry
         WebMenuEntry help = new WebMenuEntry();
@@ -61,30 +58,34 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
         WebMenuEntry content = new WebMenuEntry(getResourceBundle().getString("I18N_CONTENT"));
         content.setLinkUri("/help/" + Locale.getDefault() + "/index.html");
         help.getChilds().add(content);
-        ctx.registerService(IWebMenuEntry.class.getName(), help, null);
+        menuReg = ctx.registerService(IWebMenuEntry.class.getName(), help, null);        
     }
 
     @Invalidate
     public void invalidate() throws Exception {
-        if(httpService != null) {
-            unregisterAll(httpService);
+        unregisterHttpContext(httpService);
+        unregisterService(menuReg);
+    }
+    
+    private void unregisterService(ServiceRegistration sr) {
+        if(sr != null) {
+            sr.unregister();
         }
     }
 
-    private void registerAll(BundleContext ctx, HttpService http) {
+    private void registerHttpContext() {
         try {
             log.log(LogService.LOG_INFO, "Registering resource http context");
             ResourceHttpContext httpCtx = new ResourceHttpContext(ctx, log);
-            http.registerResources("/", "/htdocs", httpCtx);
-            registeredServlets.add("/");
+            httpService.registerResources("/", "/htdocs", httpCtx);
         } catch (Exception e) {
             log.log(LogService.LOG_ERROR, "Couldn't register servlets", e);
         }
     }
 
-    private void unregisterAll(HttpService service) {
-        for (String servlet : registeredServlets) {
-            service.unregister(servlet);
+    private void unregisterHttpContext(HttpService service) {
+        if(httpService != null) {
+            httpService.unregister("/");
         }
     }
 
