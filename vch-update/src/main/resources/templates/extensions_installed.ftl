@@ -36,8 +36,7 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
-        $('#installed').before('<div style="display:none" id="update_progress">${I18N_UPDATES_SEARCHING}...<br/><br/></div>');
-        $('#update_progress').fadeIn();
+        $.notify({text:'${I18N_INFO}', title:'${I18N_UPDATES_SEARCHING}', icon:'/notify/dialog-information.png'});
         $.ajax({
             type: "GET",
             url: "${ACTION}",
@@ -65,7 +64,6 @@
                 if(updates_available) {
                     $.notify({text:'${I18N_UPDATES_AVAILABLE_TEXT}', title:'${I18N_UPDATES_AVAILABLE}', icon:'/notify/dialog-information.png'});
                 }
-                $('#update_progress').fadeOut('slow');
             }
         });
     });

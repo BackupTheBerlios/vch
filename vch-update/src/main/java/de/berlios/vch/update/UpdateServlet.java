@@ -305,6 +305,16 @@ public class UpdateServlet extends BundleContextServlet {
             throw new ServiceUnavailableException(i18n.translate("error.obr_not_available"));
         }
         
+        // add repos from configuration
+        for (String uri : getOBRs()) {
+            try {
+                logger.log(LogService.LOG_INFO, "Adding bundle repository " + uri);
+                adm.addRepository(new URL(uri));
+            } catch (Exception e) {
+                logger.log(LogService.LOG_WARNING, "Couldn't add repository", e);
+            }
+        }
+        
         Repository[] repos = adm.listRepositories();
         StringBuilder sb = new StringBuilder();
         for (Repository repo : repos) {
