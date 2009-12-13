@@ -58,6 +58,8 @@ public class Activator implements ResourceBundleProvider {
     public void stop() {
         parserTracker.close();
         parserTracker = null;
+        
+        httpService.unregister("/osdserver");
     }
 
     @Override
