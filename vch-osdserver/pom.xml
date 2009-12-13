@@ -4,7 +4,7 @@
 	<artifactId>osdserver</artifactId>
 	<packaging>bundle</packaging>
 	<name>VCH osdserver</name>
-	<version>0.0.1</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<description>This bundle provides an VDR osd menu with the help of the VDR osdserver-Plugin</description>
 	<dependencies>
 		<dependency>
@@ -17,14 +17,14 @@
 		<dependency>
 			<groupId>de.berlios.vch</groupId>
 			<artifactId>i18n</artifactId>
-			<version>0.0.1</version>
+			<version>1.0.0-SNAPSHOT</version>
 			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>de.berlios.vch</groupId>
 			<artifactId>parser</artifactId>
-			<version>0.0.1</version>
+			<version>1.0.0-SNAPSHOT</version>
 			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>
@@ -49,7 +49,7 @@
 	<parent>
 		<artifactId>bundle</artifactId>
 		<groupId>de.berlios.vch</groupId>
-		<version>0.0.1</version>
+		<version>1.0.0-SNAPSHOT</version>
 		<relativePath>../vch-bundle</relativePath>
 	</parent>
 </project>
