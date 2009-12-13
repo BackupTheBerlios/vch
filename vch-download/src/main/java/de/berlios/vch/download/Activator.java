@@ -74,8 +74,11 @@ public class Activator implements ResourceBundleProvider {
         prefs = cs.getUserPreferences(ctx.getBundle().getSymbolicName());
         setDefaults(prefs);
         try {
+            // initialize doenload manager
             dm = new DownloadManagerImpl(ctx, logger);
             dm.init(prefs);
+            
+            // start activator servlet
             registerServlet();
             
             // register web interface menu
