@@ -1,6 +1,9 @@
 package de.berlios.vch.download;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.prefs.Preferences;
@@ -13,6 +16,7 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 import org.osgi.service.log.LogService;
@@ -59,6 +63,8 @@ public class Activator implements ResourceBundleProvider {
     
     private Preferences prefs;
     
+    private List<ServiceRegistration> serviceRegs = new LinkedList<ServiceRegistration>();
+    
     public Activator(BundleContext ctx) {
         this.ctx = ctx;
     }
@@ -80,13 +86,16 @@ public class Activator implements ResourceBundleProvider {
             WebMenuEntry manage = new WebMenuEntry(getResourceBundle().getString("I18N_MANAGE"));
             manage.setLinkUri(DownloadsServlet.PATH);
             downloads.getChilds().add(manage);
-            ctx.registerService(IWebMenuEntry.class.getName(), downloads, null);
+            ServiceRegistration sr = ctx.registerService(IWebMenuEntry.class.getName(), downloads, null);
+            serviceRegs.add(sr);
             
             // register osd actions
             DownloadAction action = new DownloadAction(messages, dm, logger);
-            ctx.registerService(ItemDetailsAction.class.getName(), action, null);
+            sr = ctx.registerService(ItemDetailsAction.class.getName(), action, null);
+            serviceRegs.add(sr);
             OpenDownloadsAction oda = new OpenDownloadsAction(messages, dm, logger);
-            ctx.registerService(OverviewAction.class.getName(), oda, null);
+            sr = ctx.registerService(OverviewAction.class.getName(), oda, null);
+            serviceRegs.add(sr);
         } catch (Exception e) {
             logger.log(LogService.LOG_ERROR, "Couldn't start download manager", e);
         }
@@ -102,9 +111,24 @@ public class Activator implements ResourceBundleProvider {
 
     @Invalidate
     public void stop() {
+        // unregister the servlet
         unregisterServlet();
 
+        // stop the download manager
         dm.stop();
+        
+        // unregister osd actions and web menu etc
+        for (Iterator<ServiceRegistration> iterator = serviceRegs.iterator(); iterator.hasNext();) {
+            ServiceRegistration sr = iterator.next();
+            unregisterService(sr);
+            iterator.remove();
+        }
+    }
+    
+    private void unregisterService(ServiceRegistration sr) {
+        if (sr != null) {
+            sr.unregister();
+        }
     }
 
     private void unregisterServlet() {
