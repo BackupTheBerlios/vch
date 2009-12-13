@@ -42,7 +42,7 @@
             url: "${ACTION}",
             data: "updates",
             dataType: "json",
-            success: function(data){
+            success: function(data) {
                 var updates_available=false;
                 for(var i=0; i<data.length; i++) {
                     var res = data[i];
@@ -64,6 +64,10 @@
                 if(updates_available) {
                     $.notify({text:'${I18N_UPDATES_AVAILABLE_TEXT}', title:'${I18N_UPDATES_AVAILABLE}', icon:'/notify/dialog-information.png'});
                 }
+            },
+            error: function(request, textStatus, exception){
+                console.log(request);
+                $.notify({text:request.responseText, title:request.statusText, icon:'/notify/dialog-error.png'});
             }
         });
     });

@@ -30,7 +30,14 @@
 <script type="text/javascript">
     $(document).ready(function() {
         // enable tabs
-        $('#tabs').tabs(); 
+        $('#tabs').tabs({ 
+            ajaxOptions: { 
+                error: function(request, textStatus, exception) {
+                    $.notify({text:request.responseText, title:request.statusText, icon:'/notify/dialog-error.png'});
+                    $('#tabs').tabs('abort');
+                } 
+            } 
+        }); 
         
         // tweak the look
         $('#tabs').removeClass('ui-widget-content');

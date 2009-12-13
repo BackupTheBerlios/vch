@@ -67,19 +67,27 @@ public class UpdateServlet extends BundleContextServlet {
             
             // render page parts 
             if(req.getParameter("tab") != null) {
-                String tab = req.getParameter("tab");
-                if("installed".equalsIgnoreCase(tab)) {
-                    updateInstalledList();
-                    renderInstalled(req, resp);
-                } else if("available".equalsIgnoreCase(tab)) {
-                    updateInstalledList();
-                    updateAvailableList();
-                    renderAvailable(req, resp);
+                try {
+                    String tab = req.getParameter("tab");
+                    if("installed".equalsIgnoreCase(tab)) {
+                        updateInstalledList();
+                        renderInstalled(req, resp);
+                    } else if("available".equalsIgnoreCase(tab)) {
+                        updateInstalledList();
+                        updateAvailableList();
+                        renderAvailable(req, resp);
+                    }
+                } catch (ServiceUnavailableException e) {
+                    error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, e.getLocalizedMessage(), true);
                 }
             } else if(req.getParameter("updates") != null) {
-                List<Resource> available = downloadAvailableList();
-                resp.setContentType("application/json; charset=utf-8");
-                resp.getWriter().write(toJSON(available));
+                try {
+                    List<Resource> available = downloadAvailableList();
+                    resp.setContentType("application/json; charset=utf-8");
+                    resp.getWriter().write(toJSON(available));
+                } catch (ServiceUnavailableException e) {
+                    error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, e.getLocalizedMessage(), true);
+                }
             } else {
                 renderMainPage(req, resp);
             }
