@@ -168,6 +168,13 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
     @Invalidate
     public void stop() {
         prefs = null;
+        unregisterServlet();
+    }
+
+    private void unregisterServlet() {
+        if(http != null) {
+            http.unregister(ConfigServlet.PATH);
+        }
     }
 
     public List<Feed> getFeeds() {

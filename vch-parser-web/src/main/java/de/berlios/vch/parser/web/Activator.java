@@ -41,18 +41,19 @@ public class Activator implements ResourceBundleProvider {
     
     private ServiceTracker parserTracker;
     
-    private ServiceTracker httpServices;
-    
     private BundleContext ctx;
     
     @Requires
-    private LogService log;
+    private LogService logger;
     
     @Requires
     private Messages messages;
     
     @Requires
     private TemplateLoader templateLoader;
+    
+    @Requires
+    private HttpService http;
     
     private ResourceBundle resourceBundle;
     
@@ -63,35 +64,22 @@ public class Activator implements ResourceBundleProvider {
     @Validate
     public void start() throws Exception {
         openParserTracker(ctx);
-        openHttpServiceTracker(ctx);
+        registerServlet();
     }
 
-    private void openHttpServiceTracker(final BundleContext ctx) {
-        httpServices = new ServiceTracker(ctx, HttpService.class.getName(), null) {
-            @Override
-            public void removedService(ServiceReference sr, Object service) {
-                ((HttpService)service).unregister("/parser");
-                super.removedService(sr, service);
-            }
-            
-            @Override
-            public Object addingService(ServiceReference sr) {
-                HttpService http = (HttpService) ctx.getService(sr);
-                try {
-                    BrowseServlet servlet = new BrowseServlet();
-                    servlet.setBundleContext(ctx);
-                    servlet.setMessages(messages);
-                    servlet.setTemplateLoader(templateLoader);
-                    http.registerServlet("/parser", servlet, null, null);
-                } catch (ServletException e) {
-                    log.log(LogService.LOG_ERROR, "Couldn't register servlet", e);
-                } catch (NamespaceException e) {
-                    log.log(LogService.LOG_ERROR, "Couldn't register servlet. Alias already in use?", e);
-                }
-                return super.addingService(sr);
-            }
-        };
-        httpServices.open();
+    private void registerServlet() throws ServletException, NamespaceException {
+        BrowseServlet servlet = new BrowseServlet();
+        servlet.setBundleContext(ctx);
+        servlet.setMessages(messages);
+        servlet.setTemplateLoader(templateLoader);
+        servlet.setLogger(logger);
+        http.registerServlet(BrowseServlet.PATH, servlet, null, null);
+    }
+    
+    private void unregisterServlet() {
+        if(http != null) {
+            http.unregister(BrowseServlet.PATH);
+        }
     }
 
     private void openParserTracker(final BundleContext ctx) {
@@ -122,7 +110,7 @@ public class Activator implements ResourceBundleProvider {
                 registrations.remove(service.getClass().getName());
                 if (reg != null) {
                     IWebMenuEntry menu = (IWebMenuEntry) ctx.getService(reg.getReference());
-                    log.log(LogService.LOG_INFO, "Unregistering web menu entry \n " + createMenuTree(menu, ""));
+                    logger.log(LogService.LOG_INFO, "Unregistering web menu entry \n " + createMenuTree(menu, ""));
                     reg.unregister();
                 }
 
@@ -152,16 +140,18 @@ public class Activator implements ResourceBundleProvider {
         for (ServiceRegistration reg : registrations.values()) {
             reg.unregister();
         }
+        
+        unregisterServlet();
     }
 
     @Override
     public ResourceBundle getResourceBundle() {
         if(resourceBundle == null) {
             try {
-                log.log(LogService.LOG_DEBUG, "Loading resource bundle for " + getClass().getSimpleName());
+                logger.log(LogService.LOG_DEBUG, "Loading resource bundle for " + getClass().getSimpleName());
                 resourceBundle = ResourceBundleLoader.load(ctx, Locale.getDefault());
             } catch (IOException e) {
-                log.log(LogService.LOG_ERROR, "Couldn't load resource bundle", e);
+                logger.log(LogService.LOG_ERROR, "Couldn't load resource bundle", e);
             }
         }
         return resourceBundle;

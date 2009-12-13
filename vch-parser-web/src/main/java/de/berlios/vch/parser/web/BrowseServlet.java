@@ -34,6 +34,8 @@ import de.berlios.vch.web.servlets.BundleContextServlet;
 // TODO videos tatsächlich erst bei bedarf parsen und in json objekte umwandeln
 public class BrowseServlet extends BundleContextServlet {
 
+    public static String PATH = "/parser";
+    
     private ServiceTracker st;
 
     private static transient Logger logger = LoggerFactory.getLogger(BrowseServlet.class);
