@@ -1,6 +1,7 @@
 package de.berlios.vch.update;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,7 +11,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.Vector;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import javax.servlet.http.HttpServletRequest;
@@ -48,50 +51,46 @@ public class UpdateServlet extends BundleContextServlet {
     
     @Override
     protected void get(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        // lookup preferences service
-        ServiceReference sr = bundleContext.getServiceReference(ConfigService.class.getName());
-        if(sr != null) {
-            ConfigService cs = (ConfigService) bundleContext.getService(sr);
-            prefs = cs.getUserPreferences("");
-        } else {
-            error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, i18n.translate("I18N_CONFIG_SERVICE_NOT_AVAILABLE"));
-            return;
-        }
-        
-        // if the user has submitted any form, execute the actions
-        if(req.getParameter("submit_install") != null) {
-            install(req, resp);
-        } else if(req.getParameter("submit_uninstall") != null) {
-            uninstall(req);
-        } else if(req.getParameter("submit_stop") != null) {
-            stopBundles(req, resp);
-        } else if(req.getParameter("submit_start") != null) {
-            startBundles(req, resp);
-        } else if(req.getParameter("submit_update") != null) {
-            updateBundles(req, resp);
-        }
-        
-        // render page parts 
-        if(req.getParameter("tab") != null) {
-            String tab = req.getParameter("tab");
-            if("installed".equalsIgnoreCase(tab)) {
-                updateInstalledList();
-                renderInstalled(req, resp);
-            } else if("available".equalsIgnoreCase(tab)) {
-                updateInstalledList();
-                updateAvailableList();
-                renderAvailable(req, resp);
+        try {
+            // if the user has submitted any form, execute the actions
+            if(req.getParameter("submit_install") != null) {
+                install(req, resp);
+            } else if(req.getParameter("submit_uninstall") != null) {
+                uninstall(req);
+            } else if(req.getParameter("submit_stop") != null) {
+                stopBundles(req, resp);
+            } else if(req.getParameter("submit_start") != null) {
+                startBundles(req, resp);
+            } else if(req.getParameter("submit_update") != null) {
+                updateBundles(req, resp);
             }
-        } else if(req.getParameter("updates") != null) {
-            List<Resource> available = downloadAvailableList();
-            resp.setContentType("application/json; charset=utf-8");
-            resp.getWriter().write(toJSON(available));
-        } else {
-            renderMainPage(req, resp);
-        }
+            
+            // render page parts 
+            if(req.getParameter("tab") != null) {
+                String tab = req.getParameter("tab");
+                if("installed".equalsIgnoreCase(tab)) {
+                    updateInstalledList();
+                    renderInstalled(req, resp);
+                } else if("available".equalsIgnoreCase(tab)) {
+                    updateInstalledList();
+                    updateAvailableList();
+                    renderAvailable(req, resp);
+                }
+            } else if(req.getParameter("updates") != null) {
+                List<Resource> available = downloadAvailableList();
+                resp.setContentType("application/json; charset=utf-8");
+                resp.getWriter().write(toJSON(available));
+            } else {
+                renderMainPage(req, resp);
+            }
+        } catch (ServiceUnavailableException e) {
+            error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, e.getLocalizedMessage());
+        } catch (Exception e) {
+            error(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } 
     }
     
-    private void updateBundles(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    private void updateBundles(HttpServletRequest req, HttpServletResponse resp) throws Exception {
         String[] bundleIds = req.getParameterValues("installed");
         if(bundleIds == null) {
             addNotify(req, new NotifyMessage(TYPE.ERROR, i18n.translate("info.no_extension_selected")));
@@ -256,7 +255,7 @@ public class UpdateServlet extends BundleContextServlet {
         }
     }
 
-    private void install(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    private void install(HttpServletRequest req, HttpServletResponse resp) throws Exception {
         // lookup RepositoryAdmin
         ServiceReference sr = getBundleContext().getServiceReference(RepositoryAdmin.class.getName());
         if (sr == null) {
@@ -296,18 +295,14 @@ public class UpdateServlet extends BundleContextServlet {
         }
     }
 
-    private List<Resource> downloadAvailableList() {
+    private List<Resource> downloadAvailableList() throws MalformedURLException, Exception {
         ServiceReference sr = getBundleContext().getServiceReference(RepositoryAdmin.class.getName());
+        if (sr == null) {
+            throw new ServiceUnavailableException(i18n.translate("error.obr_not_available"));
+        }
         RepositoryAdmin adm = (RepositoryAdmin) getBundleContext().getService(sr);
-        
-        // add repos from configuration
-        for (String uri : getRepoUris()) {
-            try {
-                logger.log(LogService.LOG_INFO, "Adding bundle repository " + uri);
-                adm.addRepository(new URL(uri));
-            } catch (Exception e) {
-                logger.log(LogService.LOG_WARNING, "Couldn't add repository", e);
-            }
+        if (adm == null) {
+            throw new ServiceUnavailableException(i18n.translate("error.obr_not_available"));
         }
         
         Repository[] repos = adm.listRepositories();
@@ -315,7 +310,7 @@ public class UpdateServlet extends BundleContextServlet {
         for (Repository repo : repos) {
             sb.append('\n').append(repo.getName()).append(' ').append(repo.getURL().toString());
         }
-        logger.log(LogService.LOG_INFO, "Loading extensions list");
+        logger.log(LogService.LOG_INFO, "Loading extensions list from obrs:" + sb.toString());
         String filter = "(symbolicname=*)"; // get all bundles
         logger.log(LogService.LOG_INFO, "Resolving " + filter);
         Resource[] res = adm.discoverResources(filter);
@@ -384,17 +379,6 @@ public class UpdateServlet extends BundleContextServlet {
         return null;
     }
     
-    private List<String> getRepoUris() {
-        List<String> list = new ArrayList<String>();
-        String repos = prefs.get("plugin_repos", "VCH Bundle Repository,http://vch.berlios.de/repo/releases/repository.xml");
-        String[] keyValues = repos.split(";");
-        for (String string : keyValues) {
-            String[] keyValue = string.split(",");
-            list.add(keyValue[1]);
-        }
-        return list;
-    }
-    
     private class BundleNameComparator implements Comparator<BundleRepresentation> {
         public int compare(BundleRepresentation b1, BundleRepresentation b2) {
             return b1.getName().toLowerCase().compareTo(b2.getName().toLowerCase());
@@ -431,7 +415,7 @@ public class UpdateServlet extends BundleContextServlet {
         Collections.sort(installedBundles, new BundleNameComparator());
     }
 
-    private synchronized void updateAvailableList() {
+    private synchronized void updateAvailableList() throws MalformedURLException, Exception {
         availableBundles.clear();
         availableBundles.addAll(downloadAvailableList());
         for (Iterator<Resource> iterator = availableBundles.iterator(); iterator.hasNext();) {
@@ -477,6 +461,76 @@ public class UpdateServlet extends BundleContextServlet {
             return json += "]";
         } else {
             return "[]";
+        }
+    }
+    
+    public List<String> getOBRs() throws MalformedURLException, Exception {
+        // lookup preferences service
+        ServiceReference sr = bundleContext.getServiceReference(ConfigService.class.getName());
+        if(sr != null) {
+            ConfigService cs = (ConfigService) bundleContext.getService(sr);
+            prefs = cs.getUserPreferences("");
+        } else {
+            throw new ServiceUnavailableException(i18n.translate("I18N_CONFIG_SERVICE_NOT_AVAILABLE"));
+        }
+        
+        List<String> obrUris = new ArrayList<String>();
+        try {
+            Preferences persitentRepos = prefs.node("obrs");
+            String[] obrs = persitentRepos.childrenNames();
+            for (String id : obrs) {
+                Preferences obr = persitentRepos.node(id);
+                String uri = obr.get("uri", "");
+                obrUris.add(uri);
+            }
+        } catch (BackingStoreException e) {
+            logger.log(LogService.LOG_ERROR, "Couldn't load preferences", e);
+        }
+        Collections.sort(obrUris);
+        if(obrUris.isEmpty()) {
+            String uri = "http://vch.berlios.de/repo/releases/repository.xml"; 
+            addOBR(uri);
+            obrUris.add(uri);
+        }
+        return obrUris;
+    }
+    
+    public void addOBR(String uri) throws MalformedURLException, Exception {
+        ServiceReference sr = getBundleContext().getServiceReference(RepositoryAdmin.class.getName());
+        if(sr == null) {
+            throw new ServiceUnavailableException(i18n.translate("error.obr_not_available"));
+        }
+        RepositoryAdmin adm = (RepositoryAdmin) getBundleContext().getService(sr);
+        if(adm == null) {
+            throw new ServiceUnavailableException(i18n.translate("error.obr_not_available"));
+        }
+        adm.addRepository(new URL(uri));
+        
+        Preferences obrs = prefs.node("obrs");
+        String id = UUID.randomUUID().toString();
+        Preferences obr = obrs.node(id);        
+        obr.put("uri", uri);
+    }
+    
+    public void removeOBR(String uri) throws MalformedURLException, ServiceUnavailableException {
+        ServiceReference sr = getBundleContext().getServiceReference(RepositoryAdmin.class.getName());
+        if(sr == null) {
+            throw new ServiceUnavailableException(i18n.translate("error.obr_not_available"));
+        }
+        RepositoryAdmin adm = (RepositoryAdmin) getBundleContext().getService(sr);
+        
+        
+        Preferences obrs = prefs.node("obrs");
+        try {
+            for (String key : obrs.childrenNames()) {
+                Preferences obr = obrs.node(key);
+                if(uri.equals(obr.get("uri", ""))) {
+                    obr.removeNode();
+                    adm.removeRepository(new URL(uri));
+                }
+            }
+        } catch (BackingStoreException e) {
+            logger.log(LogService.LOG_ERROR, "Couldn't remove obr", e);
         }
     }
 }

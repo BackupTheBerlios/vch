@@ -44,12 +44,12 @@
             data: "updates",
             dataType: "json",
             success: function(data){
+                var updates_available=false;
                 for(var i=0; i<data.length; i++) {
                     var res = data[i];
                     var name = res.symbolicName;
                     var version = res.version;
                     var options = $('#installed option');
-                    var updates_available=false;
                     for(var j=0; j<options.length; j++) {
                         var option = options[j];
                         if($(option).attr('vch:bundle-symbolicname') == name) {
@@ -60,9 +60,10 @@
                             } 
                         }
                     }
-                    if(updates_available) {
-                        $.notify({text:'${I18N_UPDATES_AVAILABLE_TEXT}', title:'${I18N_UPDATES_AVAILABLE}', icon:'/notify/dialog-information.png'});
-                    }
+                    
+                }
+                if(updates_available) {
+                    $.notify({text:'${I18N_UPDATES_AVAILABLE_TEXT}', title:'${I18N_UPDATES_AVAILABLE}', icon:'/notify/dialog-information.png'});
                 }
                 $('#update_progress').fadeOut('slow');
             }

@@ -1,6 +1,8 @@
 package de.berlios.vch.update;
 
 import java.io.IOException;
+import java.net.URL;
+import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -12,9 +14,11 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 import org.osgi.service.log.LogService;
+import org.osgi.service.obr.RepositoryAdmin;
 
 import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.i18n.ResourceBundleLoader;
@@ -40,9 +44,16 @@ public class Activator implements ResourceBundleProvider {
     @Requires
     private TemplateLoader templateLoader;
     
+    @Requires
+    private RepositoryAdmin repoAdmin;
+    
     private BundleContext ctx;
     
     private ResourceBundle resourceBundle;
+    
+    private UpdateServlet servlet;
+    
+    private ServiceRegistration menuReg;
     
     public Activator(BundleContext ctx) {
         this.ctx = ctx;
@@ -55,39 +66,71 @@ public class Activator implements ResourceBundleProvider {
         } catch (Exception e) {
             logger.log(LogService.LOG_ERROR, "Couldn't register config servlet", e);
         }
+        
+        loadOBRs();
     }
     
+    private void loadOBRs() {
+        // add repos from configuration
+        try {
+            List<String> obrs = servlet.getOBRs();
+            for (String uri : obrs) {
+                logger.log(LogService.LOG_INFO, "Adding bundle repository " + uri);
+                repoAdmin.addRepository(new URL(uri));
+            }
+        } catch (Exception e) {
+            logger.log(LogService.LOG_WARNING, "Couldn't add repository", e);
+        }
+    }
+
     private void registerServlet() throws ServletException, NamespaceException {
-        UpdateServlet servlet = new UpdateServlet();
+        // register the extensions servlet
+        servlet = new UpdateServlet();
         servlet.setBundleContext(ctx);
         servlet.setMessages(messages);
         servlet.setTemplateLoader(templateLoader);
         servlet.setLogger(logger);
         httpService.registerServlet(UpdateServlet.PATH, servlet, null, null);
         
+        // register the configuration servlet
+        UpdateConfigServlet configServlet = new UpdateConfigServlet(servlet);
+        configServlet.setBundleContext(ctx);
+        configServlet.setMessages(messages);
+        configServlet.setTemplateLoader(templateLoader);
+        configServlet.setLogger(logger);
+        httpService.registerServlet(UpdateConfigServlet.PATH, configServlet, null, null);
+        
         // register resource context for static files
         ResourceHttpContext resourceHttpContext = new ResourceHttpContext(ctx, logger);
         httpService.registerResources(UpdateServlet.STATIC_PATH, "/htdocs", resourceHttpContext);
         
         // register web interface menu
-        WebMenuEntry config = new WebMenuEntry();
-        config.setTitle(getResourceBundle().getString("I18N_EXTENSIONS"));
-        config.setPreferredPosition(Integer.MAX_VALUE-1);
-        config.setLinkUri("#");
+        WebMenuEntry menu = new WebMenuEntry();
+        menu.setTitle(getResourceBundle().getString("I18N_EXTENSIONS"));
+        menu.setPreferredPosition(Integer.MAX_VALUE-1);
+        menu.setLinkUri("#");
         WebMenuEntry content = new WebMenuEntry(getResourceBundle().getString("I18N_EXTENSIONS"));
         content.setLinkUri(UpdateServlet.PATH);
-        config.getChilds().add(content);
-        ctx.registerService(IWebMenuEntry.class.getName(), config, null);
+        menu.getChilds().add(content);
+        WebMenuEntry config = new WebMenuEntry(getResourceBundle().getString("I18N_CONFIG"));
+        config.setLinkUri(UpdateConfigServlet.PATH);
+        content.getChilds().add(config);
+        menuReg = ctx.registerService(IWebMenuEntry.class.getName(), menu, null);
     }
 
     @Invalidate
     public void stop() {
         unregisterServlet();
+        if(menuReg != null) {
+            menuReg.unregister();
+        }
     }
 
     private void unregisterServlet() {
         if(httpService != null) {
             httpService.unregister(UpdateServlet.PATH);
+            httpService.unregister(UpdateServlet.STATIC_PATH);
+            httpService.unregister(UpdateConfigServlet.PATH);
         }
     }
 
