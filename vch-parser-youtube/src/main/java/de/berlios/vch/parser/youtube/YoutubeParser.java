@@ -22,6 +22,7 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.htmlparser.util.Translate;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogService;
 
@@ -71,6 +72,8 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider {
     private BundleContext ctx;
     
     private ResourceBundle resourceBundle;
+    
+    private ServiceRegistration menuReg;
     
     public YoutubeParser(BundleContext ctx) {
         this.ctx = ctx;
@@ -173,7 +176,7 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider {
             childs = new TreeSet<IWebMenuEntry>();
             childs.add(config);
             entry.setChilds(childs);
-            ctx.registerService(IWebMenuEntry.class.getName(), menu, null);
+            menuReg = ctx.registerService(IWebMenuEntry.class.getName(), menu, null);
         } catch (Exception e) {
             logger.log(LogService.LOG_ERROR, "Couldn't register youtube parser config servlet", e);
         }
@@ -182,15 +185,18 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider {
     @Invalidate
     public void stop() {
         prefs = null;
-        unregisterServlet();
-    }
-    
-    private void unregisterServlet() {
+        
+        // unregister the config servlet
         if(http != null) {
             http.unregister(ConfigServlet.PATH);
         }
+        
+        // unregister the web menu
+        if(menuReg != null) {
+            menuReg.unregister();
+        }
     }
-
+    
     public List<Feed> getFeeds() {
         List<Feed> feeds = new ArrayList<Feed>();
         try {

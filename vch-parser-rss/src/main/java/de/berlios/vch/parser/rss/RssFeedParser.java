@@ -21,6 +21,7 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogService;
 
@@ -66,6 +67,8 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
     private BundleContext ctx;
     
     private ResourceBundle resourceBundle;
+    
+    private ServiceRegistration menuReg;
     
     public RssFeedParser(BundleContext ctx) {
         this.ctx = ctx;
@@ -159,7 +162,7 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
             childs = new TreeSet<IWebMenuEntry>();
             childs.add(config);
             entry.setChilds(childs);
-            ctx.registerService(IWebMenuEntry.class.getName(), menu, null);
+            menuReg = ctx.registerService(IWebMenuEntry.class.getName(), menu, null);
         } catch (Exception e) {
             logger.log(LogService.LOG_ERROR, "Couldn't register rss parser config servlet", e);
         }
@@ -168,7 +171,14 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
     @Invalidate
     public void stop() {
         prefs = null;
+        
+        // unregister the config servlet
         unregisterServlet();
+        
+        // unregister web menu
+        if(menuReg != null) {
+            menuReg.unregister();
+        }
     }
 
     private void unregisterServlet() {
