@@ -1,5 +1,6 @@
 <#if NOTIFY_MESSAGES??>
     <#assign delay="10000">
+    <#assign errorDelay="15000">
     <script type="text/javascript">
     <#list NOTIFY_MESSAGES as msg>
         <#if msg.type == "INFO">
@@ -8,9 +9,9 @@
             $.notify({text:'${msg.message}', title:'${I18N_WARNING}', icon:'/notify/dialog-warning.png', delay:${delay}});
         <#elseif msg.type == "ERROR">
             <#if msg.exception?? >
-                $.notify({text:'${msg.message}<br/>${msg.stackTrace}', title:'${I18N_ERROR}', icon:'/notify/dialog-error.png', delay:${delay}});
+                $.notify({text:'${msg.message}<br/>${msg.stackTrace}', title:'${I18N_ERROR}', icon:'/notify/dialog-error.png', delay:${errorDelay}});
             <#else>
-                $.notify({text:'${msg.message}', title:'${I18N_ERROR}', icon:'/notify/dialog-error.png', delay:${delay}});
+                $.notify({text:'${msg.message}', title:'${I18N_ERROR}', icon:'/notify/dialog-error.png', delay:${errorDelay}});
             </#if>            
         </#if>
     </#list>
