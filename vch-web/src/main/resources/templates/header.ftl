@@ -25,3 +25,6 @@
     ${CSS}
 </head>
 <body class="yui-skin-sam">
+<noscript>
+<h1 class="nojs">${I18N_ENABLE_JAVASCRIPT}</h1>
+</noscript>

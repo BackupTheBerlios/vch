@@ -275,3 +275,8 @@ div#errors pre {
 #item_table {
     clear: both;
 }
+
+.nojs {
+    font-size: 200%;
+    color: red;
+}
