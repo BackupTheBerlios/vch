@@ -1,8 +1,6 @@
 package de.berlios.vch.update;
 
 import java.io.IOException;
-import java.net.URL;
-import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -18,7 +16,6 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 import org.osgi.service.log.LogService;
-import org.osgi.service.obr.RepositoryAdmin;
 
 import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.i18n.ResourceBundleLoader;
@@ -44,9 +41,6 @@ public class Activator implements ResourceBundleProvider {
     @Requires
     private TemplateLoader templateLoader;
     
-    @Requires
-    private RepositoryAdmin repoAdmin;
-    
     private BundleContext ctx;
     
     private ResourceBundle resourceBundle;
@@ -65,21 +59,6 @@ public class Activator implements ResourceBundleProvider {
             registerServlet();
         } catch (Exception e) {
             logger.log(LogService.LOG_ERROR, "Couldn't register config servlet", e);
-        }
-        
-        loadOBRs();
-    }
-    
-    private void loadOBRs() {
-        // add repos from configuration
-        try {
-            List<String> obrs = servlet.getOBRs();
-            for (String uri : obrs) {
-                logger.log(LogService.LOG_INFO, "Adding bundle repository " + uri);
-                repoAdmin.addRepository(new URL(uri));
-            }
-        } catch (Exception e) {
-            logger.log(LogService.LOG_WARNING, "Couldn't add repository", e);
         }
     }
 
