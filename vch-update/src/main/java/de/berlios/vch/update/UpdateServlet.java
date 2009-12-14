@@ -221,6 +221,7 @@ public class UpdateServlet extends BundleContextServlet {
         Map<String, Object> tplParams = new HashMap<String, Object>();
         String path = req.getRequestURI();
         tplParams.put("ACTION", path);
+        tplParams.put("STATIC_PATH", STATIC_PATH);
         tplParams.put("TITLE", i18n.translate("I18N_EXTENSIONS"));
         
         // add additional js and css

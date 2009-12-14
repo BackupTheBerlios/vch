@@ -3,7 +3,6 @@
 <#include "navigation.ftl">
 
 <h1>${I18N_EXTENSIONS}</h1>
-
 <div id="container">
     <div id="tabs" style="float:left; min-width:455px">
         <ul>
@@ -30,8 +29,9 @@
 <script type="text/javascript">
     $(document).ready(function() {
         // enable tabs
-        $('#tabs').tabs({ 
-            ajaxOptions: { 
+        $('#tabs').tabs({
+            spinner: '<img src="${STATIC_PATH}/indicator.gif" alt=""/> ${I18N_LOADING_DATA}', 
+            ajaxOptions: {
                 error: function(request, textStatus, exception) {
                     $.notify({text:request.responseText, title:request.statusText, icon:'/notify/dialog-error.png'});
                     $('#tabs').tabs('abort');
