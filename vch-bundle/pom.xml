@@ -12,6 +12,10 @@
     <version>1.0.0-SNAPSHOT</version>
     <description>Parent POM for all VCH bundles</description>
 
+    <properties>
+        <bundlePlugin>maven-bundle-plugin-hampelratte</bundlePlugin>
+    </properties>
+
     <build>
         <resources>
             <resource>
@@ -37,7 +41,7 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
+                <artifactId>${bundlePlugin}</artifactId>
                 <extensions>true</extensions>
                 <configuration>
                     <remoteOBR>scp://shell.berlios.de/home/groups/vch/htdocs/repo/releases
@@ -72,7 +76,7 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.felix</groupId>
-                    <artifactId>maven-bundle-plugin-hampelratte</artifactId>
+                    <artifactId>${bundlePlugin}</artifactId>
                     <version>2.1.0-SNAPSHOT</version>
                 </plugin>
             </plugins>

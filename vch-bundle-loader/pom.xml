@@ -13,36 +13,4 @@
         <version>1.0.0-SNAPSHOT</version>
         <relativePath>../vch-bundle</relativePath>
     </parent>
-
-    <dependencies>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Bundle-Activator>de.berlios.vch.bundleloader.BundleLoader</Bundle-Activator>
-                    </instructions>
-                    <obr><![CDATA[
-                        <capability name="vch">
-                            <p n="Bundle-Vendor" v="${project.organization.name}" />
-                            <p n="Plugin" v="true" />
-                        </capability>
-                    ]]></obr>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>
