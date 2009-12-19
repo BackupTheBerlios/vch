@@ -103,7 +103,7 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.felix</groupId>
-				<artifactId>${bundlePlugin}</artifactId>
+				<artifactId>maven-bundle-plugin</artifactId>
 				<extensions>true</extensions>
 				<configuration>
 					<instructions>
