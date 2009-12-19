@@ -33,8 +33,10 @@ public class BundleLoader implements BundleActivator, BundleListener {
     public void load() {
         List<Bundle> installedBundles = new ArrayList<Bundle>();
         File pluginDir = new File(DIR);
-        if (!pluginDir.exists())
+        if (!pluginDir.exists()) {
+            logger.warn("Directory {} does not exist", DIR);
             return;
+        }
 
         // discover new bundle jars
         File[] plugins = pluginDir.listFiles(new FilenameFilter() {
