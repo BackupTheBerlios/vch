@@ -54,6 +54,7 @@
 		<artifactId>bundle</artifactId>
 		<groupId>de.berlios.vch</groupId>
 		<version>1.0.0-SNAPSHOT</version>
+		<relativePath>../vch-bundle/pom.xml</relativePath>
 	</parent>
 	<description>Parse for Arte+7 at http://plus7.arte.tv</description>
 	<build>

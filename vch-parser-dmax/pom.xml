@@ -55,6 +55,7 @@
 		<artifactId>bundle</artifactId>
 		<groupId>de.berlios.vch</groupId>
 		<version>1.0.0-SNAPSHOT</version>
+		<relativePath>../vch-bundle/pom.xml</relativePath>
 	</parent>
 	<description>Parser for the DMAX Videotheke. Only complete episodes are included.</description>
 	<build>

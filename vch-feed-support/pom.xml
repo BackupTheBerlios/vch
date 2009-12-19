@@ -24,7 +24,7 @@
 		<artifactId>bundle</artifactId>
 		<groupId>de.berlios.vch</groupId>
 		<version>1.0.0-SNAPSHOT</version>
-		<relativePath>../vch-bundle</relativePath>
+		<relativePath>../vch-bundle/pom.xml</relativePath>
 	</parent>
 	<description>Adds syndication support to VCH like rss and atom.</description>
 	<build>

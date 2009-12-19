@@ -9,7 +9,7 @@
 		<artifactId>bundle</artifactId>
 		<groupId>de.berlios.vch</groupId>
 		<version>1.0.0-SNAPSHOT</version>
-		<relativePath>../Plugins</relativePath>
+		<relativePath>../vch-bundle/pom.xml</relativePath>
 	</parent>
 
 	<description>A download manager for VCH</description>
