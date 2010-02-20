@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
+import org.htmlparser.tags.LinkTag;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 import org.slf4j.Logger;
@@ -35,27 +36,23 @@ public class ProgramParser {
         // check if there is a podcast, which can be parsed
         //parsePodcast(overview, content);
 
-        overview.setTitle(HtmlParserUtils.getText(content, ARDMediathekParser.CHARSET, "h4[class=sendung]"));
+        overview.setTitle(HtmlParserUtils.getText(content, ARDMediathekParser.CHARSET, "div.mt-infobox h3"));
         overview.setUri(new URI(pageUri));
-//        overview.setDescription(Translate.decode(HtmlParserUtils.getText(content, ARDMediathekParser.CHARSET,
-//                "div[class~=daten] span[class=sendetitel]")));
 
-        // try to parse a feed image
-//        ImageTag img = (ImageTag) HtmlParserUtils.getTag(content, ARDMediathekParser.CHARSET,
-//                "div[class~=sendungAM] div.passepartout img");
-//        if (img != null) {
-//            SyndImage image = new SyndImageImpl();
-//            image.setUrl(ARDMediathekParser.BASE_URL + img.getImageURL());
-//            feed.setImage(image);
-//        }
-
-        pageCount = Math.min(determinePageCount(content), 5); // TODO config param or make parser paginated
+        NodeList links = HtmlParserUtils.getTags(content, ARDMediathekParser.CHARSET, "a[class~=mt-box_preload]");
+        LinkTag link = (LinkTag) links.elementAt(links.size()-1);
+        pageUri = ARDMediathekParser.BASE_URL + link.extractLink().replaceAll("view=switch", "view=list");
+        
+        String videoList = HttpUtils.get(pageUri, ARDMediathekParser.HTTP_HEADERS, ARDMediathekParser.CHARSET);
+        
+        pageCount = Math.min(Math.max(determinePageCount(videoList), 1), 5); // TODO config param or make parser paginated
         logger.debug("Program {} has {} pages", pageUri, pageCount);
         for (int i = 1; i <= pageCount; i++) {
             logger.debug("Parsing page {} / {}", i, pageCount);
+            // http://www.ardmediathek.de/ard/servlet/ajax-cache/3516992/view=switch/documentId=3407000/index.html
+            // http://www.ardmediathek.de/ard/servlet/ajax-cache/3516962/view=list/documentId=317338/goto=3/index.html
             List<IVideoPage> videos = programPageParser.parse(pageUri, i);
-            logger.trace("Found {} video items on program page {} - {}", new Object[] { videos.size(),
-                    overview.getTitle(), i });
+            logger.trace("Found {} video items on program page {} - {}", new Object[] { videos.size(), overview.getTitle(), i });
             overview.getPages().addAll(videos);
         }
         
@@ -92,7 +89,7 @@ public class ProgramParser {
 //    }
 
     private int determinePageCount(String pageContent) throws IOException, ParserException {
-        NodeList pages = HtmlParserUtils.getTags(pageContent, ARDMediathekParser.CHARSET, "div[class~=navi_folgeseiten] li strong");
+        NodeList pages = HtmlParserUtils.getTags(pageContent, ARDMediathekParser.CHARSET, "select.ajax-paging-select option");
         return pages.size();
     }
 }

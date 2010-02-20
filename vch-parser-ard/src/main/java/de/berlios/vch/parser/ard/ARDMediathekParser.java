@@ -4,15 +4,12 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.htmlparser.Node;
-import org.htmlparser.Tag;
-import org.htmlparser.tags.OptionTag;
-import org.htmlparser.util.NodeIterator;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
 import de.berlios.vch.http.client.HttpUtils;
-import de.berlios.vch.parser.HtmlParserUtils;
 import de.berlios.vch.parser.IOverviewPage;
 import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.parser.IWebParser;
@@ -23,7 +20,7 @@ public class ARDMediathekParser implements IWebParser, BundleActivator {
 
     public static final String BASE_URL = "http://www.ardmediathek.de";
     
-    private static final String LANDING_PAGE = BASE_URL + "/ard/servlet/";
+    private static final String LANDING_PAGE = BASE_URL + "/ard/servlet/ajax-cache/3551682/view=module/index.html";
     
     public static final String CHARSET = "UTF-8";
     
@@ -44,31 +41,29 @@ public class ARDMediathekParser implements IWebParser, BundleActivator {
         page.setTitle(getTitle());
         
         String landingPage = HttpUtils.get(LANDING_PAGE, HTTP_HEADERS, CHARSET);
-        Tag selectProg = HtmlParserUtils.getTag(landingPage, CHARSET, "form[id=tv_form] select");
-        if(selectProg != null) {
-            NodeIterator iter = selectProg.getChildren().elements();
-            while(iter.hasMoreNodes()) {
-                Node child = iter.nextNode();
-                if(child instanceof OptionTag) {
-                    OptionTag option = (OptionTag) child;
-                    String pageId = option.getValue();
-                    if(pageId != null && !pageId.trim().isEmpty()) {
-                        OverviewPage overview = new OverviewPage();
-                        overview.setParser(ID);
-                        overview.setTitle(option.getOptionText());
-                        overview.setUri(new URI("http://www.ardmediathek.de/ard/servlet/content/1214?moduleId=" + pageId));
-                        page.getPages().add(overview);
-                    }
+        int start = landingPage.indexOf("var sendungVerpasstListe = [");
+        if(start >= 0) {
+            int stop = landingPage.indexOf("];", start);
+            if(stop >= 0) {
+                String jsonArray = landingPage.substring(start+27, stop+2);
+                JSONArray array = new JSONArray(jsonArray);
+                for (int i = 0; i < array.length(); i++) {
+                    JSONObject obj = (JSONObject) array.get(i);
+                    OverviewPage overview = new OverviewPage();
+                    overview.setParser(ID);
+                    overview.setTitle(obj.getString("titel"));
+                    overview.setUri(new URI("http://www.ardmediathek.de" + obj.getString("link")));
+                    page.getPages().add(overview);
                 }
+            } else {
+                throw new RuntimeException("No programs found. Maybe the page layout has changed");
             }
         } else {
             throw new RuntimeException("No programs found. Maybe the page layout has changed");
         }
-        
+
         return page;
     }
-    
-    
 
     @Override
     public String getTitle() {

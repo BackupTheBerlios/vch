@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.htmlparser.Node;
 import org.htmlparser.tags.LinkTag;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
@@ -21,15 +22,16 @@ import de.berlios.vch.parser.VideoPage;
 public class ProgramPageParser {
     
     public List<IVideoPage> parse(String pageUri, int pageNo) throws IOException, ParserException, URISyntaxException {
-        pageUri = HttpUtils.addParameter(pageUri, "goto", Integer.toString(pageNo));
+        pageUri = pageUri.replaceAll("/index.html", "/goto="+Integer.toString(pageNo)+"/index.html"); 
         List<IVideoPage> videoPages = new ArrayList<IVideoPage>();
         
         String content = HttpUtils.get(pageUri, ARDMediathekParser.HTTP_HEADERS, ARDMediathekParser.CHARSET);
-        NodeList items = HtmlParserUtils.getTags(content, ARDMediathekParser.CHARSET, "li[class~=zelle]");
+        NodeList items = HtmlParserUtils.getTags(content, ARDMediathekParser.CHARSET, "ol[class~=mt-list_view] li");
         NodeIterator iter = items.elements();
         while(iter.hasMoreNodes()) {
-            String itemHtml = iter.nextNode().toHtml();
-            LinkTag a = (LinkTag) HtmlParserUtils.getTag(itemHtml, ARDMediathekParser.CHARSET, "div[class~=bewertung_icons] a[class=video]");
+            Node currentNode = iter.nextNode(); 
+            String itemHtml = currentNode.toHtml();
+            LinkTag a = (LinkTag) HtmlParserUtils.getTag(itemHtml, ARDMediathekParser.CHARSET, "h3 a");
             if(a == null) {
                 // probably a podcast item continue with the next one
                 continue;
@@ -43,7 +45,8 @@ public class ProgramPageParser {
                 videoPages.add(video);
                 
                 // parse title
-                video.setTitle(HtmlParserUtils.getText(itemHtml, ARDMediathekParser.CHARSET, "span.beitragstitel"));
+                video.setTitle(HtmlParserUtils.getText(currentNode.toHtml(), ARDMediathekParser.CHARSET, "div h3.mt-title").trim());
+                //video.setTitle(HtmlParserUtils.getText(itemHtml, ARDMediathekParser.CHARSET, "h3"));
                 
                 // parse enclosure duration
                 String clipLaenge = HtmlParserUtils.getText(itemHtml, ARDMediathekParser.CHARSET, "span.cliplaenge");

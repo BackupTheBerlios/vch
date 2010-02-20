@@ -7,7 +7,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -31,36 +30,37 @@ public class VideoItemPageParser {
 
     private static transient Logger logger = LoggerFactory.getLogger(VideoItemPageParser.class);
     
-    /** List of supported video formats in preferred order. 
-     *  So wmv is preferred to quicktime. 
-     */
+    /** List of video file patterns in preferred order. */
     private static String[] supportedFormats = {
-        "microsoftmedia",
-        "quicktime"/*,
-        "flashmedia"*/
+        "http.*hq\\.flv",
+        "http.*hi\\.flv",
+        "mms.*(512|hi)\\.wmv",
+        "http.*\\.flv",
+        "mms.*(256|lo)\\.wmv",
+        "http.*ms256.*\\.asx",
+        "(mms|http).*m\\.wmv.*",
+        "http.*ms128.*\\.asx",
+        "(mms|http).*s\\.wmv.*",
+        "http.*t\\.flv"
     };
     
-    private static Map<String, String> formatToMimetype = new HashMap<String, String>();
-    static {
-        formatToMimetype.put("microsoftmedia", "video/wmv");
-        formatToMimetype.put("flashmedia",     "video/flv");
-        formatToMimetype.put("quicktime",      "video/mp4");
-    }
     
     public static VideoPage parse(VideoPage page) throws IOException, ParserException, URISyntaxException, NoSupportedVideoFoundException {
         String content = HttpUtils.get(page.getUri().toString(), ARDMediathekParser.HTTP_HEADERS, ARDMediathekParser.CHARSET);
         // first parse the available formats for this video
-        List<String> formats = parseAvailableFormats(content);
+        List<String> videos = parseAvailableVideos(content);
         for (int i = 0; i < supportedFormats.length; i++) {
-            if(formats.contains(supportedFormats[i])) {
-                // the preferred format is the first supported format
-                String preferredFormat = supportedFormats[i];
-                logger.trace("Best format is {}", preferredFormat);
-                String videoUri = parseVideo(content, preferredFormat);
-                
-                if(videoUri != null) { // an supported video exists
-                    // create a new entry
-                    page.setVideoUri(new URI(videoUri));
+            for (String video : videos) {
+                if(Pattern.matches(supportedFormats[i], video)) {
+                    // set the video uri
+                    if(video.startsWith("http")) {
+                        Map<String, List<String>> headers = HttpUtils.head(video, ARDMediathekParser.HTTP_HEADERS, ARDMediathekParser.CHARSET);
+                        String contentType = HttpUtils.getHeaderField(headers, "Content-Type");
+                        if("video/x-ms-asf".equals(contentType)) {
+                            video = AsxParser.getUri(video);
+                        }
+                    }
+                    page.setVideoUri(new URI(video));
                     
                     // parse title
                     page.setTitle(parseTitle(content));
@@ -98,92 +98,45 @@ public class VideoItemPageParser {
                     
                     return page;
                 }
-            } else {
-                throw new NoSupportedVideoFoundException(page.getUri().toString(), formats);
+
             }
         }
         
-        return null;
+        throw new NoSupportedVideoFoundException(page.getUri().toString(), videos);
     }
     
     private static String parseDescription(String content) throws ParserException {
-        return Translate.decode(HtmlParserUtils.getText(content, ARDMediathekParser.CHARSET, "div[class~=playerinfo] p"));
+        return Translate.decode(HtmlParserUtils.getText(content, ARDMediathekParser.CHARSET, "div.mt-player_content div[class~=js-collapseable] div[class~=js-collapseable_content] div p"));
     }
 
     private static String parseTitle(String content) throws ParserException {
-        return Translate.decode(HtmlParserUtils.getText(content, ARDMediathekParser.CHARSET, "h2[class=beitragstitel]"));
+        return Translate.decode(HtmlParserUtils.getText(content, ARDMediathekParser.CHARSET, "div.mt-player_content h2"));
     }
     
     private static Calendar parseDate(String content) throws ParserException, ParseException {
-        NodeList list = (NodeList) HtmlParserUtils.getTags(content, ARDMediathekParser.CHARSET, "span[class=date]");
+        NodeList list = (NodeList) HtmlParserUtils.getTags(content, ARDMediathekParser.CHARSET, "p.clipinfo");
         for (NodeIterator iterator = list.elements(); iterator.hasMoreNodes();) {
             Node node = (Node) iterator.nextNode();
             String string = node.toPlainTextString().trim();
-            Pattern p = Pattern.compile("\\s*Sendung vom:\\s*(\\d+\\.\\d+\\.\\d+\\s*)\\s*\\|\\s*(\\d+):(\\d+)\\s*Uhr\\s*", Pattern.DOTALL);
+            Pattern p = Pattern.compile("\\s*Online seit:\\s*(\\d+\\.\\d+\\.\\d+\\s*)\\s*", Pattern.DOTALL);
             Matcher m = p.matcher(string);
-            if(m.matches()) {
+            if(m.find()) {
                 Calendar pubDate = Calendar.getInstance();
                 pubDate.setTime(new SimpleDateFormat("dd.MM.yy").parse(m.group(1)));
-                pubDate.set(Calendar.HOUR_OF_DAY, Integer.parseInt(m.group(2)));
-                pubDate.set(Calendar.MINUTE, Integer.parseInt(m.group(3)));
                 return pubDate;
             }
         }
         
         return Calendar.getInstance();
     }
-    
-    private static String parseVideo(String content, String preferredFormat) {
-        String uri = null;
-        // TODO ensure that 1,2,3 stand for low, medium and high quality
-        Pattern low = Pattern.compile("player\\.avaible_url\\[\'"+preferredFormat+"\'\\]\\[\'1\'\\] = \"(.+)\";");
-        Pattern medium = Pattern.compile("player\\.avaible_url\\[\'"+preferredFormat+"\'\\]\\[\'2\'\\] = \"(.+)\";");
-        Pattern high = Pattern.compile("player\\.avaible_url\\[\'"+preferredFormat+"\'\\]\\[\'3\'\\] = \"(.+)\";");
-        
-        Matcher mLow = low.matcher(content);
-        Matcher mMedium = medium.matcher(content);
-        Matcher mHigh = high.matcher(content);
-        
-        if(mHigh.find()) {
-            logger.trace("Found hq video {}", mHigh.group(1));
-            uri = mHigh.group(1);
-        } else if(mMedium.find()) {
-            logger.trace("Found mq video {}", mMedium.group(1));
-            uri = mMedium.group(1);
-        } else if(mLow.find()) {
-            logger.trace("Found lq video {}", mLow.group(1));
-            uri = mLow.group(1);
-        } else {
-            logger.warn("No supported video format found");
-        }
-        
-        if("microsoftmedia".equalsIgnoreCase(preferredFormat)) { 
-            if(uri != null && !uri.startsWith("mms://")) {
-                try {
-                    Map<String, List<String>> headers = HttpUtils.head(uri, null, ARDMediathekParser.CHARSET);
-                    String type = HttpUtils.getHeaderField(headers, "Content-Type");
-                    if("video/x-ms-asf".equalsIgnoreCase(type) || "video/x-ms-asx".equalsIgnoreCase(type)) {
-                        // we only have an asx file yet
-                        uri = AsxParser.getUri(uri);
-                    }
-                } catch (Exception e) {
-                    logger.trace("Couldn't detect content type. Leaving video URI as is");
-                }
-            }
-        }
 
-        return uri;
-    }
-
-    private static List<String> parseAvailableFormats(String content) {
-        List<String> formats = new ArrayList<String>();
-        Pattern p = Pattern.compile("player.avaibleplayers = new Array\\(\"(\\w+)\"(?:,\"(\\w+)\")*\\)");
+    private static List<String> parseAvailableVideos(String content) {
+        List<String> videos = new ArrayList<String>();
+        Pattern p = Pattern.compile("addMediaStream\\(\\d+, \\d+, \"\", \"(.*)\"\\);");
         Matcher m = p.matcher(content);
-        if(m.find()) {
-            for (int i = 1; i <= m.groupCount(); i++) {
-                formats.add(m.group(i));
-            }
+        while(m.find()) {
+            videos.add(m.group(1));
         }
-        return formats;
+        return videos;
     }
 }
