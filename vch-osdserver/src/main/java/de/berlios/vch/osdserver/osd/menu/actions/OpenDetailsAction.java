@@ -51,6 +51,7 @@ public class OpenDetailsAction implements IOsdAction {
             osd.showMessage(new OsdMessage("", OsdMessage.STATUSCLEAR));
             osd.show(itemDetailsMenu);
         } catch (Exception e) {
+            osd.showMessageSilent(new OsdMessage(e.getLocalizedMessage(), OsdMessage.ERROR));
             logger.error("Couldn't create osd menu", e);
         }
     }
