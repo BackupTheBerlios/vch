@@ -6,7 +6,9 @@ import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -29,90 +31,95 @@ import de.berlios.vch.parser.exceptions.NoSupportedVideoFoundException;
 public class VideoItemPageParser {
 
     private static transient Logger logger = LoggerFactory.getLogger(VideoItemPageParser.class);
-    
-    /** List of video file patterns in preferred order. */
-    private static String[] supportedFormats = {
-        "http.*hq\\.flv",
-        "http.*hi\\.flv",
-        "mms.*(512|hi)\\.wmv",
-        "http.*\\.flv",
-        "mms.*(256|lo)\\.wmv",
-        "http.*ms256.*\\.asx",
-        "(mms|http).*m\\.wmv.*",
-        "http.*ms128.*\\.asx",
-        "(mms|http).*s\\.wmv.*",
-        "http.*t\\.flv"
-    };
-    
-    
-    public static VideoPage parse(VideoPage page) throws IOException, ParserException, URISyntaxException, NoSupportedVideoFoundException {
-        String content = HttpUtils.get(page.getUri().toString(), ARDMediathekParser.HTTP_HEADERS, ARDMediathekParser.CHARSET);
-        // first parse the available formats for this video
-        List<String> videos = parseAvailableVideos(content);
-        for (int i = 0; i < supportedFormats.length; i++) {
-            for (String video : videos) {
-                if(Pattern.matches(supportedFormats[i], video)) {
-                    // set the video uri
-                    if(video.startsWith("http")) {
-                        Map<String, List<String>> headers = HttpUtils.head(video, ARDMediathekParser.HTTP_HEADERS, ARDMediathekParser.CHARSET);
-                        String contentType = HttpUtils.getHeaderField(headers, "Content-Type");
-                        if("video/x-ms-asf".equals(contentType)) {
-                            video = AsxParser.getUri(video);
-                        }
-                    }
-                    page.setVideoUri(new URI(video));
-                    
-                    // parse title
-                    page.setTitle(parseTitle(content));
-                    
-                    // parse description
-                    String description = parseDescription(content);
-                    logger.trace("Description {}", description);
-                    page.setDescription(description);
-                    page.getUserData().remove("desc");
-                    
-                    // parse pubDate
-                    try {
-                        Calendar date = parseDate(content);
-                        logger.trace("Parsed date {}", date);
-                        page.setPublishDate(date);
-                    } catch (ParseException e) {
-                        logger.warn("Couldn't parse publish date. Using current time!", e);
-                        logger.trace("Content: {}", content);
-                        page.setPublishDate(Calendar.getInstance());
-                    }
-                    
-                    // TODO enable streambridge
-//                    if("flashmedia".equalsIgnoreCase(preferredFormat)) {
-//                        if(entry.getEnclosures().size() > 0 && 
-//                                ((SyndEnclosure)entry.getEnclosures().get(0)).getUrl().startsWith("rtmp")) 
-//                        {
-//                            SyndEnclosure enc = (SyndEnclosure)entry.getEnclosures().get(0);
-//                            String videoUri = enc.getUrl();
-//                            String path = Config.getInstance().getHandlerMapping().getPath(StreamBridgeHandler.class);
-//                            String base = Config.getInstance().getBaseUrl();
-//                            String uri = base + path + "?uri=" + URLEncoder.encode(videoUri, "UTF-8");
-//                            enc.setUrl(uri);
-//                        }
-//                    }
-                    
-                    return page;
-                }
 
+    private static List<String> supportedProtocols = Arrays.asList(new String[] { "http", "https", "mms" });
+
+    public static VideoPage parse(VideoPage page) throws IOException, ParserException, URISyntaxException,
+            NoSupportedVideoFoundException {
+        String content = HttpUtils.get(page.getUri().toString(), ARDMediathekParser.HTTP_HEADERS,
+                ARDMediathekParser.CHARSET);
+
+        // first parse the available formats for this video
+        List<VideoType> videos = parseAvailableVideos(content);
+
+        // sort by best format and quality
+        Collections.sort(videos, new VideoTypeComparator());
+
+        // find the first supported protocol 
+        VideoType bestVideo = null;
+        for (VideoType video : videos) {
+            URI uri = new URI(video.getUri());
+            if(supportedProtocols.contains(uri.getScheme())) {
+                bestVideo = video;
+                break;
             }
         }
-        
-        throw new NoSupportedVideoFoundException(page.getUri().toString(), videos);
-    }
+
+        if(bestVideo != null) {
+            // set the video uri
+            if (bestVideo.getUri().startsWith("http")) {
+                Map<String, List<String>> headers = HttpUtils.head(bestVideo.getUri(), ARDMediathekParser.HTTP_HEADERS,
+                        ARDMediathekParser.CHARSET);
+                String contentType = HttpUtils.getHeaderField(headers, "Content-Type");
+                if ("video/x-ms-asf".equals(contentType)) {
+                    bestVideo.uriPart2 = AsxParser.getUri(bestVideo.getUri());
+                }
+            }
+            page.setVideoUri(new URI(bestVideo.getUri()));
+            page.getUserData().put("streamName", bestVideo.uriPart2);
+            
+            logger.info("Best video found is: " + page.getVideoUri().toString());
     
+            // parse title
+            page.setTitle(parseTitle(content));
+    
+            // parse description
+            String description = parseDescription(content);
+            logger.trace("Description {}", description);
+            page.setDescription(description);
+            page.getUserData().remove("desc");
+    
+            // parse pubDate
+            try {
+                Calendar date = parseDate(content);
+                logger.trace("Parsed date {}", date);
+                page.setPublishDate(date);
+            } catch (ParseException e) {
+                logger.warn("Couldn't parse publish date. Using current time!", e);
+                logger.trace("Content: {}", content);
+                page.setPublishDate(Calendar.getInstance());
+            }
+    
+            // TODO enable streambridge
+            // if("flashmedia".equalsIgnoreCase(preferredFormat)) {
+            // if(entry.getEnclosures().size() > 0 &&
+            // ((SyndEnclosure)entry.getEnclosures().get(0)).getUrl().startsWith("rtmp"))
+            // {
+            // SyndEnclosure enc = (SyndEnclosure)entry.getEnclosures().get(0);
+            // String videoUri = enc.getUrl();
+            // String path = Config.getInstance().getHandlerMapping().getPath(StreamBridgeHandler.class);
+            // String base = Config.getInstance().getBaseUrl();
+            // String uri = base + path + "?uri=" + URLEncoder.encode(videoUri, "UTF-8");
+            // enc.setUrl(uri);
+            // }
+            // }
+            
+            return page;
+        } else {
+            throw new NoSupportedVideoFoundException(page.getUri().toString(), supportedProtocols); 
+        }
+    }
+
     private static String parseDescription(String content) throws ParserException {
-        return Translate.decode(HtmlParserUtils.getText(content, ARDMediathekParser.CHARSET, "div.mt-player_content div[class~=js-collapseable] div[class~=js-collapseable_content] div p"));
+        return Translate.decode(HtmlParserUtils.getText(content, ARDMediathekParser.CHARSET,
+                "div.mt-player_content div[class~=js-collapseable] div[class~=js-collapseable_content] div p"));
     }
 
     private static String parseTitle(String content) throws ParserException {
-        return Translate.decode(HtmlParserUtils.getText(content, ARDMediathekParser.CHARSET, "div.mt-player_content h2"));
+        return Translate.decode(HtmlParserUtils
+                .getText(content, ARDMediathekParser.CHARSET, "div.mt-player_content h2"));
     }
-    
+
     private static Calendar parseDate(String content) throws ParserException, ParseException {
         NodeList list = (NodeList) HtmlParserUtils.getTags(content, ARDMediathekParser.CHARSET, "p.clipinfo");
         for (NodeIterator iterator = list.elements(); iterator.hasMoreNodes();) {
@@ -120,23 +127,91 @@ public class VideoItemPageParser {
             String string = node.toPlainTextString().trim();
             Pattern p = Pattern.compile("\\s*Online seit:\\s*(\\d+\\.\\d+\\.\\d+\\s*)\\s*", Pattern.DOTALL);
             Matcher m = p.matcher(string);
-            if(m.find()) {
+            if (m.find()) {
                 Calendar pubDate = Calendar.getInstance();
                 pubDate.setTime(new SimpleDateFormat("dd.MM.yy").parse(m.group(1)));
                 return pubDate;
             }
         }
-        
+
         return Calendar.getInstance();
     }
 
-    private static List<String> parseAvailableVideos(String content) {
-        List<String> videos = new ArrayList<String>();
-        Pattern p = Pattern.compile("addMediaStream\\(\\d+, \\d+, \"\", \"(.*)\"\\);");
+    private static List<VideoType> parseAvailableVideos(String content) throws URISyntaxException {
+        List<VideoType> videos = new ArrayList<VideoType>();
+        Pattern p = Pattern.compile("addMediaStream\\((\\d+), (\\d+), \"(.*)\", \"(.*)\"\\);");
         Matcher m = p.matcher(content);
-        while(m.find()) {
-            videos.add(m.group(1));
+        while (m.find()) {
+            String uriPart1 = m.group(3);
+            String uriPart2 = m.group(4);
+            int format = Integer.parseInt(m.group(1));
+            int quality = Integer.parseInt(m.group(2));
+            VideoType vt = new VideoType(uriPart1, uriPart2, format, quality);
+            videos.add(vt);
         }
         return videos;
+    }
+
+    /**
+     * Container class for the different video types and qualities. The URI is split into uriPart1 and uriPart2. This is
+     * needed for rtmp streams.
+     */
+    public static class VideoType {
+        private String uriPart1;
+        private String uriPart2;
+        private int format;
+        private int quality;
+
+        public VideoType(String uriPart1, String uriPart2, int format, int quality) {
+            super();
+            this.uriPart1 = uriPart1;
+            this.uriPart2 = uriPart2;
+            this.format = format;
+            this.quality = quality;
+        }
+
+        public String getUri() {
+            String uri = "";
+            if (uriPart1 != null && uriPart1.length() > 0) {
+                uri += uriPart1;
+                if (!(uriPart1.endsWith("/") || uriPart2.startsWith("/"))) {
+                    uriPart1 += "/";
+                }
+            }
+            uri += uriPart2;
+            return uri;
+        }
+
+        public String getUriPart1() {
+            return uriPart1;
+        }
+
+        public void setUriPart1(String uriPart1) {
+            this.uriPart1 = uriPart1;
+        }
+
+        public String getUriPart2() {
+            return uriPart2;
+        }
+
+        public void setUriPart2(String uriPart2) {
+            this.uriPart2 = uriPart2;
+        }
+
+        public int getFormat() {
+            return format;
+        }
+
+        public void setFormat(int format) {
+            this.format = format;
+        }
+
+        public int getQuality() {
+            return quality;
+        }
+
+        public void setQuality(int quality) {
+            this.quality = quality;
+        }
     }
 }
