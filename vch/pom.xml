@@ -219,6 +219,7 @@
         <module>../vch-i18n</module>
         <module>../vch-logger</module>
         <module>../vch-osdserver</module>
+        <module>../vch-net</module>
         <module>../vch-parser</module>
         <module>../vch-parser-3sat</module>
         <module>../vch-parser-ard</module>
