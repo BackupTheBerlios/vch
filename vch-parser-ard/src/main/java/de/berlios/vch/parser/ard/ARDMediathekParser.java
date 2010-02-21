@@ -28,9 +28,11 @@ public class ARDMediathekParser implements IWebParser, BundleActivator {
     
     private ProgramParser programParser = new ProgramParser();
     
+    private BundleContext ctx;
+    
     public static Map<String,String> HTTP_HEADERS = new HashMap<String, String>();
     static {
-        HTTP_HEADERS.put("User-Agent", "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.1.2) Gecko/20090821 Gentoo Firefox/3.5.2");
+        HTTP_HEADERS.put("User-Agent", "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.1.2) Gecko/20090821 Gentoo Firefox/3.5.7");
         HTTP_HEADERS.put("Accept-Language", "de-de,de;q=0.8,en-us;q=0.5,en;q=0.3");
     }
     
@@ -75,13 +77,14 @@ public class ARDMediathekParser implements IWebParser, BundleActivator {
         if(page instanceof IOverviewPage) {
             page = programParser.parse(page.getUri().toString());
         } else if(page instanceof VideoPage) {
-            page = VideoItemPageParser.parse((VideoPage) page);
+            page = VideoItemPageParser.parse((VideoPage) page, ctx);
         }
         return page;
     }
 
     @Override
     public void start(BundleContext ctx) throws Exception {
+        this.ctx = ctx;
         ctx.registerService(IWebParser.class.getName(), this, null);
     }
 

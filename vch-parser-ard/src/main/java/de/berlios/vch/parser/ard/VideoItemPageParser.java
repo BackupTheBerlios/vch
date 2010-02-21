@@ -6,7 +6,6 @@ import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
@@ -14,17 +13,23 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.felix.ipojo.Pojo;
 import org.htmlparser.Node;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 import org.htmlparser.util.Translate;
+import org.osgi.framework.BundleContext;
+import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.berlios.vch.http.client.HttpUtils;
+import de.berlios.vch.net.INetworkProtocol;
 import de.berlios.vch.parser.AsxParser;
+import de.berlios.vch.parser.HTTP;
 import de.berlios.vch.parser.HtmlParserUtils;
+import de.berlios.vch.parser.MMS;
 import de.berlios.vch.parser.VideoPage;
 import de.berlios.vch.parser.exceptions.NoSupportedVideoFoundException;
 
@@ -32,12 +37,28 @@ public class VideoItemPageParser {
 
     private static transient Logger logger = LoggerFactory.getLogger(VideoItemPageParser.class);
 
-    private static List<String> supportedProtocols = Arrays.asList(new String[] { "http", "https", "mms" });
-
-    public static VideoPage parse(VideoPage page) throws IOException, ParserException, URISyntaxException,
+    public static VideoPage parse(VideoPage page, BundleContext ctx) throws IOException, ParserException, URISyntaxException,
             NoSupportedVideoFoundException {
         String content = HttpUtils.get(page.getUri().toString(), ARDMediathekParser.HTTP_HEADERS,
                 ARDMediathekParser.CHARSET);
+        
+        // create list of supported network protocols
+        List<String> supportedProtocols = new ArrayList<String>();
+        ServiceTracker st = new ServiceTracker(ctx, INetworkProtocol.class.getName(), null);
+        st.open();
+        Object[] protocols = st.getServices();
+        for (Object object : protocols) {
+            //INetworkProtocol protocol = (INetworkProtocol) object;
+            System.err.println(object.getClass().getName());
+            System.err.println(object instanceof INetworkProtocol);
+            System.err.println(object instanceof HTTP);
+            System.err.println(object instanceof MMS);
+            for (Class<?> interf : object.getClass().getInterfaces()) {
+                System.err.println(interf.getName());
+            }
+         //   supportedProtocols.addAll(protocol.getSchemes());
+        }
+        st.close();
 
         // first parse the available formats for this video
         List<VideoType> videos = parseAvailableVideos(content);
