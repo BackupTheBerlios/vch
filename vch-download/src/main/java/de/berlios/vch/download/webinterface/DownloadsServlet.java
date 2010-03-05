@@ -13,6 +13,8 @@ import de.berlios.vch.web.servlets.BundleContextServlet;
 
 public class DownloadsServlet extends BundleContextServlet {
 
+    private static final long serialVersionUID = 1L;
+
     public static final String PATH = "/downloads";
     
     public static final String FILE_PATH = PATH + "/files";

@@ -20,7 +20,9 @@ import de.berlios.vch.web.NotifyMessage;
 import de.berlios.vch.web.TemplateLoader;
 
 public abstract class BundleContextServlet extends HttpServlet {
-    
+
+    private static final long serialVersionUID = 1L;
+
     protected Dictionary<?, ?> properties;
     
     protected BundleContext bundleContext;
