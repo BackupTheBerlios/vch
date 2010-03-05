@@ -18,6 +18,8 @@ import de.berlios.vch.web.servlets.BundleContextServlet;
 
 public class ConfigServlet extends BundleContextServlet {
     
+    private static final long serialVersionUID = 1L;
+
     public static final String PATH = "/config";
     
     private static transient Logger logger = LoggerFactory.getLogger(ConfigServlet.class);
