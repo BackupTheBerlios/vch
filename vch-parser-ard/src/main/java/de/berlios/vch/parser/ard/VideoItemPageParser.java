@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.felix.ipojo.Pojo;
 import org.htmlparser.Node;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
@@ -27,9 +26,7 @@ import org.slf4j.LoggerFactory;
 import de.berlios.vch.http.client.HttpUtils;
 import de.berlios.vch.net.INetworkProtocol;
 import de.berlios.vch.parser.AsxParser;
-import de.berlios.vch.parser.HTTP;
 import de.berlios.vch.parser.HtmlParserUtils;
-import de.berlios.vch.parser.MMS;
 import de.berlios.vch.parser.VideoPage;
 import de.berlios.vch.parser.exceptions.NoSupportedVideoFoundException;
 
@@ -48,15 +45,8 @@ public class VideoItemPageParser {
         st.open();
         Object[] protocols = st.getServices();
         for (Object object : protocols) {
-            //INetworkProtocol protocol = (INetworkProtocol) object;
-            System.err.println(object.getClass().getName());
-            System.err.println(object instanceof INetworkProtocol);
-            System.err.println(object instanceof HTTP);
-            System.err.println(object instanceof MMS);
-            for (Class<?> interf : object.getClass().getInterfaces()) {
-                System.err.println(interf.getName());
-            }
-         //   supportedProtocols.addAll(protocol.getSchemes());
+            INetworkProtocol protocol = (INetworkProtocol) object;
+            supportedProtocols.addAll(protocol.getSchemes());
         }
         st.close();
 
