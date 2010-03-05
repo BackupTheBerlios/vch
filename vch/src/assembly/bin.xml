@@ -44,7 +44,8 @@
 				<include>de.berlios.vch:feedsupport</include>
 				<include>de.berlios.vch:httpclient</include>
 				<include>de.berlios.vch:i18n</include>
-				<include>de.berlios.vch:osdserver</include>
+				<include>de.berlios.vch:net</include>
+                <include>de.berlios.vch:osdserver</include>
 				<include>de.berlios.vch:parser</include>
 				<include>de.berlios.vch:parser.ard</include>
 				<include>de.berlios.vch:parser.arte</include>
