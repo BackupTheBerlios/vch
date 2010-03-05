@@ -18,7 +18,6 @@ import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
 import de.berlios.vch.parser.WebPageTitleComparator;
 
-// TODO don't keep references to the parsers, so that parser updates immediately take effect
 public class GetWebPage implements Command {
 
     private BundleContext ctx = null;
