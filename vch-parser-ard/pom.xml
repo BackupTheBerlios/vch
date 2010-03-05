@@ -61,7 +61,7 @@
 			<artifactId>net</artifactId>
 			<version>1.0.0</version>
 			<type>bundle</type>
-			<scope>compile</scope>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 	<parent>
