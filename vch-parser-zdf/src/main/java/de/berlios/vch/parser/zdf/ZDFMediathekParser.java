@@ -6,7 +6,6 @@ import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 
 import org.htmlparser.tags.Div;
@@ -28,7 +27,6 @@ import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
 import de.berlios.vch.parser.VideoPage;
-import de.berlios.vch.parser.WebPageTitleComparator;
 
 public class ZDFMediathekParser implements IWebParser, BundleActivator {
     private static final String BASE_URI = "http://www.zdf.de";
@@ -88,7 +86,7 @@ public class ZDFMediathekParser implements IWebParser, BundleActivator {
         
         // parse the pubDate
         String datum = HtmlParserUtils.getText(content, CHARSET, "p.datum");
-        datum = datum.split(",")[1].trim();
+        datum = datum.substring(datum.lastIndexOf(',')+1).trim();
         Date pubDate = new SimpleDateFormat("dd.MM.yyyy").parse(datum);
         Calendar cal = Calendar.getInstance();
         cal.setTime(pubDate);
@@ -105,7 +103,6 @@ public class ZDFMediathekParser implements IWebParser, BundleActivator {
         // set the number of displayed items on the page to 1000
         String uri = HttpUtils.addParameter(page.getUri().toString(), "teaserListIndex", "1000");
         
-        boolean isProgramPage = uri.contains("kua");
         String content = HttpUtils.get(uri, null, CHARSET);
         NodeList titles = HtmlParserUtils.getTags(content, CHARSET, "div.text");
         NodeIterator iter = titles.elements();
@@ -115,7 +112,7 @@ public class ZDFMediathekParser implements IWebParser, BundleActivator {
             LinkTag a = (LinkTag) links.elementAt(1);
             
             // parse page uri
-            String pageUri = BASE_URI + a.extractLink();
+            String pageUri = BASE_URI + Translate.decode(a.extractLink());
             
             // parse page title
             String title = Translate.decode(a.getLinkText()).trim();
@@ -126,17 +123,19 @@ public class ZDFMediathekParser implements IWebParser, BundleActivator {
             
             // create an OverviewPage or a VideoPage
             IWebPage subPage = null;
-            if(isVideo) {
-                subPage = new VideoPage();
-            } else {
+            URI subPageUri = new URI(pageUri.replaceAll(" ", "+"));
+            if(isOverviewPage(subPageUri)) {
                 subPage = new OverviewPage();
+            } else {
+                subPage = new VideoPage();
             }
             subPage.setParser(ID);
             subPage.setTitle(title);
-            subPage.setUri(new URI(pageUri.replaceAll(" ", "+")));
+            subPage.setUri(subPageUri);
             
-            // if it is a program page, add only videos, otherwise add all entries
-            if(isProgramPage) {
+            // if the subpage is an item page and if it is video, add it to the overview page
+            // otherwise it is an overview page and we add it, too
+            if (!isOverviewPage(subPageUri)) {
                 if(isVideo) {
                     page.getPages().add(subPage);
                 }
@@ -144,12 +143,10 @@ public class ZDFMediathekParser implements IWebParser, BundleActivator {
                 page.getPages().add(subPage);
             }
         }
-        
-        // sort the result list by title, but only if it is not a program page, because
-        // a program page should ordered by date 
-        if(!isProgramPage) {
-            Collections.sort(page.getPages(), new WebPageTitleComparator());
-        }
+    }
+    
+    private boolean isOverviewPage(URI uri) {
+        return uri != null && uri.getPath() != null && uri.getPath().matches(".*/\\d+");
     }
 
     @Override
