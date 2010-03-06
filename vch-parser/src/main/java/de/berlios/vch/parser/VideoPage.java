@@ -21,6 +21,7 @@ public class VideoPage extends WebPage implements IVideoPage {
         return description;
     }
     
+    @Override
     public void setDescription(String description) {
         this.description = description;
     }
@@ -30,6 +31,7 @@ public class VideoPage extends WebPage implements IVideoPage {
         return duration;
     }
     
+    @Override
     public void setDuration(long duration) {
         this.duration = duration;
     }
@@ -39,6 +41,7 @@ public class VideoPage extends WebPage implements IVideoPage {
         return publishDate;
     }
     
+    @Override
     public void setPublishDate(Calendar publishDate) {
         this.publishDate = publishDate;
     }
@@ -48,8 +51,9 @@ public class VideoPage extends WebPage implements IVideoPage {
         return thumbUri;
     }
     
-    public void setThumbUri(URI thumbUri) {
-        this.thumbUri = thumbUri;
+    @Override
+    public void setThumbnail(URI uri) {
+        this.thumbUri = uri;
     }
 
     @Override
@@ -57,6 +61,7 @@ public class VideoPage extends WebPage implements IVideoPage {
         return videoUri;
     }
     
+    @Override
     public void setVideoUri(URI videoUri) {
         this.videoUri = videoUri;
     }

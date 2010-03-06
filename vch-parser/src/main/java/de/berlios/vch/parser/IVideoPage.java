@@ -13,17 +13,25 @@ import java.util.Calendar;
 public interface IVideoPage extends IWebPage {
 	public String getDescription();
 	
+	public void setDescription(String description);
+	
 	public Calendar getPublishDate();
+	
+	public void setPublishDate(Calendar publishDate);
 	
 	public URI getThumbnail();
 	
-	public void setVideoUri(URI uri);
+	public void setThumbnail(URI uri);
 	
 	public URI getVideoUri();
+	
+	public void setVideoUri(URI uri);
 	
 	/**
 	 * Duration of the video in seconds
 	 * @return duration of the video in seconds
 	 */
 	public long getDuration();
+	
+	public void setDuration(long duration);
 }
