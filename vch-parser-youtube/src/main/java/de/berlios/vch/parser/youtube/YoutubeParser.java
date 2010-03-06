@@ -26,6 +26,7 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogService;
 
+import com.sun.syndication.feed.synd.SyndContent;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.feed.synd.SyndImage;
@@ -132,13 +133,27 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider {
                 VideoPage video = new YoutubeVideoPageProxy(logger, prefs);
                 video.setParser(getId());
                 video.setTitle(entry.getTitle());
-                String rawDescription = entry.getDescription().getValue();
-                String desc = HtmlParserUtils.getText(rawDescription, "UTF-8", "div span");
-                video.setDescription(Translate.decode(desc));
+                
+                // parse description
+                String rawDescription = null;
+                if(entry.getDescription() != null) {
+                    rawDescription = entry.getDescription().getValue();
+                } else if(entry.getContents().size() > 0) {
+                    rawDescription = ((SyndContent)entry.getContents().get(0)).getValue(); 
+                }
+                if(rawDescription != null) {
+                    String desc = HtmlParserUtils.getText(rawDescription, "UTF-8", "div span");
+                    video.setDescription(Translate.decode(desc));
+                }
+                
+                // parse publish date
                 Calendar pubCal = Calendar.getInstance();
                 pubCal.setTime(entry.getPublishedDate());
                 video.setPublishDate(pubCal);
+                
+                // parse video uri
                 video.setUri(new URI(entry.getLink()));
+                
                 feedPage.getPages().add(video);
             }
             return feedPage;
