@@ -1,29 +1,29 @@
 package de.berlios.vch.parser.zdf;
 
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.Date;
 
-import org.htmlparser.Node;
-import org.htmlparser.tags.HeadingTag;
+import org.htmlparser.tags.Div;
+import org.htmlparser.tags.ImageTag;
 import org.htmlparser.tags.LinkTag;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
+import org.htmlparser.util.ParserException;
 import org.htmlparser.util.Translate;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-
-import com.sun.syndication.feed.synd.SyndEnclosure;
-import com.sun.syndication.feed.synd.SyndEntry;
-import com.sun.syndication.feed.synd.SyndFeed;
 
 import de.berlios.vch.http.client.HttpUtils;
 import de.berlios.vch.parser.AsxParser;
 import de.berlios.vch.parser.HtmlParserUtils;
 import de.berlios.vch.parser.IOverviewPage;
+import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
@@ -31,44 +31,21 @@ import de.berlios.vch.parser.VideoPage;
 import de.berlios.vch.parser.WebPageTitleComparator;
 
 public class ZDFMediathekParser implements IWebParser, BundleActivator {
-    private static final String RSS_OVERVIEW_PAGE = "http://www.zdf.de/ZDFde/inhalt/19/0,1872,5247443_pi:1600000-ps:PO-pt:HP,00.html";
+    private static final String BASE_URI = "http://www.zdf.de";
     
-    public static final String CHARSET = "ISO-8859-1";
+    private static final String OVERVIEW_PAGE = BASE_URI + "/ZDFmediathek/hauptnavigation/rubriken?flash=off";
+    
+    public static final String CHARSET = "UTF-8";
     
     public static final String ID = ZDFMediathekParser.class.getName();
-    
-    private ZdfFeedParser feedParser = new ZdfFeedParser();
     
     @Override
     public IOverviewPage getRoot() throws Exception {
         OverviewPage page = new OverviewPage();
         page.setParser(ID);
         page.setTitle(getTitle());
-        
-        // add all rss feeds to 
-        String landingPage = HttpUtils.get(RSS_OVERVIEW_PAGE, null, CHARSET);
-        NodeList titles = HtmlParserUtils.getTags(landingPage, CHARSET, "div#rss6 h3");
-        NodeIterator iter = titles.elements();
-        Set<IWebPage> pages = new HashSet<IWebPage>();
-        while(iter.hasMoreNodes()) {
-            HeadingTag h3 = (HeadingTag) iter.nextNode();
-            Node next = h3;
-            while ( !"ul".equalsIgnoreCase((next = next.getNextSibling()).getText()) ) {
-                continue;
-            }
-            Node ul = next;
-            LinkTag rssLink = (LinkTag) HtmlParserUtils.getTag(ul.toHtml(), CHARSET, "li a");
-            String pageUri = rssLink.extractLink();
-            String title = Translate.decode(h3.getStringText()).trim();
-            OverviewPage feedPage = new OverviewPage();
-            feedPage.setParser(ID);
-            feedPage.setTitle(title);
-            feedPage.setUri(new URI(pageUri.replaceAll(" ", "+")));
-            pages.add(feedPage);
-        }
-        
-        page.getPages().addAll(pages);
-        Collections.sort(page.getPages(), new WebPageTitleComparator());
+        page.setUri(new URI(OVERVIEW_PAGE));
+        parseOverviewPage(page);
         return page;
     }
 
@@ -79,39 +56,99 @@ public class ZDFMediathekParser implements IWebParser, BundleActivator {
 
     @Override
     public IWebPage parse(IWebPage page) throws Exception {
-        
-        if(page instanceof VideoPage) {
-            VideoPage video = (VideoPage) page;
-            String videoUri = video.getVideoUri().toString();
-            if(videoUri.endsWith("asx")) {
-                videoUri = AsxParser.getUri(videoUri);
-                video.setVideoUri(new URI(videoUri));
-                page.getUserData().remove("video");
+        if(page instanceof IVideoPage) {
+            IVideoPage video = (IVideoPage) page;
+            parseVideoPage(video);
+            // parse asx file, if necessary
+            if(video.getVideoUri().toString().toLowerCase().endsWith(".asx")) {
+                String newUri = AsxParser.getUri(video.getVideoUri().toString());
+                video.setVideoUri(new URI(newUri));
             }
-            
-            // parse duration
-            
             return page;
         } else {
-            SyndFeed feed = feedParser.parse(page);
-            OverviewPage feedPage = new OverviewPage();
-            feedPage.setParser(ID);
-            feedPage.setTitle(page.getTitle());
-            feedPage.setUri(page.getUri());
+            parseOverviewPage((IOverviewPage) page);
+            return page;
+        }
+    }
+    
+    private void parseVideoPage(IVideoPage video) throws IOException, ParserException, URISyntaxException, ParseException {
+        String content = HttpUtils.get(video.getUri().toString(), null, CHARSET);
+        
+        // parse the description
+        video.setDescription(Translate.decode(HtmlParserUtils.getText(content, CHARSET, "div.beitrag p.kurztext")));
+        
+        // parse the thumbnail image
+        ImageTag img = (ImageTag) HtmlParserUtils.getTag(content, CHARSET, "div.beitrag img");
+        video.setThumbnail(new URI (BASE_URI + img.getImageURL()));
+        
+        // parse the video uri
+        NodeList videoLinks = HtmlParserUtils.getTags(content, CHARSET, "ul.dslChoice li a");
+        LinkTag dsl2000 = (LinkTag) videoLinks.elementAt(1);
+        video.setVideoUri(new URI(dsl2000.extractLink()));
+        
+        // parse the pubDate
+        String datum = HtmlParserUtils.getText(content, CHARSET, "p.datum");
+        datum = datum.split(",")[1].trim();
+        Date pubDate = new SimpleDateFormat("dd.MM.yyyy").parse(datum);
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(pubDate);
+        video.setPublishDate(cal);
+        
+        // TODO parse the duration
+    }
+
+    public void parseOverviewPage(IOverviewPage page) throws Exception {
+        // clear the parsed pages, so that we don't have duplicate results, if a user
+        // opens this page multiple times
+        page.getPages().clear();
+        
+        // set the number of displayed items on the page to 1000
+        String uri = HttpUtils.addParameter(page.getUri().toString(), "teaserListIndex", "1000");
+        
+        boolean isProgramPage = uri.contains("kua");
+        String content = HttpUtils.get(uri, null, CHARSET);
+        NodeList titles = HtmlParserUtils.getTags(content, CHARSET, "div.text");
+        NodeIterator iter = titles.elements();
+        while(iter.hasMoreNodes()) {
+            Div div = (Div) iter.nextNode();
+            NodeList links = (NodeList) HtmlParserUtils.getTags(div.toHtml(), CHARSET, "a");
+            LinkTag a = (LinkTag) links.elementAt(1);
             
-            for (Iterator<?> iterator = feed.getEntries().iterator(); iterator.hasNext();) {
-                SyndEntry entry = (SyndEntry) iterator.next();
-                VideoPage video = new VideoPage();
-                video.setParser(ID);
-                video.setTitle(entry.getTitle());
-                video.setDescription(entry.getDescription().getValue());
-                Calendar pubCal = Calendar.getInstance();
-                pubCal.setTime(entry.getPublishedDate());
-                video.setPublishDate(pubCal);
-                video.setVideoUri( new URI( ((SyndEnclosure)entry.getEnclosures().get(0)).getUrl() ) );
-                feedPage.getPages().add(video);
+            // parse page uri
+            String pageUri = BASE_URI + a.extractLink();
+            
+            // parse page title
+            String title = Translate.decode(a.getLinkText()).trim();
+            
+            // detect page type
+            LinkTag typeLink = (LinkTag) links.elementAt(2);
+            boolean isVideo = Translate.decode(typeLink.getLinkText()).trim().toLowerCase().contains("video");
+            
+            // create an OverviewPage or a VideoPage
+            IWebPage subPage = null;
+            if(isVideo) {
+                subPage = new VideoPage();
+            } else {
+                subPage = new OverviewPage();
             }
-            return feedPage;
+            subPage.setParser(ID);
+            subPage.setTitle(title);
+            subPage.setUri(new URI(pageUri.replaceAll(" ", "+")));
+            
+            // if it is a program page, add only videos, otherwise add all entries
+            if(isProgramPage) {
+                if(isVideo) {
+                    page.getPages().add(subPage);
+                }
+            } else {
+                page.getPages().add(subPage);
+            }
+        }
+        
+        // sort the result list by title, but only if it is not a program page, because
+        // a program page should ordered by date 
+        if(!isProgramPage) {
+            Collections.sort(page.getPages(), new WebPageTitleComparator());
         }
     }
 
