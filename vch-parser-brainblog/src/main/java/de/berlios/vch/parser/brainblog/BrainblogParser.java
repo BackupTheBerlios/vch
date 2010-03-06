@@ -146,7 +146,7 @@ private static transient Logger logger = LoggerFactory.getLogger(BrainblogParser
             // thumb aus beschreibung holen und beschreibung löschen
             ImageTag img = (ImageTag) HtmlParserUtils.getTag(item.getDescription().getValue(), CHARSET, "img");
             if(img != null) {
-                video.setThumbUri(new URI(img.getImageURL()));
+                video.setThumbnail(new URI(img.getImageURL()));
             }
             
             page.getPages().add(video);

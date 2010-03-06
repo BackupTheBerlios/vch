@@ -174,7 +174,7 @@ public class ArteParser implements IWebParser, BundleActivator {
                 
                 // parse previewPicture
                 String previewPicture = video.getChildText("previewPictureURL");
-                videoPage.setThumbUri(new URI(previewPicture));
+                videoPage.setThumbnail(new URI(previewPicture));
                 
                 list.add(videoPage);
             }

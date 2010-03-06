@@ -63,7 +63,7 @@ public class VideoPageParser {
         
         // parse the thumb
         if(video.get("thumb") != null) {
-            page.setThumbUri(new URI((String) video.get("thumb")));
+            page.setThumbnail(new URI((String) video.get("thumb")));
         }
         
         return page;

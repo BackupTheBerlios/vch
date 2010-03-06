@@ -102,7 +102,7 @@ public class DreisatParser implements IWebParser, BundleActivator {
             String content = HttpUtils.get(vpage.getUri().toString(), null, CHARSET);
             ImageTag img = (ImageTag) HtmlParserUtils.getTag(content, CHARSET, "div.seite div.media img.still");
             if(img != null) {
-                vpage.setThumbUri(new URI(BASE_URL + img.getImageURL()));
+                vpage.setThumbnail(new URI(BASE_URL + img.getImageURL()));
             }
             
             return page;
