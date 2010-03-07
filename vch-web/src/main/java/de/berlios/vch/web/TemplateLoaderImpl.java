@@ -47,8 +47,8 @@ public class TemplateLoaderImpl implements TemplateLoader {
         //config.setTemplateLoader(new ClassTemplateLoader(Activator.class, "/templates/"));
         config.setTemplateLoader(new BundleTemplateLoader(ctx, "/templates/"));
         config.setObjectWrapper(new DefaultObjectWrapper());
-        config.setEncoding(Locale.getDefault(), "UTF-8"); // TODO config param?
-        config.setURLEscapingCharset("UTF-8"); // TODO config param?
+        config.setEncoding(Locale.getDefault(), "UTF-8");
+        config.setURLEscapingCharset("UTF-8");
     }
 
     public String loadTemplate(String filename) {
@@ -106,7 +106,7 @@ public class TemplateLoaderImpl implements TemplateLoader {
 
     private void addDefaultParameters(Map<String, Object> params) {
         // page encoding
-        params.put("ENCODING", "UTF-8"/*Config.getInstance().getProperty("html.encoding")*/); // TODO config param?
+        params.put("ENCODING", "UTF-8"/*Config.getInstance().getProperty("html.encoding")*/);
 //        
 //          String version = Config.getInstance().getManifestProperty("VCH-Version");
 //          String revision = Config.getInstance().getManifestProperty("VCH-Revision");

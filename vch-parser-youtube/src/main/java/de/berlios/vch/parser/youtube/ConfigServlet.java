@@ -38,9 +38,10 @@ public class ConfigServlet extends BundleContextServlet {
             try {
                 SyndFeed feed = RssParser.parseUri(feedUri);
                 parser.addFeed(feed.getTitle(), feedUri);
-                // TODO show success message
             } catch (Exception e) {
-                logger.log(LogService.LOG_ERROR, "Couldn't parse feed", e); // TODO show on webpage
+                logger.log(LogService.LOG_ERROR, "Couldn't parse feed", e);
+                error(resp, HttpServletResponse.SC_BAD_REQUEST, "Couldn't parse feed");
+                return;
             }
         } else if(req.getParameter("remove_feeds") != null) {
             String[] feeds = req.getParameterValues("feeds");

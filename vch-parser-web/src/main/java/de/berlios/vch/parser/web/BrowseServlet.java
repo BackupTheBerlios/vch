@@ -31,7 +31,6 @@ import de.berlios.vch.parser.WebPage;
 import de.berlios.vch.parser.exceptions.NoSupportedVideoFoundException;
 import de.berlios.vch.web.servlets.BundleContextServlet;
 
-// TODO videos tatsächlich erst bei bedarf parsen und in json objekte umwandeln
 public class BrowseServlet extends BundleContextServlet {
 
     public static String PATH = "/parser";
@@ -85,7 +84,7 @@ public class BrowseServlet extends BundleContextServlet {
                             response += toJSON(parsedPage);
                         }
                         response += "}}";
-                        resp.setContentType("application/json; charset=utf-8"); // TODO config param?
+                        resp.setContentType("application/json; charset=utf-8");
                         resp.getWriter().println(response);
                     } else {
                         resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
