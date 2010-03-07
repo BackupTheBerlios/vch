@@ -231,7 +231,7 @@ public class UpdateServlet extends BundleContextServlet {
         js.add("http://jquery-ui.googlecode.com/svn/tags/latest/ui/jquery.ui.tabs.js");
         tplParams.put("JS_INCLUDES", js);
         List<String> css = new ArrayList<String>();
-        css.add("http://jquery-ui.googlecode.com/svn/tags/latest/themes/base/ui.all.css");
+        css.add("http://jquery-ui.googlecode.com/svn/tags/latest/themes/base/jquery.ui.all.css");
         css.add(STATIC_PATH + "/extensions.css");
         tplParams.put("CSS_INCLUDES", css);
         
