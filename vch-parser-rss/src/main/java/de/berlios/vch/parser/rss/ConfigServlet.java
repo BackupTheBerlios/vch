@@ -13,6 +13,8 @@ import org.osgi.service.log.LogService;
 import com.sun.syndication.feed.synd.SyndFeed;
 
 import de.berlios.vch.rss.RssParser;
+import de.berlios.vch.web.NotifyMessage;
+import de.berlios.vch.web.NotifyMessage.TYPE;
 import de.berlios.vch.web.servlets.BundleContextServlet;
 
 public class ConfigServlet extends BundleContextServlet {
@@ -34,9 +36,10 @@ public class ConfigServlet extends BundleContextServlet {
             try {
                 SyndFeed feed = RssParser.parseUri(feedUri);
                 parser.addFeed(feed.getTitle(), feedUri);
-                // TODO show success message
+                addNotify(req, new NotifyMessage(TYPE.INFO, i18n.translate("I18N_FEED_ADDED")));
             } catch (Exception e) {
-                logger.log(LogService.LOG_ERROR, "Couldn't parse feed", e); // TODO show on webpage
+                logger.log(LogService.LOG_ERROR, "Couldn't parse feed", e);
+                addNotify(req, new NotifyMessage(TYPE.ERROR, i18n.translate("I18N_ERROR_COULDNT_PARSE_FEED"), e));
             }
         } else if(req.getParameter("remove_feeds") != null) {
             String[] feeds = req.getParameterValues("feeds");
@@ -52,6 +55,7 @@ public class ConfigServlet extends BundleContextServlet {
                 + req.getServletPath());
         params.put("FEEDS", parser.getFeeds());
         params.put("ACTION", PATH);
+        params.put("NOTIFY_MESSAGES", getNotifyMessages(req));
         
         String page = templateLoader.loadTemplate("configRss.ftl", params);
         resp.getWriter().print(page);
