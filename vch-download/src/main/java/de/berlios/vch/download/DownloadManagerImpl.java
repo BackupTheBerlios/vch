@@ -80,7 +80,8 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
         }
         
         if(download == null) {
-            // TODO download does not exist
+            logger.log(LogService.LOG_WARNING, "Download does not exist " + id);
+            return;
         }
         
         // delete the video file
