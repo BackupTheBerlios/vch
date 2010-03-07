@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import de.berlios.vch.download.DownloadManager;
+import de.berlios.vch.web.NotifyMessage;
+import de.berlios.vch.web.NotifyMessage.TYPE;
 import de.berlios.vch.web.servlets.BundleContextServlet;
 
 public class DownloadsServlet extends BundleContextServlet {
@@ -51,7 +53,7 @@ public class DownloadsServlet extends BundleContextServlet {
         } else if ("delete_finished".equals(action)) {
             String id = req.getParameter("id");
             dm.deleteDownload(id);
-            //addMessage(i18n.translate("I18N_DL_FILE_DELETED")); // TODO notifyMessage
+            addNotify(req, new NotifyMessage(TYPE.INFO, i18n.translate("I18N_DL_FILE_DELETED")));
         }
             
         listDownloads(req, resp);
