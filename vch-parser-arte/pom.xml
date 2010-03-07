@@ -5,6 +5,15 @@
 	<packaging>bundle</packaging>
 	<version>1.0.0-SNAPSHOT</version>
 	<name>VCH Arte+7 Parser</name>
+    <description>Parse for Arte+7 at http://plus7.arte.tv</description>
+
+    <parent>
+        <artifactId>parent</artifactId>
+        <groupId>de.berlios.vch</groupId>
+        <version>1.0.0</version>
+        <relativePath>../vch-parent/pom.xml</relativePath>
+    </parent>
+
 	<dependencies>
 		<dependency>
 			<groupId>de.berlios.vch</groupId>
@@ -44,19 +53,8 @@
 			<artifactId>rome</artifactId>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.felix</groupId>
-			<artifactId>org.apache.felix.main</artifactId>
-			<scope>provided</scope>
-		</dependency>
 	</dependencies>
-	<parent>
-		<artifactId>bundle</artifactId>
-		<groupId>de.berlios.vch</groupId>
-		<version>1.0.0-SNAPSHOT</version>
-		<relativePath>../vch-bundle/pom.xml</relativePath>
-	</parent>
-	<description>Parse for Arte+7 at http://plus7.arte.tv</description>
+
 	<build>
 		<plugins>
 			<plugin>

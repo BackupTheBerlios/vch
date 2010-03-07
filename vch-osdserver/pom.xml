@@ -6,6 +6,14 @@
 	<name>VCH osdserver</name>
 	<version>1.0.0-SNAPSHOT</version>
 	<description>This bundle provides an VDR osd menu with the help of the VDR osdserver-Plugin</description>
+    
+    <parent>
+        <artifactId>parent</artifactId>
+        <groupId>de.berlios.vch</groupId>
+        <version>1.0.0</version>
+        <relativePath>../vch-parent/pom.xml</relativePath>
+    </parent>
+    
 	<dependencies>
 		<dependency>
 			<groupId>org.hampelratte</groupId>
@@ -30,26 +38,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.felix</groupId>
-			<artifactId>org.osgi.compendium</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.3</version>
-			<type>jar</type>
-			<scope>provided</scope>
-		</dependency>
 	</dependencies>
-	<parent>
-		<artifactId>bundle</artifactId>
-		<groupId>de.berlios.vch</groupId>
-		<version>1.0.0-SNAPSHOT</version>
-		<relativePath>../vch-bundle/pom.xml</relativePath>
-	</parent>
 </project>

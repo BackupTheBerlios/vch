@@ -5,6 +5,15 @@
 	<packaging>bundle</packaging>
 	<version>1.0.0-SNAPSHOT</version>
 	<name>VCH ZDF Parser</name>
+    <description>Parser for the ZDFmediathek http://www.zdf.de/ZDFmediathek</description>
+    
+    <parent>
+        <artifactId>parent</artifactId>
+        <groupId>de.berlios.vch</groupId>
+        <version>1.0.0</version>
+        <relativePath>../vch-parent/pom.xml</relativePath>
+    </parent>
+    
 	<dependencies>
 		<dependency>
 			<groupId>de.berlios.vch</groupId>
@@ -50,13 +59,7 @@
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
-	<parent>
-		<artifactId>bundle</artifactId>
-		<groupId>de.berlios.vch</groupId>
-		<version>1.0.0-SNAPSHOT</version>
-		<relativePath>../vch-bundle/pom.xml</relativePath>
-	</parent>
-	<description>Parser for the ZDFmediathek http://www.zdf.de/ZDFmediathek</description>
+
 	<build>
 		<plugins>
 			<plugin>

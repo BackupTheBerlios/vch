@@ -5,6 +5,15 @@
 	<packaging>bundle</packaging>
 	<version>1.0.0-SNAPSHOT</version>
 	<name>VCH 3sat Parser</name>
+    <description>Parser for the 3sat-Mediathek. Parses all feeds on http://www.3sat.de/mediathek/mediathek.php?mode=rss</description>
+    
+    <parent>
+        <artifactId>parent</artifactId>
+        <groupId>de.berlios.vch</groupId>
+        <version>1.0.0</version>
+        <relativePath>../vch-parent/pom.xml</relativePath>
+    </parent>
+    
 	<dependencies>
 		<dependency>
 			<groupId>de.berlios.vch</groupId>
@@ -44,19 +53,7 @@
 			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.felix</groupId>
-			<artifactId>org.apache.felix.main</artifactId>
-			<scope>provided</scope>
-		</dependency>
 	</dependencies>
-	<parent>
-		<artifactId>bundle</artifactId>
-		<groupId>de.berlios.vch</groupId>
-		<version>1.0.0-SNAPSHOT</version>
-		<relativePath>../vch-bundle/pom.xml</relativePath>
-	</parent>
-	<description>Parser for the 3sat-Mediathek. Parses all feeds on http://www.3sat.de/mediathek/mediathek.php?mode=rss</description>
 	<build>
 		<plugins>
 			<plugin>

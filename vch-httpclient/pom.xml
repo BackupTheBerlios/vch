@@ -5,13 +5,12 @@
 	<packaging>bundle</packaging>
 	<version>1.0.0-SNAPSHOT</version>
 	<name>VCH HTTP Client</name>
-	<dependencies>
-	</dependencies>
+    <description>A simple HTTP client with caching capabilities</description>
+
 	<parent>
-		<artifactId>bundle</artifactId>
-		<groupId>de.berlios.vch</groupId>
-		<version>1.0.0-SNAPSHOT</version>
-		<relativePath>../vch-bundle/pom.xml</relativePath>
-	</parent>
-	<description>A simple HTTP client with caching capabilities</description>
+        <artifactId>parent</artifactId>
+        <groupId>de.berlios.vch</groupId>
+        <version>1.0.0</version>
+        <relativePath>../vch-parent/pom.xml</relativePath>
+    </parent>
 </project>

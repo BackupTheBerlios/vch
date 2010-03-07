@@ -1,45 +1,48 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<artifactId>feedsupport</artifactId>
-	<packaging>bundle</packaging>
-	<version>1.0.0-SNAPSHOT</version>
-	<name>VCH Feed Support</name>
-	<dependencies>
-		<dependency>
-			<groupId>rome</groupId>
-			<artifactId>rome</artifactId>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>rome</groupId>
-			<artifactId>rome-mediarss</artifactId>
-			<version>0.2.2</version>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
-	</dependencies>
-	<parent>
-		<artifactId>bundle</artifactId>
-		<groupId>de.berlios.vch</groupId>
-		<version>1.0.0-SNAPSHOT</version>
-		<relativePath>../vch-bundle/pom.xml</relativePath>
-	</parent>
-	<description>Adds syndication support to VCH like rss and atom.</description>
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.felix</groupId>
-				<artifactId>maven-bundle-plugin</artifactId>
-				<extensions>true</extensions> 
-				<configuration>
-					<instructions>
-						<Import-Package>!oracle.*,!org.jaxen.*,!org.apache.xerces.*,*</Import-Package>
-						<Export-Package>com.sun.syndication.*,de.berlios.vch.rss.*,org.jdom.*</Export-Package>
-					</instructions>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>feedsupport</artifactId>
+    <packaging>bundle</packaging>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>VCH Feed Support</name>
+    <description>Adds syndication support to VCH like rss and atom.</description>
+
+    <parent>
+        <artifactId>parent</artifactId>
+        <groupId>de.berlios.vch</groupId>
+        <version>1.0.0</version>
+        <relativePath>../vch-parent/pom.xml</relativePath>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>rome</groupId>
+            <artifactId>rome</artifactId>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>rome</groupId>
+            <artifactId>rome-mediarss</artifactId>
+            <version>0.2.2</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Import-Package>!oracle.*,!org.jaxen.*,!org.apache.xerces.*,*</Import-Package>
+                        <Export-Package>com.sun.syndication.*,de.berlios.vch.rss.*,org.jdom.*</Export-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
