@@ -96,9 +96,7 @@
     </#if>
 </form>
 
-<span style="margin: 2em"></span>
-
-<form action="${ACTION}" method="post" style="display: inline">
+<form action="${ACTION}" method="post" style="display: inline; margin-left: 2em">
     <input type="hidden" name="action" value="start_all"/>
     <input type="submit" value="${I18N_DL_START_ALL}"/>
 </form>
