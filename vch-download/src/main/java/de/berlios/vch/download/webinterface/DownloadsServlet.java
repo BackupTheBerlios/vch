@@ -68,6 +68,7 @@ public class DownloadsServlet extends BundleContextServlet {
         params.put("DOWNLOADS", dm.getActiveDownloads());
         params.put("FINISHED_DOWNLOADS", dm.getFinishedDownloads());
         params.put("AJAX_ENABLED", true);
+        params.put("NOTIFY_MESSAGES", getNotifyMessages(req));
         String page = templateLoader.loadTemplate("downloads.ftl", params);
 
         resp.getWriter().print(page);
