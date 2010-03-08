@@ -3,7 +3,7 @@
 	<artifactId>slf4j-logger</artifactId>
 	<packaging>bundle</packaging>
 	<name>LogListener</name>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<description>This bundle provides an OSGi R4 LogListener, which uses SLF4J to log the messages</description>
 
 	<parent>
