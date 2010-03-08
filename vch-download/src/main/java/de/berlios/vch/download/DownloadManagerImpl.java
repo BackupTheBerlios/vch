@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -113,6 +114,9 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
         
         // add download to active downloads
         downloads.add(d);
+        
+        // persist download information
+        createDescriptorFile(d);
         
         // start the download
         executor.submit(d);
@@ -240,7 +244,17 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
                 try {
                     DownloadDTO dto = (DownloadDTO) unmarshaller.unmarshal(descriptor);
                     dto.setVideoFile(videoFile);
-                    finished.add(dto);
+                    boolean isFinished = true;
+                    for (Iterator<Download> iterator = downloads.iterator(); iterator.hasNext();) {
+                        Download d = iterator.next();
+                        if(d.getId().equals(dto.getId())) {
+                            // this download is still active, don't add it to the list finished ones
+                            isFinished = false;
+                        }
+                    }
+                    if(isFinished) {
+                        finished.add(dto);
+                    }
                 } catch (JAXBException e) {
                     logger.log(LogService.LOG_ERROR, "Couldn't read video descriptor " + descriptor.getAbsolutePath(), e);
                 }
@@ -264,30 +278,27 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
         if(download.getStatus() == Download.Status.FINISHED) {
             // remove download from active downloads
             downloads.remove(download);
-            
-            // persist download information
-            createDescriptorFile(download);
         }
     }
     
-    private void createDescriptorFile(AbstractDownload download) {
+    private void createDescriptorFile(Download d) {
         // write the download information to the file
-        File downloadFile = new File(download.getLocalFile());
+        File downloadFile = new File(d.getLocalFile());
         File data = new File(downloadFile.getParentFile(), downloadFile.getName() + ".vch");
         if(!data.exists()) {
             try {
                 DownloadDTO dto = new DownloadDTO();
-                dto.setDescription(download.getVideoPage().getDescription());
-                dto.setDuration(download.getVideoPage().getDuration());
-                dto.setId(download.getId());
-                if(download.getVideoPage().getPublishDate() != null) {
-                    dto.setPublishDate(DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar)download.getVideoPage().getPublishDate()));
+                dto.setDescription(d.getVideoPage().getDescription());
+                dto.setDuration(d.getVideoPage().getDuration());
+                dto.setId(d.getId());
+                if(d.getVideoPage().getPublishDate() != null) {
+                    dto.setPublishDate(DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar)d.getVideoPage().getPublishDate()));
                 }
-                if(download.getVideoPage().getThumbnail() != null) {
-                    dto.setThumbUri(download.getVideoPage().getThumbnail().toString());
+                if(d.getVideoPage().getThumbnail() != null) {
+                    dto.setThumbUri(d.getVideoPage().getThumbnail().toString());
                 }
-                dto.setTitle(download.getVideoPage().getTitle());
-                dto.setVideoUri(download.getVideoPage().getVideoUri().toString());
+                dto.setTitle(d.getVideoPage().getTitle());
+                dto.setVideoUri(d.getVideoPage().getVideoUri().toString());
                 marshaller.marshal(dto, data);
             } catch(Exception e) {
                 logger.log(LogService.LOG_ERROR, "Coulnd't save download data. Download will be lost after the next restart", e);
