@@ -7,6 +7,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.htmlparser.tags.Div;
 import org.htmlparser.tags.ImageTag;
@@ -92,7 +94,13 @@ public class ZDFMediathekParser implements IWebParser, BundleActivator {
         cal.setTime(pubDate);
         video.setPublishDate(cal);
         
-        // TODO parse the duration
+        // parse the duration
+        Matcher m = Pattern.compile("VIDEO,\\s+(\\d+):(\\d+)").matcher(content);
+        if(m.find()) {
+            int minutes = Integer.parseInt(m.group(1));
+            int seconds = Integer.parseInt(m.group(2));
+            video.setDuration(60 * minutes + seconds);
+        }
     }
 
     public void parseOverviewPage(IOverviewPage page) throws Exception {
