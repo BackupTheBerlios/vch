@@ -18,14 +18,12 @@
 		<dependency>
 			<groupId>de.berlios.vch</groupId>
 			<artifactId>parser</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
 			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>de.berlios.vch</groupId>
 			<artifactId>httpclient</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
 			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>
@@ -37,14 +35,12 @@
 		<dependency>
 			<groupId>de.berlios.vch</groupId>
 			<artifactId>feedsupport</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
 			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>de.berlios.vch</groupId>
 			<artifactId>web</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
 			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>
@@ -66,14 +62,12 @@
 		<dependency>
 			<groupId>de.berlios.vch</groupId>
 			<artifactId>config</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
 			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>de.berlios.vch</groupId>
 			<artifactId>i18n</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
 			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>
