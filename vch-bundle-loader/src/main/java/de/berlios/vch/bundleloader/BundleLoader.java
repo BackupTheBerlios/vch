@@ -53,7 +53,7 @@ public class BundleLoader implements BundleActivator, BundleListener {
                 installedBundles.add(bundle);
                 file.delete();
             } catch (BundleException e) {
-                logger.warn("Couldn't start plugin " + file.getAbsolutePath(), e);
+                logger.warn("Couldn't install plugin " + file.getAbsolutePath(), e);
             }
         }
         
