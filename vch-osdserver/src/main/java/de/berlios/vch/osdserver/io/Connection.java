@@ -52,25 +52,6 @@ public class Connection {
      *            The port of the osdserver. Default is 2010
      * @param timeout
      *            The timeout for this connection
-     * @throws UnknownHostException
-     * @throws IOException
-     * @throws OsdException 
-     */
-    public Connection(String host, int port, int timeout)
-            throws UnknownHostException, IOException, OsdException {
-        //this(host, port, timeout, Config.getInstance().getProperty("default.encoding"));
-        this(host, port, timeout, "UTF-8"); // TODO config param
-    }
-    
-    /**
-     * Creates a new connection to host:port with timeout
-     * 
-     * @param host
-     *            The host name or IP-address of the VDR
-     * @param port
-     *            The port of the osdserver. Default is 2010
-     * @param timeout
-     *            The timeout for this connection
      * @param encoding
      *            The charset encoding used to talk to VDR
      * @throws UnknownHostException
@@ -90,21 +71,6 @@ public class Connection {
         
         // send desired version request
         send(new Version());
-    }
-
-    /**
-     * 
-     * @param host
-     *            The host name or IP-address of the VDR
-     * @param port
-     *            The port of the osdserver. Default is 2010
-     * @throws UnknownHostException
-     * @throws IOException
-     * @throws OsdException 
-     */
-    public Connection(String host, int port) throws UnknownHostException,
-            IOException, OsdException {
-        this(host, port, 500);
     }
 
     /**

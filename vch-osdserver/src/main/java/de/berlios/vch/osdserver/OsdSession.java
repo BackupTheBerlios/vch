@@ -6,13 +6,16 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.util.Collections;
+import java.util.prefs.Preferences;
 
 import org.hampelratte.svdrp.Command;
 import org.hampelratte.svdrp.Response;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.berlios.vch.config.ConfigService;
 import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.osdserver.io.command.OsdMessage;
 import de.berlios.vch.osdserver.io.svdrp.CheckMplayerSvdrpInterface;
@@ -60,14 +63,26 @@ public class OsdSession implements Runnable {
         running = true;
         osd = Osd.getInstance();
 
-        // TODO config params
-//        String host = Config.getInstance().getProperty("osdserver.host", "localhost");
-//        int port = Integer.parseInt(Config.getInstance().getProperty("osdserver.port", "2010"));
-//        String encoding = Config.getInstance().getProperty("default.encoding");
+        // load the config params
         String host = "localhost";
         int port = 2010;
         String encoding = "UTF-8";
+        ServiceReference sr = ctx.getServiceReference(ConfigService.class.getName());
+        if (sr != null) {
+            ConfigService config = (ConfigService) ctx.getService(sr);
+            if (config != null) {
+                Preferences prefs = config.getUserPreferences(ctx.getBundle().getSymbolicName());
+                host = prefs.get("osdserver.host", "localhost");
+                port = prefs.getInt("osdserver.port", 2010);
+                encoding = prefs.get("osdserver.encoding", "UTF-8");
+            } else {
+                logger.error("Preferences service not available falling back to defaults ({},{},{})", new Object[] {host, port, encoding});
+            }
+        } else {
+            logger.error("Preferences service not available falling back to defaults ({},{},{})", new Object[] {host, port, encoding});
+        }
         
+        // open the connection
         try {
             logger.info("Connecting to {}:{}", host, port);
             osd.connect(host, port, 500, encoding);
