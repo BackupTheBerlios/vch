@@ -111,7 +111,11 @@ public class GetWebPage implements Command {
         } else if (page instanceof IVideoPage) {
             IVideoPage vpage = (IVideoPage) page;
             out.println(page.getTitle());
-            out.println("Length: " + TimeUnit.SECONDS.toMinutes(vpage.getDuration()) + " mins");
+            if(vpage.getDuration() < 60) {
+                out.println("Length: " + vpage.getDuration() + " seconds");
+            } else {
+                out.println("Length: " + TimeUnit.SECONDS.toMinutes(vpage.getDuration()) + " minutes");
+            }
             out.println("Online since: " + SimpleDateFormat.getDateTimeInstance().format(vpage.getPublishDate().getTime()));
             out.println("URI: " + vpage.getVideoUri());
             if(vpage.getDescription() != null && !vpage.getDescription().isEmpty()) {
