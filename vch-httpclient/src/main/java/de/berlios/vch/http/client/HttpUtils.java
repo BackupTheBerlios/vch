@@ -26,7 +26,7 @@ public class HttpUtils {
     private static int period = 5;
     private static Cache<String, String> stringCache = new Cache<String, String>(1000, period, tu);
     private static Cache<String, HttpResponse> responseCache = new Cache<String, HttpResponse>(1000, period, tu);
-    private static Cache<String, Map<String, List<String>>> headerCache = new Cache<String, Map<String, List<String>>>(1000, period, tu);
+    //private static Cache<String, Map<String, List<String>>> headerCache = new Cache<String, Map<String, List<String>>>(1000, period, tu);
     
     public static String get(String url, Map<String, String> headers, String charset) throws IOException {
         String cachedPage = (String) stringCache.get(url);
@@ -163,7 +163,7 @@ public class HttpUtils {
 
     public static Map<String, List<String>> head(String url, Map<String, String> headers, String charset) throws IOException {
         logger.trace("Request HEAD for page {}", url);
-        Map<String, List<String>> header = headerCache.get(url);
+        Map<String, List<String>> header = null; //headerCache.get(url);
         if(header != null) {
             return header;
         } else {
