@@ -28,10 +28,14 @@ public interface IVideoPage extends IWebPage {
 	public void setVideoUri(URI uri);
 	
 	/**
-	 * Duration of the video in seconds
+	 * Duration of the video
 	 * @return duration of the video in seconds
 	 */
 	public long getDuration();
 	
+	/**
+     * Sets the duration of the video
+     * @param duration in secods
+     */
 	public void setDuration(long duration);
 }
