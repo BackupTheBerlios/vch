@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>parser.rss</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<name>VCH RSS Parser</name>
 	<description>Parser for generic RSS feeds. You may add your own feeds, but they have to contain video enclosures.</description>
     
@@ -70,6 +70,13 @@
 			<artifactId>i18n</artifactId>
 			<type>bundle</type>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20090211</version>
+			<type>jar</type>
+			<scope>compile</scope>
 		</dependency>
 	</dependencies>
 </project>
