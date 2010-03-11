@@ -508,9 +508,10 @@ public class UpdateServlet extends BundleContextServlet {
         }
         Collections.sort(obrUris);
         if(obrUris.isEmpty()) {
-            String uri = "http://vch.berlios.de/repo/releases/repository.xml"; 
-            addOBR(uri);
-            obrUris.add(uri);
+            addOBR("http://vch.berlios.de/repo/releases/repository.xml");
+            addOBR("http://felix.apache.org/obr/releases.xml");
+            obrUris.add("http://vch.berlios.de/repo/releases/repository.xml");
+            obrUris.add("http://felix.apache.org/obr/releases.xml");
         }
         return obrUris;
     }
