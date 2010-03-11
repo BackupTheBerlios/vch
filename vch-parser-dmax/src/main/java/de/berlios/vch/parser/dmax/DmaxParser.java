@@ -93,7 +93,7 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
     @Override
     public IOverviewPage getRoot() throws Exception {
         IOverviewPage overview = new RootPage();
-        overview.setUri(new URI("vchpage://" + getId()));
+        overview.setUri(new URI("vchpage://localhost/" + getId()));
         overview.setTitle(getTitle());
         
         int maxVideos = prefs.getInt("max.videos", 400);

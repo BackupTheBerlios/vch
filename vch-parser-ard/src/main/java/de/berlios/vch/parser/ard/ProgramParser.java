@@ -7,6 +7,7 @@ import java.util.List;
 import org.htmlparser.tags.LinkTag;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
+import org.htmlparser.util.Translate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,7 @@ public class ProgramParser {
         // check if there is a podcast, which can be parsed
         //parsePodcast(overview, content);
 
-        overview.setTitle(HtmlParserUtils.getText(content, ARDMediathekParser.CHARSET, "div.mt-infobox h3"));
+        overview.setTitle(HtmlParserUtils.getText(Translate.decode(content), ARDMediathekParser.CHARSET, "div.mt-infobox h3"));
         overview.setUri(new URI(pageUri));
 
         NodeList links = HtmlParserUtils.getTags(content, ARDMediathekParser.CHARSET, "a[class~=mt-box_preload]");

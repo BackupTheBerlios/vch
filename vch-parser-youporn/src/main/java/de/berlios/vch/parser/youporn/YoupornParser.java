@@ -51,6 +51,7 @@ public class YoupornParser implements IWebParser, BundleActivator {
         OverviewPage page = new OverviewPage();
         page.setParser(ID);
         page.setTitle(getTitle());
+        page.setUri(new URI("vchpage://localhost/" + getId()));
         
         String content = HttpUtils.get(BASEURL, headers, CHARSET);
 

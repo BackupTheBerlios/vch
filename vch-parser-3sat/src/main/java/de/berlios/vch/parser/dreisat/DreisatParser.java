@@ -55,6 +55,7 @@ public class DreisatParser implements IWebParser, BundleActivator {
         OverviewPage page = new OverviewPage();
         page.setParser(ID);
         page.setTitle(getTitle());
+        page.setUri(new URI("vchpage://localhost/" + getId()));
         
         // add all rss feeds to 
         String landingPage = HttpUtils.get(LANDING_PAGE, HTTP_HEADERS, CHARSET);

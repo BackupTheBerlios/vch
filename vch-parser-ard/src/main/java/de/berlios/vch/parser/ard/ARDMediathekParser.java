@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.htmlparser.util.Translate;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.osgi.framework.BundleActivator;
@@ -11,6 +12,7 @@ import org.osgi.framework.BundleContext;
 
 import de.berlios.vch.http.client.HttpUtils;
 import de.berlios.vch.parser.IOverviewPage;
+import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
@@ -41,6 +43,7 @@ public class ARDMediathekParser implements IWebParser, BundleActivator {
         OverviewPage page = new OverviewPage();
         page.setParser(ID);
         page.setTitle(getTitle());
+        page.setUri(new URI("vchpage://localhost/" + getId()));
         
         String landingPage = HttpUtils.get(LANDING_PAGE, HTTP_HEADERS, CHARSET);
         int start = landingPage.indexOf("var sendungVerpasstListe = [");
@@ -53,7 +56,7 @@ public class ARDMediathekParser implements IWebParser, BundleActivator {
                     JSONObject obj = (JSONObject) array.get(i);
                     OverviewPage overview = new OverviewPage();
                     overview.setParser(ID);
-                    overview.setTitle(obj.getString("titel"));
+                    overview.setTitle(Translate.decode(obj.getString("titel")));
                     overview.setUri(new URI("http://www.ardmediathek.de" + obj.getString("link")));
                     page.getPages().add(overview);
                 }
@@ -76,7 +79,7 @@ public class ARDMediathekParser implements IWebParser, BundleActivator {
     public IWebPage parse(IWebPage page) throws Exception {
         if(page instanceof IOverviewPage) {
             page = programParser.parse(page.getUri().toString());
-        } else if(page instanceof VideoPage) {
+        } else if(page instanceof IVideoPage) {
             page = VideoItemPageParser.parse((VideoPage) page, ctx);
         }
         return page;

@@ -67,7 +67,7 @@ public class GetWebPage implements Command {
                                 IWebParser parser = getParser(page.getParser());
                                 if(parser != null) {
                                     out.println("Loading page. Please wait...");
-                                    if (page.getUri() != null && "vchpage://root".equals(page.getUri().toString())) {
+                                    if (page.getUri() != null && "vchpage://localhost".equals(page.getUri().toString())) {
                                         menuStack.push(parser.getRoot());
                                         showMenu(out, err, menuStack.peek());
                                     } else {
@@ -103,6 +103,9 @@ public class GetWebPage implements Command {
         int count = 0;
         if (page instanceof IOverviewPage) {
             IOverviewPage opage = (IOverviewPage) page;
+            out.println("Title: " + opage.getTitle());
+            out.println("URI:   " + opage.getUri());
+            out.println("------------------------");
             for (IWebPage wp : opage.getPages()) {
                 wp.getUserData().put("menu_id", count);
                 out.println("[" + count + "] " + wp.getTitle());
@@ -154,7 +157,7 @@ public class GetWebPage implements Command {
                 IWebParser parser = (IWebParser) o;
                 IOverviewPage parserPage = new OverviewPage();
                 parserPage.setTitle(parser.getTitle());
-                parserPage.setUri(new URI("vchpage://root"));
+                parserPage.setUri(new URI("vchpage://localhost"));
                 parserPage.setParser(parser.getId());
                 overview.getPages().add(parserPage);
             }

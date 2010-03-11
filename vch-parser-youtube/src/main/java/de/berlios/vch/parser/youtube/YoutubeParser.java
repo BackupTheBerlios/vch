@@ -90,6 +90,7 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider {
         OverviewPage root = new OverviewPage();
         root.setParser(getId());
         root.setTitle("Youtube");
+        root.setUri(new URI("vchpage://localhost/" + getId()));
         for (Feed feed : getFeeds()) {
             OverviewPage page = new OverviewPage();
             page.setParser(getId());

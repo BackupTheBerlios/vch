@@ -80,6 +80,7 @@ private static transient Logger logger = LoggerFactory.getLogger(BrainblogParser
         OverviewPage page = new OverviewPage();
         page.setParser(ID);
         page.setTitle(getTitle());
+        page.setUri(new URI("vchpage://localhost/" + getId()));
         
         // Hole RSS xml aus den geparsten links
         URL feedUrl = new URL("http://www.brainblog.to/xml-rss2.php");

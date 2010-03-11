@@ -3,6 +3,7 @@ package de.berlios.vch.parser.arte;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -12,6 +13,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -54,6 +56,7 @@ public class ArteParser implements IWebParser, BundleActivator {
         OverviewPage page = new OverviewPage();
         page.setParser(ID);
         page.setTitle(getTitle());
+        page.setUri(new URI("vchpage://localhost/" + getId()));
         
         List<IWebPage> pages = createPageList();
         Collections.sort(pages, new WebPageTitleComparator());
@@ -62,7 +65,7 @@ public class ArteParser implements IWebParser, BundleActivator {
         return page;
     }
     
-    private List<IWebPage> createPageList() {
+    private List<IWebPage> createPageList() throws URISyntaxException {
         List<IWebPage> pageList = new ArrayList<IWebPage>();
         List<IVideoPage> videos = getVideos(CAROUSEL_URL);
         Map<String, List<IVideoPage>> categories = new HashMap<String, List<IVideoPage>>();
@@ -85,6 +88,7 @@ public class ArteParser implements IWebParser, BundleActivator {
                 OverviewPage overview = new OverviewPage();
                 overview.setParser(ID);
                 overview.setTitle(title);
+                overview.setUri(new URI("dummy://" + UUID.randomUUID()));
                 overview.getPages().addAll(category);
                 pageList.add(overview);
             }

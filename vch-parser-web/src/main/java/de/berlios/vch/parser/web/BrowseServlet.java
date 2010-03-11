@@ -69,7 +69,7 @@ public class BrowseServlet extends BundleContextServlet {
                     page.setParser(parser.getId());
                     page.setUri(new URI(req.getParameter("uri")));
                     IWebPage parsedPage = null;
-                    String rootPage = "vchpage://" + parser.getId();
+                    String rootPage = "vchpage://localhost/" + parser.getId();
                     if(rootPage.equals(page.getUri().toString())) {
                         parsedPage = parser.getRoot();
                     } else {
