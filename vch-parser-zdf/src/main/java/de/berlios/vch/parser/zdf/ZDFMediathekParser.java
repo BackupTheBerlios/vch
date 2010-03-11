@@ -7,6 +7,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,21 +34,46 @@ import de.berlios.vch.parser.OverviewPage;
 import de.berlios.vch.parser.VideoPage;
 
 public class ZDFMediathekParser implements IWebParser, BundleActivator {
+    public static final String ID = ZDFMediathekParser.class.getName();
     private static final String BASE_URI = "http://www.zdf.de";
-    
-    private static final String OVERVIEW_PAGE = BASE_URI + "/ZDFmediathek/hauptnavigation/rubriken?flash=off";
+    private static final String OVERVIEW_RUBRIKEN = BASE_URI + "/ZDFmediathek/hauptnavigation/rubriken?flash=off";
+    private static final String OVERVIEW_ABZ = "vchpage://"+ID+"/a-z";
     
     public static final String CHARSET = "UTF-8";
     
-    public static final String ID = ZDFMediathekParser.class.getName();
+    private Map<String, String> aBisZ = new HashMap<String, String>();
+    
+    public ZDFMediathekParser() {
+        aBisZ.put("0-9", "http://www.zdf.de/ZDFmediathek/hauptnavigation/sendung-a-bis-z/saz8?flash=off&teaserListIndex=1000");
+        aBisZ.put("ABC", "http://www.zdf.de/ZDFmediathek/hauptnavigation/sendung-a-bis-z/saz0?flash=off&teaserListIndex=1000");
+        aBisZ.put("DEF", "http://www.zdf.de/ZDFmediathek/hauptnavigation/sendung-a-bis-z/saz1?flash=off&teaserListIndex=1000");
+        aBisZ.put("GHI", "http://www.zdf.de/ZDFmediathek/hauptnavigation/sendung-a-bis-z/saz2?flash=off&teaserListIndex=1000");
+        aBisZ.put("JKL", "http://www.zdf.de/ZDFmediathek/hauptnavigation/sendung-a-bis-z/saz3?flash=off&teaserListIndex=1000");
+        aBisZ.put("MNO", "http://www.zdf.de/ZDFmediathek/hauptnavigation/sendung-a-bis-z/saz4?flash=off&teaserListIndex=1000");
+        aBisZ.put("PQRS", "http://www.zdf.de/ZDFmediathek/hauptnavigation/sendung-a-bis-z/saz5?flash=off&teaserListIndex=1000");
+        aBisZ.put("TUV", "http://www.zdf.de/ZDFmediathek/hauptnavigation/sendung-a-bis-z/saz6?flash=off&teaserListIndex=1000");
+        aBisZ.put("WXYZ", "http://www.zdf.de/ZDFmediathek/hauptnavigation/sendung-a-bis-z/saz7?flash=off&teaserListIndex=1000");
+    }
     
     @Override
     public IOverviewPage getRoot() throws Exception {
         OverviewPage page = new OverviewPage();
         page.setParser(ID);
         page.setTitle(getTitle());
-        page.setUri(new URI(OVERVIEW_PAGE));
-        parseOverviewPage(page);
+        page.setUri(new URI("vchpage://" + getId()));
+        
+        OverviewPage rubriken = new OverviewPage();
+        rubriken.setParser(ID);
+        rubriken.setTitle("Rubriken");
+        rubriken.setUri(new URI(OVERVIEW_RUBRIKEN));
+        page.getPages().add(rubriken);
+        
+        OverviewPage abz = new OverviewPage();
+        abz.setTitle("Sendungen A-Z");
+        abz.setParser(ID);
+        abz.setUri(new URI(OVERVIEW_ABZ));
+        page.getPages().add(abz);
+        
         return page;
     }
 
@@ -66,7 +94,19 @@ public class ZDFMediathekParser implements IWebParser, BundleActivator {
             }
             return page;
         } else {
-            parseOverviewPage((IOverviewPage) page);
+            if(page.getUri().toString().equals(OVERVIEW_ABZ)) {
+                for (Entry<String,String> abzPage : aBisZ.entrySet()) {
+                    String title = abzPage.getKey();
+                    String uri = abzPage.getValue();
+                    OverviewPage tmp = new OverviewPage();
+                    tmp.setParser(ID);
+                    tmp.setTitle(title);
+                    tmp.setUri(new URI(uri));
+                    ((IOverviewPage)page).getPages().add(tmp);
+                }
+            } else {
+                parseOverviewPage((IOverviewPage) page);
+            }
             return page;
         }
     }
@@ -135,7 +175,15 @@ public class ZDFMediathekParser implements IWebParser, BundleActivator {
             if(isOverviewPage(subPageUri)) {
                 subPage = new OverviewPage();
             } else {
-                subPage = new VideoPage();
+                VideoPage tmp = new VideoPage();
+                // parse the pubDate
+                String datum = ((LinkTag)links.elementAt(0)).getLinkText();
+                datum = datum.substring(datum.lastIndexOf(',')+1).trim();
+                Date pubDate = new SimpleDateFormat("dd.MM.yyyy").parse(datum);
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(pubDate);
+                tmp.setPublishDate(cal);
+                subPage = tmp;
             }
             subPage.setParser(ID);
             subPage.setTitle(title);
