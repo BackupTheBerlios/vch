@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>parser.dmax</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<name>VCH DMAX Parser</name>
     <description>Parser for the DMAX Videotheke. Only complete episodes are included.</description>
     
@@ -56,6 +56,23 @@
 			<artifactId>org.apache.felix.main</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>de.berlios.vch</groupId>
+			<artifactId>config</artifactId>
+			<type>bundle</type>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.berlios.vch</groupId>
+			<artifactId>i18n</artifactId>
+			<type>bundle</type>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -66,8 +83,7 @@
 				<extensions>true</extensions>
 				<configuration>
 					<instructions>
-						<Bundle-Activator>${pom.groupId}.${pom.artifactId}.DmaxParser</Bundle-Activator>
-						<Import-Package>!org.jgroups.*,!javax.jms.*,!org.apache.xpath.*,!javax.servlet.*,!sun.misc.*,*</Import-Package>
+						<Import-Package>!org.jgroups.*,!javax.jms.*,!org.apache.xpath.*,!sun.misc.*,*</Import-Package>
 					</instructions>
 				</configuration>
 			</plugin>
