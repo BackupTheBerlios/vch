@@ -69,7 +69,8 @@ public class BrowseServlet extends BundleContextServlet {
                     page.setParser(parser.getId());
                     page.setUri(new URI(req.getParameter("uri")));
                     IWebPage parsedPage = null;
-                    if("vchpage".equals(page.getUri().getScheme())) {
+                    String rootPage = "vchpage://" + parser.getId();
+                    if(rootPage.equals(page.getUri().toString())) {
                         parsedPage = parser.getRoot();
                     } else {
                         parsedPage = parser.parse(page);
@@ -121,8 +122,8 @@ public class BrowseServlet extends BundleContextServlet {
                     // IOverviewPage page = parser.getRoot();
                     IOverviewPage page = new OverviewPage();
                     page.setTitle(parser.getTitle());
-                    page.setUri(new URI("vchpage://root"));
                     page.setParser(parserId);
+                    page.setUri(new URI("vchpage://"+parserId));
                     params.put("PAGE", page);
                 } catch (Exception e) {
                     logger.error("Couldn't parse root page", e);
