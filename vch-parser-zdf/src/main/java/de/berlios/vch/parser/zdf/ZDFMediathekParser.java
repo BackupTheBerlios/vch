@@ -37,7 +37,7 @@ public class ZDFMediathekParser implements IWebParser, BundleActivator {
     public static final String ID = ZDFMediathekParser.class.getName();
     private static final String BASE_URI = "http://www.zdf.de";
     private static final String OVERVIEW_RUBRIKEN = BASE_URI + "/ZDFmediathek/hauptnavigation/rubriken?flash=off";
-    private static final String OVERVIEW_ABZ = "vchpage://"+ID+"/a-z";
+    private static final String OVERVIEW_ABZ = "dummy://localhost/"+ID+"/a-z";
     
     public static final String CHARSET = "UTF-8";
     
@@ -60,7 +60,7 @@ public class ZDFMediathekParser implements IWebParser, BundleActivator {
         OverviewPage page = new OverviewPage();
         page.setParser(ID);
         page.setTitle(getTitle());
-        page.setUri(new URI("vchpage://" + getId()));
+        page.setUri(new URI("vchpage://localhost/" + getId()));
         
         OverviewPage rubriken = new OverviewPage();
         rubriken.setParser(ID);
