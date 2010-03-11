@@ -44,7 +44,7 @@ public class OpenMenuAction implements IOsdAction {
                 return;
             }
             
-            if (page.getUri() != null && "vchpage://root".equals(page.getUri().toString())) {
+            if (page.getUri() != null && "vchpage://localhost".equals(page.getUri().toString())) {
                 page = parser.getRoot();
             } else {
                 page = (IOverviewPage) parser.parse(page);

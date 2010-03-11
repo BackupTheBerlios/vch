@@ -218,7 +218,7 @@ public class OsdSession implements Runnable {
                 IWebParser parser = (IWebParser) o;
                 IOverviewPage parserPage = new OverviewPage();
                 parserPage.setTitle(parser.getTitle());
-                parserPage.setUri(new URI("vchpage://root"));
+                parserPage.setUri(new URI("vchpage://localhost"));
                 parserPage.setParser(parser.getId());
                 overview.getPages().add(parserPage);
             }
