@@ -84,6 +84,7 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
         OverviewPage root = new OverviewPage();
         root.setParser(getId());
         root.setTitle("RSS Feeds");
+        root.setUri(new URI("vchpage://localhost/" + getId()));
         for (Feed feed : getFeeds()) {
             OverviewPage page = new OverviewPage();
             page.setParser(getId());
@@ -125,6 +126,11 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
                 pubCal.setTime(entry.getPublishedDate());
                 video.setPublishDate(pubCal);
                 video.setVideoUri( new URI( ((SyndEnclosure)entry.getEnclosures().get(0)).getUrl() ) );
+                if(entry.getLink() != null) {
+                    video.setUri(new URI(entry.getLink()));
+                } else {
+                    video.setUri(video.getVideoUri());
+                }
                 feedPage.getPages().add(video);
             }
             return feedPage;
