@@ -180,9 +180,6 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
     public void start() throws Exception {
         prefs = config.getUserPreferences(ctx.getBundle().getSymbolicName());
         
-        // register parser service
-        ctx.registerService(IWebParser.class.getName(), this, null);
-        
         // register the config servlet
         registerServlet();
     }
