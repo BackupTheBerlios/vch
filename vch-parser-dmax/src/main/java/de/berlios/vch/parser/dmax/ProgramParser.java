@@ -22,25 +22,12 @@ public class ProgramParser {
     private static transient Logger logger = LoggerFactory.getLogger(ProgramParser.class);
     
     public IWebPage parse(IWebPage page) throws Exception {
-        // parse the program ID
-        String cellHtml = (String) page.getUserData().get("itemCell");
-        LinkTag a = (LinkTag) HtmlParserUtils.getTag(cellHtml, DmaxParser.CHARSET, "div.vp-promo-image a");
-        String videoPageUri = DmaxParser.BASE_URI + a.getLink();
-        String videoPageContent = HttpUtils.get(videoPageUri, null, DmaxParser.CHARSET);
-        logger.debug("Parsing page {}", videoPageUri);
-        NodeList breadCrumbLinks = HtmlParserUtils.getTags(videoPageContent, DmaxParser.CHARSET, "div#vp-breadcrumb span[class~=showHub] a");
-        a = (LinkTag) breadCrumbLinks.elementAt(breadCrumbLinks.size()-1);
-        String programId = a.extractLink();
-        programId = programId.substring(0, programId.length() -1);
-        programId = programId.substring(programId.lastIndexOf('/') + 1, programId.length());
-
-        String programOverview = DmaxParser.BASE_URI + "/video/morevideo.shtml?sort=date&contentSize=100&pageType=showHub&displayBlockName=recentLong&name="+programId;
         IOverviewPage episodes = new ProgramPage();
         episodes.setTitle(page.getTitle());
         episodes.setParser(DmaxParser.ID);
-        episodes.setUri(new URI(videoPageUri));
+        episodes.setUri(page.getUri());
         
-        String content = HttpUtils.get(programOverview, null, DmaxParser.CHARSET);
+        String content = HttpUtils.get(page.getUri().toString(), null, DmaxParser.CHARSET);
         NodeList itemCells = HtmlParserUtils.getTags(content, DmaxParser.CHARSET,
                 "div#vp-perpage-promolist div[class~=vp-promo-item]");
         for (NodeIterator iterator = itemCells.elements(); iterator.hasMoreNodes();) {
@@ -59,7 +46,7 @@ public class ProgramParser {
             // parse the video page uri
             LinkTag videoPageLink = (LinkTag) HtmlParserUtils.getTag(episodeCellHtml, DmaxParser.CHARSET,
                     "a.vp-promo-title");
-            videoPageUri = DmaxParser.BASE_URI + videoPageLink.extractLink();
+            String videoPageUri = DmaxParser.BASE_URI + videoPageLink.extractLink();
             episode.setUri(new URI(videoPageUri));
             
             // parse the episode chunk count

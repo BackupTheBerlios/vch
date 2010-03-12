@@ -19,8 +19,10 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.htmlparser.tags.Div;
+import org.htmlparser.tags.LinkTag;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
+import org.htmlparser.util.ParserException;
 import org.htmlparser.util.Translate;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -114,16 +116,23 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
                             final Div itemCell = (Div) iterator.nextNode();
                             String cellHtml = itemCell.toHtml();
 
+                            OverviewPage page = new ProgramListing();
+                            
                             // parse the page title
                             String title = Translate.decode(HtmlParserUtils.getText(cellHtml,
                                     DmaxParser.CHARSET, "a.vp-promo-title").trim());
-
-                            OverviewPage page = new ProgramListing();
-                            page.setUri(new URI(URI));
                             page.setTitle(title);
-                            page.getUserData().put("itemCell", cellHtml);
-                            page.setParser(ID);
-                            categories.add(page);
+                            
+                            if(!categories.contains(page)) {
+                                // parse the programId to get thr right URI
+                                String programId = parseProgramId(cellHtml);
+                                String programUri = DmaxParser.BASE_URI + "/video/morevideo.shtml?sort=date&contentSize=100&pageType=showHub&displayBlockName=recentLong&name="+programId;
+                                page.setUri(new URI(programUri));
+                                
+    
+                                page.setParser(ID);
+                                categories.add(page);
+                            }
                         }
                     } catch (Exception e) {
                         logger.error("Couldn't parse overview page", e);
@@ -246,5 +255,18 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
             }
         }
         return resourceBundle;
+    }
+    
+    private String parseProgramId(String cellHtml) throws ParserException, IOException {
+        LinkTag a = (LinkTag) HtmlParserUtils.getTag(cellHtml, DmaxParser.CHARSET, "div.vp-promo-image a");
+        String videoPageUri = DmaxParser.BASE_URI + a.getLink();
+        String videoPageContent = HttpUtils.get(videoPageUri, null, DmaxParser.CHARSET);
+        logger.debug("Parsing page {}", videoPageUri);
+        NodeList breadCrumbLinks = HtmlParserUtils.getTags(videoPageContent, DmaxParser.CHARSET, "div#vp-breadcrumb span[class~=showHub] a");
+        a = (LinkTag) breadCrumbLinks.elementAt(breadCrumbLinks.size()-1);
+        String programId = a.extractLink();
+        programId = programId.substring(0, programId.length() -1);
+        programId = programId.substring(programId.lastIndexOf('/') + 1, programId.length());
+        return programId;
     }
 }
