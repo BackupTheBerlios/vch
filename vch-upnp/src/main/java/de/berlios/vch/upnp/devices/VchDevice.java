@@ -59,6 +59,7 @@ public class VchDevice implements UPnPDevice {
         try {
             inet = InetAddress.getLocalHost();
             String hostname = inet.getHostName();
+            // TODO this is the wrong URI
             description.put(UPnPDevice.PRESENTATION_URL,"http://"+hostname + ":"+port+"/upnp/description/");
         } catch (UnknownHostException e) {
             System.out.println("Warning: enable to cacth localhost name");
