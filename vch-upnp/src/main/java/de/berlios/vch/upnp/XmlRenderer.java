@@ -1,6 +1,7 @@
 package de.berlios.vch.upnp;
 
 import java.io.StringWriter;
+import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -111,8 +112,19 @@ public class XmlRenderer {
     // TODO create method renderError
 
     private static String getMimeTipe(IVideoPage page) {
-        // TODO implement mime type detection
-        return "video/flv";
+        // TODO implement more mime type detection
+        URI uri = page.getVideoUri();
+        if(uri.toString().endsWith(".flv")) {
+            return "video/flv";
+        } else if(uri.toString().endsWith(".mp4")) {
+            return "video/mp4";
+        } else if(uri.toString().endsWith(".wmv") || uri.getScheme().equals("mms") || uri.getScheme().equals("mmst")) {
+            return "video/wmv";
+        } else if(uri.toString().endsWith(".avi")) {
+            return "video/x-msvideo";
+        } else {
+            return "video/flv";
+        }
     }
     
     public static String md5(String s) throws NoSuchAlgorithmException {
