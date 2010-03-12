@@ -14,10 +14,12 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogService;
 
+import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.web.menu.IWebMenuEntry;
 import de.berlios.vch.web.menu.WebMenuEntry;
+import de.berlios.vch.web.servlets.WelcomeServlet;
 
 @Component
 @Provides
@@ -32,6 +34,9 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
     
     @Requires
     private HttpService httpService;
+    
+    @Requires
+    private Messages i18n;
 
     private BundleContext ctx;
     
@@ -51,12 +56,11 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
         log.log(LogService.LOG_DEBUG, "Creating webmenu");
         // register help menu entry
         WebMenuEntry help = new WebMenuEntry();
-        //help.setTitle(i18n.translate("I18N_HELP"));
         help.setTitle(getResourceBundle().getString("I18N_HELP"));
         help.setPreferredPosition(Integer.MAX_VALUE);
         help.setLinkUri("#");
         WebMenuEntry content = new WebMenuEntry(getResourceBundle().getString("I18N_CONTENT"));
-        content.setLinkUri("/help/" + Locale.getDefault() + "/index.html");
+        content.setLinkUri("http://vdr-wiki.de/wiki/index.php/Vodcatcher_Helper/Hilfe");
         help.getChilds().add(content);
         menuReg = ctx.registerService(IWebMenuEntry.class.getName(), help, null);        
     }
@@ -77,7 +81,14 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
         try {
             log.log(LogService.LOG_INFO, "Registering resource http context");
             ResourceHttpContext httpCtx = new ResourceHttpContext(ctx, log);
-            httpService.registerResources("/", "/htdocs", httpCtx);
+            httpService.registerResources("/static", "/htdocs", httpCtx);
+            
+            // register welcome servlet
+            WelcomeServlet welcome = new WelcomeServlet();
+            welcome.setBundleContext(ctx);
+            welcome.setTemplateLoader(templateLoader);
+            welcome.setMessages(i18n);
+            httpService.registerServlet("/", welcome, null, httpCtx);
         } catch (Exception e) {
             log.log(LogService.LOG_ERROR, "Couldn't register servlets", e);
         }
@@ -85,6 +96,7 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
 
     private void unregisterHttpContext(HttpService service) {
         if(httpService != null) {
+            httpService.unregister("/static");
             httpService.unregister("/");
         }
     }
