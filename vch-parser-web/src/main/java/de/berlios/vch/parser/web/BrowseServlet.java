@@ -123,7 +123,7 @@ public class BrowseServlet extends BundleContextServlet {
                     IOverviewPage page = new OverviewPage();
                     page.setTitle(parser.getTitle());
                     page.setParser(parserId);
-                    page.setUri(new URI("vchpage://"+parserId));
+                    page.setUri(new URI("vchpage://localhost/"+parserId));
                     params.put("PAGE", page);
                 } catch (Exception e) {
                     logger.error("Couldn't parse root page", e);
