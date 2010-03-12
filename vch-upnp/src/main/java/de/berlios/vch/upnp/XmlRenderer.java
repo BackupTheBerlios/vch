@@ -98,7 +98,11 @@ public class XmlRenderer {
         item.appendChild(upnpClass);
         
         Element res = doc.createElement("res");
-        res.setAttribute("protocolInfo", "http-get:*:" + getMimeTipe(page) + ":*");
+        
+        // TODO muss das protocol eventuell auch angepasst werden? für mms z.B.?
+        // allerdings ist das wohl nicht teil des standards. xbmc streamt mms trotzdem, auch mit http-get ?!?
+        res.setAttribute("protocolInfo", "http-get:*:" + getMimeTipe(page) + ":*"); 
+        
         res.setTextContent(page.getVideoUri().toString());
         item.appendChild(res);
 
