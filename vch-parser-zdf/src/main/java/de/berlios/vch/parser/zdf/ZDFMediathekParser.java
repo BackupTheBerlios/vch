@@ -7,8 +7,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,7 +41,7 @@ public class ZDFMediathekParser implements IWebParser, BundleActivator {
     
     public static final String CHARSET = "UTF-8";
     
-    private Map<String, String> aBisZ = new HashMap<String, String>();
+    private Map<String, String> aBisZ = new TreeMap<String, String>();
     
     public ZDFMediathekParser() {
         aBisZ.put("0-9", "http://www.zdf.de/ZDFmediathek/hauptnavigation/sendung-a-bis-z/saz8?flash=off&teaserListIndex=1000");
@@ -95,6 +95,8 @@ public class ZDFMediathekParser implements IWebParser, BundleActivator {
             return page;
         } else {
             if(page.getUri().toString().equals(OVERVIEW_ABZ)) {
+                IOverviewPage opage = (IOverviewPage)page;
+                opage.getPages().clear();
                 for (Entry<String,String> abzPage : aBisZ.entrySet()) {
                     String title = abzPage.getKey();
                     String uri = abzPage.getValue();
@@ -102,7 +104,7 @@ public class ZDFMediathekParser implements IWebParser, BundleActivator {
                     tmp.setParser(ID);
                     tmp.setTitle(title);
                     tmp.setUri(new URI(uri));
-                    ((IOverviewPage)page).getPages().add(tmp);
+                    opage.getPages().add(tmp);
                 }
             } else {
                 parseOverviewPage((IOverviewPage) page);
