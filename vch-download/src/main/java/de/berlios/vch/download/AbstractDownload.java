@@ -2,6 +2,8 @@ package de.berlios.vch.download;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -102,6 +104,14 @@ public abstract class AbstractDownload implements Download {
 
     public void setException(Throwable exception) {
         this.exception = exception;
+    }
+    
+    public String getExceptionString() {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        getException().printStackTrace(pw);
+        pw.flush();
+        return sw.toString();
     }
     
     protected void error(String msg, Exception e) {
