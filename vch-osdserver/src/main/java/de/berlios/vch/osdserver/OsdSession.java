@@ -53,9 +53,31 @@ public class OsdSession implements Runnable {
     
     private BundleContext ctx;
     
+    // load the config params
+    private String osdserverHost = "localhost";
+    private int osdserverPort = 2010;
+    private String osdserverEncoding = "UTF-8";
+    
+    private static Preferences prefs;
+    
     public OsdSession(BundleContext ctx, Messages i18n) {
         this.i18n = i18n;
         this.ctx = ctx;
+        
+        ServiceReference sr = ctx.getServiceReference(ConfigService.class.getName());
+        if (sr != null) {
+            ConfigService config = (ConfigService) ctx.getService(sr);
+            if (config != null) {
+                prefs = config.getUserPreferences(ctx.getBundle().getSymbolicName());
+                osdserverHost = prefs.get("osdserver.host", "localhost");
+                osdserverPort = prefs.getInt("osdserver.port", 2010);
+                osdserverEncoding = prefs.get("osdserver.encoding", "UTF-8");
+            } else {
+                logger.error("Preferences service not available falling back to defaults ({},{},{})", new Object[] {osdserverHost, osdserverPort, osdserverEncoding});
+            }
+        } else {
+            logger.error("Preferences service not available falling back to defaults ({},{},{})", new Object[] {osdserverHost, osdserverPort, osdserverEncoding});
+        }
     }
 
     @Override
@@ -63,31 +85,13 @@ public class OsdSession implements Runnable {
         running = true;
         osd = Osd.getInstance();
 
-        // load the config params
-        String host = "localhost";
-        int port = 2010;
-        String encoding = "UTF-8";
-        ServiceReference sr = ctx.getServiceReference(ConfigService.class.getName());
-        if (sr != null) {
-            ConfigService config = (ConfigService) ctx.getService(sr);
-            if (config != null) {
-                Preferences prefs = config.getUserPreferences(ctx.getBundle().getSymbolicName());
-                host = prefs.get("osdserver.host", "localhost");
-                port = prefs.getInt("osdserver.port", 2010);
-                encoding = prefs.get("osdserver.encoding", "UTF-8");
-            } else {
-                logger.error("Preferences service not available falling back to defaults ({},{},{})", new Object[] {host, port, encoding});
-            }
-        } else {
-            logger.error("Preferences service not available falling back to defaults ({},{},{})", new Object[] {host, port, encoding});
-        }
-        
         // open the connection
         try {
-            logger.info("Connecting to {}:{}", host, port);
-            osd.connect(host, port, 500, encoding);
+            logger.info("Connecting to {}:{}", osdserverHost, osdserverPort);
+            osd.connect(osdserverHost, osdserverPort, 500, osdserverEncoding);
         } catch (Exception e) {
             logger.error("Couldn't open connection to osdserver", e);
+            return;
         }
 
         try {
@@ -102,6 +106,7 @@ public class OsdSession implements Runnable {
             osd.show(menu);
         } catch (Exception e) {
             logger.error("Couldn't create osd menu", e);
+            return;
         }
         
         while(running) {
@@ -128,13 +133,13 @@ public class OsdSession implements Runnable {
      */
     public static void play(PlaylistEntry...playlist) throws IOException {
         logger.debug("Requested playback of {}", playlist);
-        String host = "localhost";
-        int port = 2001;
         Osd.getInstance().showMessageSilent(new OsdMessage("Wiedergabe wird gestartet. Bitte warten...", OsdMessage.STATUS));
-        logger.info("Starting media player plugin with SVDRP on {}:{} for {}", new Object[] {host, port, playlist});
+        String svdrpHost = prefs.get("svdrp.host", "localhost");
+        int svdrpPort = prefs.getInt("svdrp.port", 2001);
+        logger.info("Starting media player plugin with SVDRP on {}:{} for {}", new Object[] {svdrpHost, svdrpPort, playlist});
         org.hampelratte.svdrp.Connection svdrp = null;
         try {
-            svdrp = new org.hampelratte.svdrp.Connection(host, port);
+            svdrp = new org.hampelratte.svdrp.Connection(svdrpHost, svdrpPort);
             Command playCmd = getPlayCommand(svdrp);
             Osd.getInstance().showMessageSilent(new OsdMessage("", OsdMessage.STATUSCLEAR));
             Osd.getInstance().showMessageSilent(new OsdMessage("Wiedergabeliste wird erstellt...", OsdMessage.STATUS));
