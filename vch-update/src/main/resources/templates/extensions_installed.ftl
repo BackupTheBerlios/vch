@@ -36,7 +36,7 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
-        $.notify({text:'${I18N_INFO}', title:'${I18N_UPDATES_SEARCHING}', icon:'/notify/dialog-information.png'});
+        $.notify({text:'${I18N_INFO}', title:'${I18N_UPDATES_SEARCHING}', icon:'/static/notify/dialog-information.png'});
         $.ajax({
             type: "GET",
             url: "${ACTION}",
@@ -62,12 +62,12 @@
                     
                 }
                 if(updates_available) {
-                    $.notify({text:'${I18N_UPDATES_AVAILABLE_TEXT}', title:'${I18N_UPDATES_AVAILABLE}', icon:'/notify/dialog-information.png'});
+                    $.notify({text:'${I18N_UPDATES_AVAILABLE_TEXT}', title:'${I18N_UPDATES_AVAILABLE}', icon:'/static/notify/dialog-information.png'});
                 }
             },
             error: function(request, textStatus, exception){
                 console.log(request);
-                $.notify({text:request.responseText, title:request.statusText, icon:'/notify/dialog-error.png'});
+                $.notify({text:request.responseText, title:request.statusText, icon:'/static/notify/dialog-error.png'});
             }
         });
     });

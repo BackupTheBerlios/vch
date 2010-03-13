@@ -374,6 +374,7 @@ public class UpdateServlet extends BundleContextServlet {
                 // bundles are included
                 Resource r1 = filterMap.get(res[i].getSymbolicName());
                 Resource r2 = res[i];
+                // TODO versions-vergleich selbst schreiben, damit final größer als snapshot ist
                 if (r2.getVersion().compareTo(r1.getVersion()) == 1) {
                     logger.log(LogService.LOG_DEBUG, "Bundle " + r1.getSymbolicName() + " with version "
                             + r1.getVersion() + " will be dropped");

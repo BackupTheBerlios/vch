@@ -33,7 +33,7 @@
             spinner: '<img src="${STATIC_PATH}/indicator.gif" alt=""/> ${I18N_LOADING_DATA}', 
             ajaxOptions: {
                 error: function(request, textStatus, exception) {
-                    $.notify({text:request.responseText, title:request.statusText, icon:'/notify/dialog-error.png'});
+                    $.notify({text:request.responseText, title:request.statusText, icon:'/static/notify/dialog-error.png'});
                     $('#tabs').tabs('abort');
                 } 
             } 

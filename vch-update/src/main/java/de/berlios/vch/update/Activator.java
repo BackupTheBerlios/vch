@@ -88,12 +88,12 @@ public class Activator implements ResourceBundleProvider {
         menu.setTitle(getResourceBundle().getString("I18N_EXTENSIONS"));
         menu.setPreferredPosition(Integer.MAX_VALUE-1);
         menu.setLinkUri("#");
-        WebMenuEntry content = new WebMenuEntry(getResourceBundle().getString("I18N_EXTENSIONS"));
+        WebMenuEntry content = new WebMenuEntry(getResourceBundle().getString("I18N_MANAGE"));
         content.setLinkUri(UpdateServlet.PATH);
         menu.getChilds().add(content);
         WebMenuEntry config = new WebMenuEntry(getResourceBundle().getString("I18N_CONFIG"));
         config.setLinkUri(UpdateConfigServlet.PATH);
-        content.getChilds().add(config);
+        menu.getChilds().add(config);
         menuReg = ctx.registerService(IWebMenuEntry.class.getName(), menu, null);
     }
 
