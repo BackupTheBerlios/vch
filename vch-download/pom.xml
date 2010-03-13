@@ -3,7 +3,7 @@
 	<artifactId>download</artifactId>
 	<packaging>bundle</packaging>
 	<name>VCH Download Manager</name>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.1-SNAPSHOT</version>
     <description>A download manager for VCH</description>
     
 	<parent>

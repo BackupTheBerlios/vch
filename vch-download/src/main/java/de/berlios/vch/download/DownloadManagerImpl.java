@@ -11,6 +11,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.prefs.PreferenceChangeEvent;
+import java.util.prefs.PreferenceChangeListener;
 import java.util.prefs.Preferences;
 
 import javax.xml.bind.JAXBContext;
@@ -185,15 +187,14 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
     @Override
     public void init(Preferences prefs) {
         this.prefs = prefs;
+        this.prefs.addPreferenceChangeListener(new PreferenceChangeListener() {
+            @Override
+            public void preferenceChange(PreferenceChangeEvent evt) {
+                reconfigure();
+            }
+        });
         
-        // create thread pool
-        executor = createExecutorService();
-        
-        // create data directory
-        dataDir = new File(prefs.get("data.dir", "data"));
-        if(!dataDir.exists()) {
-            dataDir.mkdirs();
-        }
+        reconfigure();
         
         // set up jaxb stuff
         try {
@@ -209,6 +210,17 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
         // create service tracker for download factories
         downloadFactoryTracker = new ServiceTracker(ctx, DownloadFactory.class.getName(), null);
         downloadFactoryTracker.open();
+    }
+    
+    private void reconfigure() {
+        // create thread pool
+        executor = createExecutorService();
+        
+        // create data directory
+        dataDir = new File(prefs.get("data.dir", "data"));
+        if(!dataDir.exists()) {
+            dataDir.mkdirs();
+        }
     }
     
     private ExecutorService createExecutorService() {

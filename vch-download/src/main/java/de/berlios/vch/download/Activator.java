@@ -24,6 +24,7 @@ import org.osgi.service.log.LogService;
 import de.berlios.vch.config.ConfigService;
 import de.berlios.vch.download.osd.DownloadAction;
 import de.berlios.vch.download.osd.OpenDownloadsAction;
+import de.berlios.vch.download.webinterface.ConfigServlet;
 import de.berlios.vch.download.webinterface.DownloadHttpContext;
 import de.berlios.vch.download.webinterface.DownloadsServlet;
 import de.berlios.vch.i18n.Messages;
@@ -78,8 +79,8 @@ public class Activator implements ResourceBundleProvider {
             dm = new DownloadManagerImpl(ctx, logger);
             dm.init(prefs);
             
-            // start activator servlet
-            registerServlet();
+            // register downloads and configuration servlet
+            registerServlets();
             
             // register web interface menu
             WebMenuEntry downloads = new WebMenuEntry();
@@ -89,6 +90,9 @@ public class Activator implements ResourceBundleProvider {
             WebMenuEntry manage = new WebMenuEntry(getResourceBundle().getString("I18N_MANAGE"));
             manage.setLinkUri(DownloadsServlet.PATH);
             downloads.getChilds().add(manage);
+            WebMenuEntry config = new WebMenuEntry(getResourceBundle().getString("I18N_CONFIGURATION"));
+            config.setLinkUri(ConfigServlet.PATH);
+            downloads.getChilds().add(config);
             ServiceRegistration sr = ctx.registerService(IWebMenuEntry.class.getName(), downloads, null);
             serviceRegs.add(sr);
             
@@ -115,7 +119,7 @@ public class Activator implements ResourceBundleProvider {
     @Invalidate
     public void stop() {
         // unregister the servlet
-        unregisterServlet();
+        unregisterServlets();
 
         // stop the download manager
         dm.stop();
@@ -134,22 +138,31 @@ public class Activator implements ResourceBundleProvider {
         }
     }
 
-    private void unregisterServlet() {
+    private void unregisterServlets() {
         if(httpService != null) {
             httpService.unregister(DownloadsServlet.PATH);
+            httpService.unregister(ConfigServlet.PATH);
             httpService.unregister(DownloadsServlet.FILE_PATH);
             httpService.unregister(DownloadsServlet.STATIC_PATH);
         }
     }
 
-    private void registerServlet() throws ServletException, NamespaceException {
-        DownloadsServlet servlet = new DownloadsServlet(dm);
-        servlet.setBundleContext(ctx);
-        servlet.setMessages(messages);
-        servlet.setTemplateLoader(templateLoader);
+    private void registerServlets() throws ServletException, NamespaceException {
+        DownloadsServlet downloads = new DownloadsServlet(dm);
+        downloads.setBundleContext(ctx);
+        downloads.setMessages(messages);
+        downloads.setTemplateLoader(templateLoader);
+        
+        ConfigServlet config = new ConfigServlet(prefs);
+        config.setBundleContext(ctx);
+        config.setMessages(messages);
+        config.setTemplateLoader(templateLoader);
         
         // register downloads servlet
-        httpService.registerServlet(DownloadsServlet.PATH, servlet, null, null);
+        httpService.registerServlet(DownloadsServlet.PATH, downloads, null, null);
+        
+        // register configuration servlet
+        httpService.registerServlet(ConfigServlet.PATH, config, null, null);
         
         // register resource context to make downloads available
         DownloadHttpContext downloadHttpContext = new DownloadHttpContext(prefs, logger);
