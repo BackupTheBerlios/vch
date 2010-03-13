@@ -186,10 +186,15 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider {
             entry.setLinkUri("/parser?id=" + getClass().getName());
             childs.add(entry);
             menu.setChilds(childs);
+            childs = new TreeSet<IWebMenuEntry>();
+            IWebMenuEntry open = new WebMenuEntry();
+            open.setTitle(i18n.translate("I18N_OPEN"));
+            open.setLinkUri(entry.getLinkUri());
+            childs.add(open);
             IWebMenuEntry config = new WebMenuEntry();
             config.setTitle(i18n.translate("I18N_CONFIGURATION"));
             config.setLinkUri(ConfigServlet.PATH);
-            childs = new TreeSet<IWebMenuEntry>();
+            config.setPreferredPosition(Integer.MAX_VALUE);
             childs.add(config);
             entry.setChilds(childs);
             menuReg = ctx.registerService(IWebMenuEntry.class.getName(), menu, null);
