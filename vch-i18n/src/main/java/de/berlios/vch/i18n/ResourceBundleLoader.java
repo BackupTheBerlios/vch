@@ -19,6 +19,12 @@ public class ResourceBundleLoader {
         logger.debug("Loading messages for locale {} for bundle {}", locale.toString(), ctx.getBundle()
                 .getSymbolicName());
         URL propsUrl = ctx.getBundle().getResource("/lang/lang_" + locale.toString() + ".properties");
+        if(propsUrl == null) {
+            // use fallback locale
+            logger.debug("Messages not found. Falling back to locale {} for bundle {}", Locale.UK, ctx.getBundle()
+                    .getSymbolicName());
+            propsUrl = ctx.getBundle().getResource("/lang/lang_" + Locale.UK + ".properties");
+        }
         InputStream in = propsUrl.openStream();
         return new PropertyResourceBundle(in);
     }
