@@ -8,7 +8,7 @@
 
     <script type="text/javascript">
         function error(msg) {
-            $.notify({text:msg, title:'${I18N_ERROR}', icon:'/notify/dialog-error.png'});
+            $.notify({text:msg, title:'${I18N_ERROR}', icon:'/static/notify/dialog-error.png'});
             //$('div#errors').html(msg);
             //$('div#errors').show();
             //$('div#errors').fadeOut(5000);
