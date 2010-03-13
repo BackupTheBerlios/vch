@@ -60,7 +60,7 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
         help.setPreferredPosition(Integer.MAX_VALUE);
         help.setLinkUri("#");
         WebMenuEntry content = new WebMenuEntry(getResourceBundle().getString("I18N_CONTENT"));
-        content.setLinkUri("http://vdr-wiki.de/wiki/index.php/Vodcatcher_Helper/Hilfe");
+        content.setLinkUri("http://vdr-wiki.de/wiki/index.php/Vodcatcher_Helper");
         help.getChilds().add(content);
         menuReg = ctx.registerService(IWebMenuEntry.class.getName(), help, null);        
     }
