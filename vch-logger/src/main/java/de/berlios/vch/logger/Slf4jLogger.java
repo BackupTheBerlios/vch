@@ -9,13 +9,12 @@ import org.osgi.service.log.LogReaderService;
 @Component
 public class Slf4jLogger {
     
-    private Slf4jLogListener logListener = new Slf4jLogListener();
-
     @Requires
     private LogReaderService logService;
     
     @Validate
     public void validate() {
+        Slf4jLogListener logListener = new Slf4jLogListener();
         logService.addLogListener(logListener);
     }
     
