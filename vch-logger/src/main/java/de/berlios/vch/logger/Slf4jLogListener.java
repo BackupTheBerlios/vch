@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 public class Slf4jLogListener implements LogListener {
 
-    private static transient Logger logger = LoggerFactory.getLogger(Slf4jLogListener.class);
+    private transient Logger logger = LoggerFactory.getLogger(Slf4jLogListener.class);
 
     @Override
     public void logged(LogEntry le) {
