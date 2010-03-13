@@ -1,14 +1,16 @@
 <#macro naviTree webMenuEntry>
     <li class="yuimenuitem">
         <a class="yuimenuitemlabel" href="${webMenuEntry.linkUri}">${webMenuEntry.title}</a>
-	    <#if webMenuEntry.childs??>
-	        <#list webMenuEntry.childs as child>
-	            <div class="yuimenu"> 
-	                <div class="bd">
-	                	<ul class="first-of-type"><@naviTree child/></ul>
-                	</div>
+	    <#if (webMenuEntry.childs?size > 0)>
+            <div class="yuimenu"> 
+                <div class="bd">
+                	<ul>
+                	  <#list webMenuEntry.childs as child>
+                	      <@naviTree webMenuEntry=child/>
+                	  </#list>
+                	</ul>
             	</div>
-	        </#list>
+        	</div>
 	    </#if>
     </li>
 </#macro>
