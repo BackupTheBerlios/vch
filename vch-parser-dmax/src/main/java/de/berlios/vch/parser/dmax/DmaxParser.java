@@ -227,10 +227,15 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
             entry.setLinkUri("/parser?id=" + getClass().getName());
             childs.add(entry);
             menu.setChilds(childs);
-            IWebMenuEntry config = new WebMenuEntry();
-            config.setTitle(i18n.translate("I18N_CONFIGURATION"));
-            config.setLinkUri(ConfigServlet.PATH);
             childs = new TreeSet<IWebMenuEntry>();
+            IWebMenuEntry open = new WebMenuEntry();
+            open.setTitle(getResourceBundle().getString("I18N_OPEN"));
+            open.setLinkUri("/parser?id=" + getClass().getName());
+            childs.add(open);
+            IWebMenuEntry config = new WebMenuEntry();
+            config.setTitle(getResourceBundle().getString("I18N_CONFIGURATION"));
+            config.setLinkUri(ConfigServlet.PATH);
+            config.setPreferredPosition(Integer.MAX_VALUE);
             childs.add(config);
             entry.setChilds(childs);
             menuReg = ctx.registerService(IWebMenuEntry.class.getName(), menu, null);
