@@ -50,6 +50,8 @@ public class UpdateServlet extends BundleContextServlet {
     
     private List<BundleRepresentation> installedBundles = new Vector<BundleRepresentation>();
     
+    private final String FELIX_OBR = "http://felix.apache.org/obr/releases.xml";
+    
     @Override
     protected void get(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
@@ -141,10 +143,16 @@ public class UpdateServlet extends BundleContextServlet {
             logger.log(LogService.LOG_INFO, "Found " + resources.size() + " resources");
             if (resources.size() > 0) {
                 try {
-                    bundle.uninstall();
                     for (Resource resource : resources) {
-                        logger.log(LogService.LOG_INFO, "Adding " + resource.getSymbolicName() + " to update list");
-                        resolver.add(resource);
+                        if(resource.getSymbolicName().equals(bundleContext.getBundle().getSymbolicName())) {
+                            // we are trying to update vch-update. to avoid, that the obr bundle tries to update itself
+                            // we have to handle this update in a special manner
+                            updateUpdateManager(req, resp, resource);
+                        } else {
+                            bundle.uninstall();
+                            logger.log(LogService.LOG_INFO, "Adding " + resource.getSymbolicName() + " to update list");
+                            resolver.add(resource);
+                        }
                     }
                 } catch (BundleException e1) {
                     String msg = i18n.translate("error.uninstall_extension");
@@ -164,6 +172,37 @@ public class UpdateServlet extends BundleContextServlet {
         }
         updateInstalledList();
         updateAvailableList();
+    }
+
+    private void updateUpdateManager(HttpServletRequest req, HttpServletResponse resp, Resource resource) throws MalformedURLException, ServiceUnavailableException, Exception {
+        boolean isFelixObrConfigured = false;
+        if(getOBRs().contains(FELIX_OBR)) {
+            isFelixObrConfigured = true;
+            removeOBR(FELIX_OBR);
+        }
+        
+        ServiceReference sr = getBundleContext().getServiceReference(RepositoryAdmin.class.getName());
+        if (sr == null) {
+            error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, i18n.translate("error.obr_not_available"));
+        }
+        RepositoryAdmin adm = (RepositoryAdmin) getBundleContext().getService(sr);
+        if (adm == null) {
+            error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, i18n.translate("error.obr_not_available"));
+        }
+        Resolver resolver = adm.resolver();
+        
+        if (resolver.resolve()) {
+            resolver.deploy(true); // deploy and start (true means "start")
+            addNotify(req, new NotifyMessage(TYPE.INFO, i18n.translate("info.please_restart")));
+        } else {
+            String msg = i18n.translate("error.load_list");
+            logger.log(LogService.LOG_ERROR, msg);
+            addNotify(req, new NotifyMessage(TYPE.ERROR, msg));
+        }
+        
+        if(isFelixObrConfigured) {
+            addOBR(FELIX_OBR);
+        }
     }
 
     private void stopBundles(HttpServletRequest req, HttpServletResponse resp) {
@@ -524,9 +563,9 @@ public class UpdateServlet extends BundleContextServlet {
         Collections.sort(obrUris);
         if(obrUris.isEmpty()) {
             addOBR("http://vch.berlios.de/repo/releases/repository.xml");
-            addOBR("http://felix.apache.org/obr/releases.xml");
+            addOBR(FELIX_OBR);
             obrUris.add("http://vch.berlios.de/repo/releases/repository.xml");
-            obrUris.add("http://felix.apache.org/obr/releases.xml");
+            obrUris.add(FELIX_OBR);
         }
         return obrUris;
     }
