@@ -68,6 +68,9 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
             
             // delete the info file
             deleteInfoFile(new File(d.getLocalFile()));
+            
+            // delete the descriptor file
+            deleteDescritorFile(new File(d.getLocalFile()));
         }
     }
 
