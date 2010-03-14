@@ -23,7 +23,6 @@ import org.hampelratte.net.mms.client.listeners.MMSPacketListener;
 import org.hampelratte.net.mms.data.MMSHeaderPacket;
 import org.hampelratte.net.mms.data.MMSMediaPacket;
 import org.hampelratte.net.mms.data.MMSPacket;
-import org.hampelratte.net.mms.io.UnknownHeaderException;
 import org.hampelratte.net.mms.messages.MMSMessage;
 import org.hampelratte.net.mms.messages.client.Connect;
 import org.hampelratte.net.mms.messages.client.ConnectFunnel;
@@ -339,19 +338,9 @@ public class MmsDownload extends AbstractDownload implements MMSMessageListener,
     
     @Override
     public void exceptionCaught(IoSession arg0, Throwable t) throws Exception {
-        if(t instanceof UnknownHeaderException) {
-            logger.log(LogService.LOG_WARNING, "MMS protocol error occured. Restarting from last valid packet");
-            client.disconnect(new IoFutureListener<IoFuture>() {
-                @Override
-                public void operationComplete(IoFuture arg0) {
-                    startDownload();
-                }
-            });
-        } else {
-            stop();
-            setStatus(Status.FAILED);
-            setException(t);
-        }
+        stop();
+        setStatus(Status.FAILED);
+        setException(t);
     }
 
     @Override
