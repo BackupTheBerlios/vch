@@ -24,6 +24,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.Version;
 import org.osgi.service.log.LogService;
 import org.osgi.service.obr.Capability;
 import org.osgi.service.obr.Repository;
@@ -83,6 +84,20 @@ public class UpdateServlet extends BundleContextServlet {
             } else if(req.getParameter("updates") != null) {
                 try {
                     List<Resource> available = downloadAvailableList();
+                    for (Iterator<Resource> iterator = available.iterator(); iterator.hasNext();) {
+                        Resource resource = iterator.next();
+                        if(!isInstalled(resource)) {
+                            iterator.remove();
+                        } else {
+                            for (BundleRepresentation bundle : installedBundles) {
+                                if(bundle.getSymbolicName().equals(resource.getSymbolicName())) {
+                                    if(compare(Version.parseVersion(bundle.getVersion()), resource.getVersion()) > 0) {
+                                        iterator.remove();
+                                    }
+                                }
+                            }
+                        }
+                    }
                     resp.setContentType("application/json; charset=utf-8");
                     resp.getWriter().write(toJSON(available));
                 } catch (ServiceUnavailableException e) {
@@ -374,8 +389,7 @@ public class UpdateServlet extends BundleContextServlet {
                 // bundles are included
                 Resource r1 = filterMap.get(res[i].getSymbolicName());
                 Resource r2 = res[i];
-                // TODO versions-vergleich selbst schreiben, damit final größer als snapshot ist
-                if (r2.getVersion().compareTo(r1.getVersion()) == 1) {
+                if (compare(r1.getVersion(), r2.getVersion()) <= 0) {
                     logger.log(LogService.LOG_DEBUG, "Bundle " + r1.getSymbolicName() + " with version "
                             + r1.getVersion() + " will be dropped");
                     logger.log(LogService.LOG_INFO, "Adding " + res[i].getPresentationName() + " with version "
@@ -555,4 +569,41 @@ public class UpdateServlet extends BundleContextServlet {
             logger.log(LogService.LOG_ERROR, "Couldn't remove obr", e);
         }
     }
+    
+    public static int compare(Version v1, Version v2)
+    {
+        if(v1 == v2)
+            return 0;
+        
+        int result = v1.getMajor() - v2.getMajor();
+        if(result != 0)
+            return result;
+        result = v1.getMinor() - v2.getMinor();
+        if(result != 0)
+            return result;
+        result = v1.getMicro() - v2.getMicro();
+        if(result != 0)
+            return result;
+        else {
+            // compare the qualifier
+            if(v1.getQualifier().length() > 0 && v2.getQualifier().length() == 0) {
+                return -1;
+            } else if(v2.getQualifier().length() > 0 && v1.getQualifier().length() == 0) {
+                return 1;
+            } else if(v1.getQualifier().length() > 0 && v2.getQualifier().length() > 0) {
+                return v1.getQualifier().compareTo(v2.getQualifier());
+            } else {
+                return 0;
+            }
+        }
+            
+    }
+    
+    public static void main(String[] args) {
+        Version v1 = new Version(1,1,0);
+        Version v2 = new Version(1,0,0);
+        
+        System.out.println(compare(v1, v2));
+    }
 }
+
