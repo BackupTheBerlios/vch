@@ -99,9 +99,7 @@ public class XmlRenderer {
         
         Element res = doc.createElement("res");
         
-        // TODO muss das protocol eventuell auch angepasst werden? für mms z.B.?
-        // allerdings ist das wohl nicht teil des standards. xbmc streamt mms trotzdem, auch mit http-get ?!?
-        res.setAttribute("protocolInfo", "http-get:*:" + getMimeTipe(page) + ":*"); 
+        res.setAttribute("protocolInfo", getProtocol(page) + ":*:" + getMimeTipe(page) + ":*"); 
         
         res.setTextContent(page.getVideoUri().toString());
         item.appendChild(res);
@@ -113,21 +111,29 @@ public class XmlRenderer {
         return sw.toString();
     }
     
+    private static String getProtocol(IVideoPage page) {
+        URI uri = page.getVideoUri();
+        if(uri.getScheme().equals("http")) {
+           return "http-get"; 
+        } else {
+            return uri.getScheme();
+        }
+    }
+
     // TODO create method renderError
 
     private static String getMimeTipe(IVideoPage page) {
-        // TODO implement more mime type detection
         URI uri = page.getVideoUri();
         if(uri.toString().endsWith(".flv")) {
-            return "video/flv";
+            return "video/x-flv";
         } else if(uri.toString().endsWith(".mp4")) {
             return "video/mp4";
         } else if(uri.toString().endsWith(".wmv") || uri.getScheme().equals("mms") || uri.getScheme().equals("mmst")) {
-            return "video/wmv";
+            return "video/x-ms-wmv";
         } else if(uri.toString().endsWith(".avi")) {
             return "video/x-msvideo";
         } else {
-            return "video/flv";
+            return "video";
         }
     }
     
