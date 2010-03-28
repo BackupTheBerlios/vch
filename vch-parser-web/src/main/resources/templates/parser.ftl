@@ -40,7 +40,7 @@
                     "node": node
                 },
                 
-                timeout: 30000
+                timeout: 120000
             };
 
             var sUrl = "${SERVLET_URI}/?id=${PARSER}&uri=" + encodeURIComponent(node.href) + "&title=" + encodeURIComponent(node.label);
@@ -158,7 +158,7 @@
                 
                 //timeout -- if more than x seconds go by, we'll abort
                 //the transaction and assume there are no children:
-                timeout: 30000
+                timeout: 120000
             };
             
             //With our callback object ready, it's now time to 
