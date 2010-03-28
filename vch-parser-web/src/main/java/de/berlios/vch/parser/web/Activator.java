@@ -28,6 +28,7 @@ import org.osgi.util.tracker.ServiceTracker;
 import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
+import de.berlios.vch.parser.IParserService;
 import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.web.TemplateLoader;
 import de.berlios.vch.web.menu.IWebMenuEntry;
@@ -55,6 +56,9 @@ public class Activator implements ResourceBundleProvider {
     @Requires
     private HttpService http;
     
+    @Requires
+    private IParserService parserService;
+    
     private ResourceBundle resourceBundle;
     
     public Activator(BundleContext ctx) {
@@ -68,7 +72,7 @@ public class Activator implements ResourceBundleProvider {
     }
 
     private void registerServlet() throws ServletException, NamespaceException {
-        BrowseServlet servlet = new BrowseServlet();
+        BrowseServlet servlet = new BrowseServlet(parserService);
         servlet.setBundleContext(ctx);
         servlet.setMessages(messages);
         servlet.setTemplateLoader(templateLoader);

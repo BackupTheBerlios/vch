@@ -2,9 +2,7 @@ package de.berlios.vch.parser.web;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -17,17 +15,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
 import org.osgi.framework.BundleContext;
-import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.berlios.vch.parser.IOverviewPage;
+import de.berlios.vch.parser.IParserService;
 import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
-import de.berlios.vch.parser.VideoPage;
-import de.berlios.vch.parser.WebPage;
 import de.berlios.vch.parser.exceptions.NoSupportedVideoFoundException;
 import de.berlios.vch.web.servlets.BundleContextServlet;
 
@@ -35,46 +31,39 @@ public class BrowseServlet extends BundleContextServlet {
 
     public static String PATH = "/parser";
     
-    private ServiceTracker st;
-
     private static transient Logger logger = LoggerFactory.getLogger(BrowseServlet.class);
+
+    private IParserService parserService;
+    
+    public BrowseServlet(IParserService parserService) {
+        this.parserService = parserService;
+    }
 
     @Override
     public void setBundleContext(BundleContext bundleContext) {
         super.setBundleContext(bundleContext);
-        st = new ServiceTracker(bundleContext, IWebParser.class.getName(), null);
-        st.open();
-    }
-
-    public IWebParser getParser(String id) {
-        Object[] parsers = st.getServices();
-        for (Object o : parsers) {
-            IWebParser parser = (IWebParser) o;
-            if (parser.getId().equals(id)) {
-                return parser;
-            }
-        }
-
-        return null;
     }
 
     @Override
     protected void get(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String parserId = req.getParameter("id");
-        IWebParser parser = getParser(parserId);
+        IWebParser parser = parserService.getParser(parserId);
         if (parser != null) {
             if ("XMLHttpRequest".equals(req.getHeader("X-Requested-With"))) {
                 try {
-                    IWebPage page = createPage(req);
-                    page.setParser(parser.getId());
-                    page.setUri(new URI(req.getParameter("uri")));
-                    IWebPage parsedPage = null;
-                    String rootPage = "vchpage://localhost/" + parser.getId();
-                    if(rootPage.equals(page.getUri().toString())) {
-                        parsedPage = parser.getRoot();
-                    } else {
-                        parsedPage = parser.parse(page);
-                    }
+                    URI vchpage = new URI(req.getParameter("uri"));
+                    IWebPage parsedPage = parserService.parse(vchpage);
+                    
+//                    IWebPage page = createPage(req);
+//                    page.setParser(parser.getId());
+//                    page.setUri(new URI(req.getParameter("uri")));
+//                    IWebPage parsedPage = null;
+//                    String rootPage = "vchpage://localhost/" + parser.getId();
+//                    if(rootPage.equals(page.getUri().toString())) {
+//                        parsedPage = parser.getRoot();
+//                    } else {
+//                        parsedPage = parser.parse(page);
+//                    }
 
                     if (parsedPage != null) {
                         String response = "{\"ResultSet\":{\"Result\":";
@@ -119,11 +108,11 @@ public class BrowseServlet extends BundleContextServlet {
                 params.put("JS_INCLUDES", js);
                 
                 try {
-                    // IOverviewPage page = parser.getRoot();
                     IOverviewPage page = new OverviewPage();
                     page.setTitle(parser.getTitle());
                     page.setParser(parserId);
                     page.setUri(new URI("vchpage://localhost/"+parserId));
+                    page.setVchUri(new URI("vchpage://localhost/"+parserId));
                     params.put("PAGE", page);
                 } catch (Exception e) {
                     logger.error("Couldn't parse root page", e);
@@ -141,30 +130,30 @@ public class BrowseServlet extends BundleContextServlet {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private IWebPage createPage(HttpServletRequest req) throws URISyntaxException {
-        String type = req.getParameter("node.data.type");
-        IWebPage page;
-        if (IOverviewPage.class.getSimpleName().equals(type)) {
-            page = new OverviewPage();
-        } else if (IVideoPage.class.getSimpleName().equals(type)) {
-            page = new VideoPage();
-        } else {
-            page = new WebPage();
-        }
-        Enumeration paramNames = req.getParameterNames();
-        while(paramNames.hasMoreElements()) {
-            String key = (String) paramNames.nextElement(); 
-            if( key.startsWith("node.data.") ) {
-                page.getUserData().put(key.substring(10), req.getParameter(key));
-                if("video".equals(key.substring(10))) {
-                    ((IVideoPage)page).setVideoUri(new URI(req.getParameter(key)));
-                }
-            }
-        }
-        page.setTitle(req.getParameter("title"));
-        return page;
-    }
+//    @SuppressWarnings("unchecked")
+//    private IWebPage createPage(HttpServletRequest req) throws URISyntaxException {
+//        String type = req.getParameter("node.data.type");
+//        IWebPage page;
+//        if (IOverviewPage.class.getSimpleName().equals(type)) {
+//            page = new OverviewPage();
+//        } else if (IVideoPage.class.getSimpleName().equals(type)) {
+//            page = new VideoPage();
+//        } else {
+//            page = new WebPage();
+//        }
+//        Enumeration paramNames = req.getParameterNames();
+//        while(paramNames.hasMoreElements()) {
+//            String key = (String) paramNames.nextElement(); 
+//            if( key.startsWith("node.data.") ) {
+//                page.getUserData().put(key.substring(10), req.getParameter(key));
+//                if("video".equals(key.substring(10))) {
+//                    ((IVideoPage)page).setVideoUri(new URI(req.getParameter(key)));
+//                }
+//            }
+//        }
+//        page.setTitle(req.getParameter("title"));
+//        return page;
+//    }
 
     @Override
     protected void post(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
@@ -181,7 +170,7 @@ public class BrowseServlet extends BundleContextServlet {
         // set the title
         object.put("label", page.getTitle());
         if (page.getUri() != null) {
-            object.put("href", page.getUri().toString());
+            object.put("href", page.getVchUri().toString());
         }
         
         if (page instanceof IVideoPage) {
