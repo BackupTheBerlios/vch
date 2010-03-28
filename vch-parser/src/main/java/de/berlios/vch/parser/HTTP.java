@@ -1,7 +1,10 @@
 package de.berlios.vch.parser;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Provides;
@@ -24,7 +27,15 @@ public class HTTP implements INetworkProtocol {
         return schemes;
     }
 
+    @Override
     public boolean isBridgeNeeded() {
         return false;
     }
+
+    @Override
+    public URI toBridgeUri(URI videoUri, Map<String, ?> connectionDetails) throws URISyntaxException {
+        return videoUri;
+    }
+
+    
 }
