@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -13,7 +15,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -65,7 +66,7 @@ public class ArteParser implements IWebParser, BundleActivator {
         return page;
     }
     
-    private List<IWebPage> createPageList() throws URISyntaxException {
+    private List<IWebPage> createPageList() throws URISyntaxException, NoSuchAlgorithmException {
         List<IWebPage> pageList = new ArrayList<IWebPage>();
         List<IVideoPage> videos = getVideos(CAROUSEL_URL);
         Map<String, List<IVideoPage>> categories = new HashMap<String, List<IVideoPage>>();
@@ -88,12 +89,32 @@ public class ArteParser implements IWebParser, BundleActivator {
                 OverviewPage overview = new OverviewPage();
                 overview.setParser(ID);
                 overview.setTitle(title);
-                overview.setUri(new URI("dummy://" + UUID.randomUUID()));
+                overview.setUri(new URI("dummy://" + md5(title)));
                 overview.getPages().addAll(category);
                 pageList.add(overview);
             }
         }
         return pageList;
+    }
+    
+    private static String md5(String s) throws NoSuchAlgorithmException {
+        String digest = "";
+
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        byte[] b = s.getBytes();
+        md.update(b, 0, b.length);
+        byte[] md5Bytes = md.digest();
+
+        StringBuffer hexValue = new StringBuffer();
+        for (int i = 0; i < md5Bytes.length; i++) {
+            int val = ((int) md5Bytes[i]) & 0xff;
+            if (val < 16)
+                hexValue.append("0");
+            hexValue.append(Integer.toHexString(val));
+        }
+        digest = hexValue.toString();
+
+        return digest;
     }
 
     @Override
