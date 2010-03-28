@@ -97,6 +97,7 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
         IOverviewPage overview = new RootPage();
         overview.setUri(new URI("vchpage://localhost/" + getId()));
         overview.setTitle(getTitle());
+        overview.setParser(ID);
         
         int maxVideos = prefs.getInt("max.videos", 400);
         String landingPage = BASE_URI + "/video/morevideo.shtml?name=longform&sort=date&contentSize=" + maxVideos
