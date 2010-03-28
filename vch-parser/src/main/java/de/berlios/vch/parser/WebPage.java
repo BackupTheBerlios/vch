@@ -8,6 +8,16 @@ public class WebPage implements IWebPage {
     private String title;
 
     private URI uri;
+    
+    private URI vchUri;
+
+    public URI getVchUri() {
+        return vchUri;
+    }
+
+    public void setVchUri(URI vchUri) {
+        this.vchUri = vchUri;
+    }
 
     private Map<String, Object> userData;
     

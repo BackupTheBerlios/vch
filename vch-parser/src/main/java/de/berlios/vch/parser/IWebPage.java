@@ -27,4 +27,7 @@ public interface IWebPage {
 	
 	public String getParser();
 	public void setParser(String parser);
+	
+	public URI getVchUri();
+	public void setVchUri(URI vchpage);
 }
