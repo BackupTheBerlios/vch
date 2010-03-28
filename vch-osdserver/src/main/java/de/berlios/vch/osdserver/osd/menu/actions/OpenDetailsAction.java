@@ -1,6 +1,7 @@
 package de.berlios.vch.osdserver.osd.menu.actions;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +14,7 @@ import de.berlios.vch.osdserver.osd.OsdItem;
 import de.berlios.vch.osdserver.osd.OsdObject;
 import de.berlios.vch.osdserver.osd.menu.ItemDetailsMenu;
 import de.berlios.vch.osdserver.osd.menu.Menu;
+import de.berlios.vch.parser.IParserService;
 import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebParser;
 
@@ -36,15 +38,20 @@ public class OpenDetailsAction implements IOsdAction {
         OsdItem item = (OsdItem) oo;
         IVideoPage page = (IVideoPage) item.getUserData();
         try {
+            IParserService parserService = (IParserService) Activator.parserServiceTracker.getService();
+            if(parserService == null) {
+                throw new ServiceException("ParserService not available");
+            }
+            
             osd.showMessage(new OsdMessage(i18n.translate("loading"), OsdMessage.STATUS));
            
-            IWebParser parser = getParser(page.getParser());
+            IWebParser parser = parserService.getParser(page.getParser());
             if(parser == null) {
                 osd.showMessage(new OsdMessage(i18n.translate("error_parser_missing"), OsdMessage.ERROR));
                 return;
             }
             
-            page = (IVideoPage) parser.parse(page);
+            page = (IVideoPage) parserService.parse(page.getVchUri());
             Menu itemDetailsMenu = new ItemDetailsMenu(ctx, page, i18n);
             osd.createMenu(itemDetailsMenu);
             osd.appendToFocus(itemDetailsMenu);
@@ -69,17 +76,5 @@ public class OpenDetailsAction implements IOsdAction {
     @Override
     public String getName() {
         return i18n.translate("show_details");
-    }
-    
-    public IWebParser getParser(String id) {
-        Object[] parsers = Activator.parserTracker.getServices();
-        for (Object o : parsers) {
-            IWebParser parser = (IWebParser) o;
-            if(id.equals(parser.getId())) {
-                return parser;
-            }
-        }
-        
-        return null;
     }
 }

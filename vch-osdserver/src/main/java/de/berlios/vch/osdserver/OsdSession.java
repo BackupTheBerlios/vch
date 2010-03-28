@@ -3,14 +3,13 @@ package de.berlios.vch.osdserver;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URLDecoder;
-import java.util.Collections;
 import java.util.prefs.Preferences;
 
 import org.hampelratte.svdrp.Command;
 import org.hampelratte.svdrp.Response;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceException;
 import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +24,7 @@ import de.berlios.vch.osdserver.osd.OsdException;
 import de.berlios.vch.osdserver.osd.menu.Menu;
 import de.berlios.vch.osdserver.osd.menu.OverviewMenu;
 import de.berlios.vch.parser.IOverviewPage;
-import de.berlios.vch.parser.IWebParser;
-import de.berlios.vch.parser.OverviewPage;
-import de.berlios.vch.parser.WebPageTitleComparator;
+import de.berlios.vch.parser.IParserService;
 
 /**
  * TODO create a logger, which logs to the osd
@@ -215,21 +212,10 @@ public class OsdSession implements Runnable {
     }
     
     private IOverviewPage getParsers() throws Exception {
-        Object[] parsers = Activator.parserTracker.getServices();
-        IOverviewPage overview = new OverviewPage();
-        overview.setTitle(i18n.translate("sites"));
-        if (parsers != null && parsers.length > 0) {
-            for (Object o : parsers) {
-                IWebParser parser = (IWebParser) o;
-                IOverviewPage parserPage = new OverviewPage();
-                parserPage.setTitle(parser.getTitle());
-                parserPage.setUri(new URI("vchpage://localhost"));
-                parserPage.setParser(parser.getId());
-                overview.getPages().add(parserPage);
-            }
+        IParserService parserService = (IParserService) Activator.parserServiceTracker.getService();
+        if(parserService == null) {
+            throw new ServiceException("ParserService not available");
         }
-        
-        Collections.sort(overview.getPages(), new WebPageTitleComparator());
-        return overview;
+        return parserService.getParserOverview();
     }
 }

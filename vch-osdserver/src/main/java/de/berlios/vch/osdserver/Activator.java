@@ -22,7 +22,7 @@ import de.berlios.vch.config.ConfigService;
 import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
-import de.berlios.vch.parser.IWebParser;
+import de.berlios.vch.parser.IParserService;
 import de.berlios.vch.web.TemplateLoader;
 import de.berlios.vch.web.menu.IWebMenuEntry;
 import de.berlios.vch.web.menu.WebMenuEntry;
@@ -34,7 +34,7 @@ public class Activator implements ResourceBundleProvider {
     @Requires
     private LogService logger;
 
-    public static ServiceTracker parserTracker;
+    public static ServiceTracker parserServiceTracker;
 
     private BundleContext ctx;
 
@@ -60,8 +60,8 @@ public class Activator implements ResourceBundleProvider {
 
     @Validate
     public void start() {
-        parserTracker = new ServiceTracker(ctx, IWebParser.class.getName(), null);
-        parserTracker.open();
+        parserServiceTracker = new ServiceTracker(ctx, IParserService.class.getName(), null);
+        parserServiceTracker.open();
 
         try {
             httpService.registerServlet("/osdserver", new ActivatorServlet(ctx, i18n), null, null);
@@ -100,8 +100,8 @@ public class Activator implements ResourceBundleProvider {
 
     @Invalidate
     public void stop() {
-        parserTracker.close();
-        parserTracker = null;
+        parserServiceTracker.close();
+        parserServiceTracker = null;
         
         // unregister the config servlet
         if(httpService != null) {

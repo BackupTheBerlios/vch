@@ -22,7 +22,7 @@ public class ItemDetailsMenu extends Menu {
         
         if(page.getVideoUri() != null && !page.getVideoUri().toString().isEmpty()) {
             // register play action
-            registerAction(new PlayAction(i18n));
+            registerAction(new PlayAction(ctx, i18n));
             
             // register actions from other osgi bundles
             Object[] actions = getOsdActions(ctx);
