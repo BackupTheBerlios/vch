@@ -4,6 +4,8 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -70,7 +72,7 @@ public class XmlRenderer {
         return sw.toString();
     }
 
-    public static String renderVideo(IVideoPage page, String vchPath) throws TransformerFactoryConfigurationError, DOMException, NoSuchAlgorithmException, ParserConfigurationException, TransformerException {
+    public static String renderVideo(IVideoPage page, URI videoUri, String vchPath) throws TransformerFactoryConfigurationError, DOMException, NoSuchAlgorithmException, ParserConfigurationException, TransformerException {
         Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
         doc.setXmlVersion("1.0");
         
@@ -93,15 +95,30 @@ public class XmlRenderer {
         title.setTextContent(page.getTitle());
         item.appendChild(title);
         
+        if(page.getDescription() != null && page.getDescription().length() > 0) {
+            Element desc = doc.createElement("dc:description");
+            desc.setTextContent(page.getDescription());
+            item.appendChild(desc);
+        }
+        
         Element upnpClass = doc.createElement("upnp:class");
         upnpClass.setTextContent("object.item.videoItem");
         item.appendChild(upnpClass);
         
         Element res = doc.createElement("res");
         
-        res.setAttribute("protocolInfo", getProtocol(page) + ":*:" + getMimeTipe(page) + ":*"); 
+        res.setAttribute("protocolInfo", getProtocol(videoUri) + ":*:" + getMimeTipe(videoUri) + ":*");
+        res.setAttribute("resolution", "0x0");
         
-        res.setTextContent(page.getVideoUri().toString());
+        if(page.getDuration() > 0) {
+            long hours = page.getDuration() / 3600;
+            long minutes = page.getDuration() % 3600 / 60;
+            long seconds = page.getDuration() % 60;
+            NumberFormat nf = new DecimalFormat("00");
+            res.setAttribute("duration", hours + ":" + nf.format(minutes) + ":" + nf.format(seconds));
+        }
+        
+        res.setTextContent(videoUri.toString());
         item.appendChild(res);
 
         Transformer transformer = TransformerFactory.newInstance().newTransformer();
@@ -111,8 +128,7 @@ public class XmlRenderer {
         return sw.toString();
     }
     
-    private static String getProtocol(IVideoPage page) {
-        URI uri = page.getVideoUri();
+    private static String getProtocol(URI uri) {
         if(uri.getScheme().equals("http")) {
            return "http-get"; 
         } else {
@@ -122,8 +138,7 @@ public class XmlRenderer {
 
     // TODO create method renderError
 
-    private static String getMimeTipe(IVideoPage page) {
-        URI uri = page.getVideoUri();
+    private static String getMimeTipe(URI uri) {
         if(uri.toString().endsWith(".flv")) {
             return "video/x-flv";
         } else if(uri.toString().endsWith(".mp4")) {

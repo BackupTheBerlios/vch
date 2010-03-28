@@ -34,17 +34,17 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>de.berlios.vch</groupId>
-            <artifactId>httpclient</artifactId>
-            <type>bundle</type>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.upnp.basedriver</artifactId>
             <version>0.8.0</version>
             <type>bundle</type>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+        	<groupId>de.berlios.vch</groupId>
+        	<artifactId>net</artifactId>
+        	<type>bundle</type>
+        	<scope>provided</scope>
         </dependency>
     </dependencies>
 
