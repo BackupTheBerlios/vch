@@ -74,13 +74,7 @@ public class Osd implements IEventDispatcher {
             
             @Override
             public void execute(OsdObject oo) {
-                Menu current = menuStack.pop(); // first pop the current menu.
-                try {
-                    conn.send("delete " + current.getId());
-                } catch (Exception e) {
-                    logger.error("Couldn't delete menu {}", current.getId());
-                }
-                logger.trace("Menu stack: {} {}", menuStack.size(), menuStack);
+                closeMenu();
             }
         });
         
@@ -96,6 +90,20 @@ public class Osd implements IEventDispatcher {
         for (OsdItem item : menu.getItems()) {
             createOsdItem(menu, item);
         }
+    }
+    
+    public void closeMenu() {
+        Menu menu = menuStack.peek();
+        try {
+            // send the delete command
+            conn.send("delete " + menu.getId());
+            
+            // if everything went fine we have to pop the menu from the menu stack
+            menuStack.pop();
+        } catch (Exception e) {
+            logger.error("Couldn't delete menu {}", menu.getId());
+        }
+        logger.trace("Menu stack: {} {}", menuStack.size(), menuStack);
     }
     
     public void createOsdItem(Menu menu, OsdItem item) throws IOException, OsdException {
