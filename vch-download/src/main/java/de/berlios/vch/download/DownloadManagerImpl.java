@@ -28,6 +28,10 @@ import org.osgi.util.tracker.ServiceTracker;
 import de.berlios.vch.download.Download.Status;
 import de.berlios.vch.download.jaxb.DownloadDTO;
 import de.berlios.vch.download.jaxb.ObjectFactory;
+import de.berlios.vch.download.sorting.ByFinishDate;
+import de.berlios.vch.download.sorting.ByTitle;
+import de.berlios.vch.download.sorting.SortStrategy;
+import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.parser.IVideoPage;
 
 public class DownloadManagerImpl implements DownloadManager, DownloadStateListener {
@@ -50,9 +54,14 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
     
     private BundleContext ctx;
     
-    public DownloadManagerImpl(BundleContext ctx, LogService logger) {
+    public static List<SortStrategy> sortStrategies = new ArrayList<SortStrategy>();
+    
+    public DownloadManagerImpl(BundleContext ctx, LogService logger, Messages messages) {
         this.logger = logger;
         this.ctx = ctx;
+
+        sortStrategies.add(new ByTitle(messages));
+        sortStrategies.add(new ByFinishDate(messages));
     }
 
     @Override
@@ -216,7 +225,10 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
     }
     
     private void reconfigure() {
-        // create thread pool
+        // shutdown the current executor after all downloads are finished
+        if(executor != null) executor.shutdown();
+        
+        // create new thread pool
         executor = createExecutorService();
         
         // create data directory
@@ -275,6 +287,16 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
                 }
             }
         }
+        
+        // sort the downloads
+        String className = prefs.get("sort.strategy", ByTitle.class.getName());
+        for (SortStrategy sortStrategy : sortStrategies) {
+            if(sortStrategy.getClass().getName().equals(className)) {
+                sortStrategy.sort(finished);
+            }
+        }
+ 
+        
         return finished;
     }
     

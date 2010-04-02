@@ -76,7 +76,7 @@ public class Activator implements ResourceBundleProvider {
         setDefaults(prefs);
         try {
             // initialize doenload manager
-            dm = new DownloadManagerImpl(ctx, logger);
+            dm = new DownloadManagerImpl(ctx, logger, messages);
             dm.init(prefs);
             
             // register downloads and configuration servlet
@@ -100,7 +100,7 @@ public class Activator implements ResourceBundleProvider {
             DownloadAction action = new DownloadAction(messages, dm, logger);
             sr = ctx.registerService(ItemDetailsAction.class.getName(), action, null);
             serviceRegs.add(sr);
-            OpenDownloadsAction oda = new OpenDownloadsAction(messages, dm, logger);
+            OpenDownloadsAction oda = new OpenDownloadsAction(messages, dm, logger, prefs);
             sr = ctx.registerService(OverviewAction.class.getName(), oda, null);
             serviceRegs.add(sr);
         } catch (Exception e) {

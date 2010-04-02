@@ -1,6 +1,7 @@
 package de.berlios.vch.download.osd;
 
 import java.util.List;
+import java.util.prefs.Preferences;
 
 import org.osgi.service.log.LogService;
 
@@ -14,7 +15,7 @@ import de.berlios.vch.osdserver.osd.menu.Menu;
 
 public class DownloadsMenu extends Menu {
 
-    public DownloadsMenu(DownloadManager dm, LogService logger, Messages i18n) {
+    public DownloadsMenu(DownloadManager dm, LogService logger, Messages i18n, Preferences prefs) {
         super("downloads", i18n.translate("I18N_DOWNLOADS"));
 
         DeleteAction deleteAction = new DeleteAction(i18n, dm);
@@ -23,6 +24,7 @@ public class DownloadsMenu extends Menu {
         PlayFinishedAction playFinished = new PlayFinishedAction(i18n);
         PlayActiveAction playActive = new PlayActiveAction(i18n);
         StartStopAction startStop = new StartStopAction(i18n, dm);
+        ChangeOrderAction sortAction = new ChangeOrderAction(dm, logger, i18n, prefs); 
         
         // add the active downloads to the menu
         List<Download> activeDownloads = dm.getActiveDownloads();
@@ -65,6 +67,7 @@ public class DownloadsMenu extends Menu {
             osditem.registerAction(updateColorButtons);
             osditem.registerAction(deleteAction);
             osditem.registerAction(playFinished);
+            osditem.registerAction(sortAction);
             addOsdItem(osditem);
         }
     }
