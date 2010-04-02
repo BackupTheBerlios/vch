@@ -39,6 +39,8 @@ public class SingleLineFormatter extends Formatter {
         sb.append(" ");
         String message = formatMessage(record);
         sb.append(record.getLevel().getLocalizedName());
+        sb.append(" - ");
+        sb.append(record.getLoggerName());
         sb.append(": ");
         sb.append(message);
         sb.append(lineSeparator);
