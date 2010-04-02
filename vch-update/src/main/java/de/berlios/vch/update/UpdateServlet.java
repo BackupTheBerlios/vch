@@ -58,6 +58,8 @@ public class UpdateServlet extends BundleContextServlet {
             "de.berlios.vch.bundle-loader"
     });
     
+    boolean updateUpdateManager = false;
+    
     @Override
     protected void get(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
@@ -72,6 +74,15 @@ public class UpdateServlet extends BundleContextServlet {
                 startBundles(req, resp);
             } else if(req.getParameter("submit_update") != null) {
                 updateBundles(req, resp);
+                if(updateUpdateManager) {
+                    Thread.sleep(3000); // wait some seconds, so that the update servlet registers again
+                    resp.sendRedirect(PATH + "?updated=true");
+                    return;
+                }
+            } else if(req.getParameter("updated") != null) {
+                // we have been redirected from an update, which included the update manager
+                // now we should add a notify message
+                addNotify(req, new NotifyMessage(TYPE.INFO, i18n.translate("info.please_restart")));
             }
             
             // render page parts 
@@ -115,8 +126,10 @@ public class UpdateServlet extends BundleContextServlet {
                 renderMainPage(req, resp);
             }
         } catch (ServiceUnavailableException e) {
+            logger.log(LogService.LOG_ERROR, "Service unavailable", e);
             error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, e.getLocalizedMessage());
         } catch (Exception e) {
+            logger.log(LogService.LOG_ERROR, "Internal server error", e);
             error(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } 
     }
@@ -138,6 +151,9 @@ public class UpdateServlet extends BundleContextServlet {
         }
         Resolver resolver = adm.resolver();
         
+        updateUpdateManager = false;
+        Resource updateManagerResource = null;
+        
         for (String bundleId : bundleIds) {
             int _bundleId = Integer.parseInt(bundleId);
             Bundle bundle = getBundleContext().getBundle(_bundleId);
@@ -148,23 +164,18 @@ public class UpdateServlet extends BundleContextServlet {
             Collection<Resource> resources = filterByVersion(adm.discoverResources(filter));
             logger.log(LogService.LOG_INFO, "Found " + resources.size() + " resources");
             if (resources.size() > 0) {
-                try {
-                    for (Resource resource : resources) {
-                        if(resource.getSymbolicName().equals(bundleContext.getBundle().getSymbolicName())) {
-                            // we are trying to update vch-update. to avoid, that the obr bundle tries to update itself
-                            // we have to handle this update in a special manner
-                            updateUpdateManager(req, resp, resource);
-                        } else {
-                            if(!ignoreList.contains(resource.getSymbolicName())) {
-                                logger.log(LogService.LOG_INFO, "Adding " + resource.getSymbolicName() + " to update list");
-                                resolver.add(resource);
-                            }
+                for (Resource resource : resources) {
+                    if(resource.getSymbolicName().equals(bundleContext.getBundle().getSymbolicName())) {
+                        // we are trying to update vch-update. to avoid, that the obr bundle tries to update itself
+                        // we have to handle this update in a special manner
+                        updateManagerResource = resource;
+                        updateUpdateManager = true;
+                    } else {
+                        if(!ignoreList.contains(resource.getSymbolicName())) {
+                            logger.log(LogService.LOG_INFO, "Adding " + resource.getSymbolicName() + " to update list");
+                            resolver.add(resource);
                         }
                     }
-                } catch (BundleException e1) {
-                    String msg = i18n.translate("error.uninstall_extension");
-                    logger.log(LogService.LOG_ERROR, msg, e1);
-                    addNotify(req, new NotifyMessage(TYPE.ERROR, msg, e1));
                 }
             }
         }
@@ -177,6 +188,12 @@ public class UpdateServlet extends BundleContextServlet {
             logger.log(LogService.LOG_ERROR, msg);
             addNotify(req, new NotifyMessage(TYPE.ERROR, msg));
         }
+        
+        if(updateUpdateManager) {
+            updateUpdateManager(req, resp, updateManagerResource);
+            return;
+        }
+        
         updateInstalledList();
         updateAvailableList();
     }
@@ -196,8 +213,9 @@ public class UpdateServlet extends BundleContextServlet {
         if (adm == null) {
             error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, i18n.translate("error.obr_not_available"));
         }
-        Resolver resolver = adm.resolver();
         
+        Resolver resolver = adm.resolver();
+        resolver.add(resource);
         if (resolver.resolve()) {
             resolver.deploy(true); // deploy and start (true means "start")
         } else {
