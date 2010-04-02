@@ -200,7 +200,6 @@ public class UpdateServlet extends BundleContextServlet {
         
         if (resolver.resolve()) {
             resolver.deploy(true); // deploy and start (true means "start")
-            addNotify(req, new NotifyMessage(TYPE.INFO, i18n.translate("info.please_restart")));
         } else {
             String msg = i18n.translate("error.load_list");
             logger.log(LogService.LOG_ERROR, msg);
@@ -379,7 +378,7 @@ public class UpdateServlet extends BundleContextServlet {
         // add repos from configuration
         for (String uri : getOBRs()) {
             try {
-                logger.log(LogService.LOG_INFO, "Adding bundle repository " + uri);
+                logger.log(LogService.LOG_DEBUG, "Adding bundle repository " + uri);
                 adm.addRepository(new URL(uri));
             } catch (Exception e) {
                 logger.log(LogService.LOG_WARNING, "Couldn't add repository", e);
@@ -438,12 +437,12 @@ public class UpdateServlet extends BundleContextServlet {
                 if (compare(r1.getVersion(), r2.getVersion()) <= 0) {
                     logger.log(LogService.LOG_DEBUG, "Bundle " + r1.getSymbolicName() + " with version "
                             + r1.getVersion() + " will be dropped");
-                    logger.log(LogService.LOG_INFO, "Adding " + res[i].getPresentationName() + " with version "
+                    logger.log(LogService.LOG_DEBUG, "Adding " + res[i].getPresentationName() + " with version "
                             + res[i].getVersion());
                     filterMap.put(res[i].getSymbolicName(), r2);
                 }
             } else {
-                logger.log(LogService.LOG_INFO, "Adding " + res[i].getPresentationName() + " with version "
+                logger.log(LogService.LOG_DEBUG, "Adding " + res[i].getPresentationName() + " with version "
                         + res[i].getVersion());
                 filterMap.put(res[i].getSymbolicName(), res[i]);
             }
