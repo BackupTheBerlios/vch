@@ -81,7 +81,7 @@ public abstract class BundleContextServlet extends HttpServlet {
         } else {
             Map<String, Object> tplParams = new HashMap<String, Object>();
             tplParams.put("TITLE", i18n.translate("I18N_ERROR"));
-            tplParams.put("MESSAGE", msg);
+            tplParams.put("MESSAGE", msg != null ? msg : "");
             
             if(t != null) {
                 tplParams.put("STACKTRACE", NotifyMessage.stackTraceToString(t));
