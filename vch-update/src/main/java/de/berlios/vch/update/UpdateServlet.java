@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -51,6 +52,11 @@ public class UpdateServlet extends BundleContextServlet {
     private List<BundleRepresentation> installedBundles = new Vector<BundleRepresentation>();
     
     private final String FELIX_OBR = "http://felix.apache.org/obr/releases.xml";
+    
+    private List<String> ignoreList = Arrays.asList(new String[] {
+            "de.berlios.vch.slf4j-logger",
+            "de.berlios.vch.bundle-loader"
+    });
     
     @Override
     protected void get(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -149,9 +155,10 @@ public class UpdateServlet extends BundleContextServlet {
                             // we have to handle this update in a special manner
                             updateUpdateManager(req, resp, resource);
                         } else {
-                            bundle.uninstall();
-                            logger.log(LogService.LOG_INFO, "Adding " + resource.getSymbolicName() + " to update list");
-                            resolver.add(resource);
+                            if(!ignoreList.contains(resource.getSymbolicName())) {
+                                logger.log(LogService.LOG_INFO, "Adding " + resource.getSymbolicName() + " to update list");
+                                resolver.add(resource);
+                            }
                         }
                     }
                 } catch (BundleException e1) {
@@ -473,7 +480,8 @@ public class UpdateServlet extends BundleContextServlet {
         installedBundles.clear();
         Bundle[] bundles = getBundleContext().getBundles();
         for (Bundle bundle : bundles) {
-            if ("true".equalsIgnoreCase((String) bundle.getHeaders().get("VCH-Bundle"))) {
+            if ("true".equalsIgnoreCase((String) bundle.getHeaders().get("VCH-Bundle"))
+                    && !ignoreList.contains(bundle.getSymbolicName())) {
                 BundleRepresentation br = new BundleRepresentation();
                 br.setBundleId(bundle.getBundleId());
                 br.setName(getBundleName(bundle));
@@ -494,7 +502,7 @@ public class UpdateServlet extends BundleContextServlet {
         availableBundles.addAll(downloadAvailableList());
         for (Iterator<Resource> iterator = availableBundles.iterator(); iterator.hasNext();) {
             Resource res = iterator.next();
-            if (isInstalled(res)) {
+            if (isInstalled(res) || ignoreList.contains(res.getSymbolicName())) {
                 iterator.remove();
             }
         }
