@@ -3,7 +3,7 @@
 	<formats>
 		<format>tar.gz</format>
 	</formats>
-	<includeBaseDirectory>false</includeBaseDirectory>
+	<includeBaseDirectory>true</includeBaseDirectory>
 	<fileSets>
 		<fileSet>
 			<directory>src/main/resources</directory>
@@ -72,6 +72,7 @@
 			</includes>
 			<binaries>
 				<outputDirectory>bundles</outputDirectory>
+                <outputFileNameMapping>${module.artifactId}.${module.extension}</outputFileNameMapping>
 				<unpack>false</unpack>
 				<includeDependencies>false</includeDependencies>
 			</binaries>
