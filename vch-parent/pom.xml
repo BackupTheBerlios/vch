@@ -195,7 +195,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>osdserver</artifactId>
-            	<version>1.0.2-SNAPSHOT</version>
+            	<version>1.0.3-SNAPSHOT</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
@@ -216,7 +216,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>download</artifactId>
-            	<version>1.0.2-SNAPSHOT</version>
+            	<version>1.0.3-SNAPSHOT</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
