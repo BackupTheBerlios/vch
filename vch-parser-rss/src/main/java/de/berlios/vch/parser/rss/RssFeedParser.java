@@ -97,7 +97,7 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
 
     @Override
     public String getTitle() {
-        return "RSS Feed Parser";
+        return "RSS Feeds";
     }
 
     @Override
