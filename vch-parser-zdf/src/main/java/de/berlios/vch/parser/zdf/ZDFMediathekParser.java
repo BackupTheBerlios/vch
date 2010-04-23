@@ -22,6 +22,8 @@ import org.htmlparser.util.ParserException;
 import org.htmlparser.util.Translate;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.berlios.vch.http.client.HttpUtils;
 import de.berlios.vch.parser.AsxParser;
@@ -42,6 +44,8 @@ public class ZDFMediathekParser implements IWebParser, BundleActivator {
     public static final String CHARSET = "UTF-8";
     
     private Map<String, String> aBisZ = new TreeMap<String, String>();
+    
+    private static transient Logger logger = LoggerFactory.getLogger(ZDFMediathekParser.class); // TODO switch to ipojo and LogService
     
     public ZDFMediathekParser() {
         aBisZ.put("0-9", "http://www.zdf.de/ZDFmediathek/hauptnavigation/sendung-a-bis-z/saz8?flash=off&teaserListIndex=1000");
@@ -180,11 +184,16 @@ public class ZDFMediathekParser implements IWebParser, BundleActivator {
                 VideoPage tmp = new VideoPage();
                 // parse the pubDate
                 String datum = ((LinkTag)links.elementAt(0)).getLinkText();
-                datum = datum.substring(datum.lastIndexOf(',')+1).trim();
-                Date pubDate = new SimpleDateFormat("dd.MM.yyyy").parse(datum);
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(pubDate);
-                tmp.setPublishDate(cal);
+                try {
+                    datum = datum.substring(datum.lastIndexOf(',')+1).trim();
+                    Date pubDate = new SimpleDateFormat("dd.MM.yyyy").parse(datum);
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(pubDate);
+                    tmp.setPublishDate(cal);
+                } catch (Throwable t) {
+                    logger.warn("Couldn't parse date {} for page {}", datum, title);
+                    tmp.setPublishDate(Calendar.getInstance());
+                }
                 subPage = tmp;
             }
             subPage.setParser(ID);
