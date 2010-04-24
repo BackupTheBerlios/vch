@@ -16,6 +16,7 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.osgi.framework.ServiceException;
 import org.osgi.service.log.LogService;
 
 import de.berlios.vch.http.client.cache.Cache;
@@ -148,7 +149,11 @@ public class ParserService implements IParserService {
         if(!path.isEmpty()) {
             Scanner scanner = new Scanner(path).useDelimiter("/");
             String parserId = scanner.next();
+            logger.log(LogService.LOG_DEBUG, "Looking for parser " + parserId);
             IWebParser parser = getParser(parserId);
+            if(parser == null) {
+                throw new ServiceException("Parser with ID [" + parserId + "] is not available");
+            }
             IWebPage parent = null;
             if(scanner.hasNext()) {
                 while(scanner.hasNext()) {
