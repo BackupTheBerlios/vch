@@ -220,7 +220,7 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
             http.registerServlet(ConfigServlet.PATH, servlet, null, null);
             
             // register web interface menu
-            IWebMenuEntry menu = new WebMenuEntry("Parser");
+            IWebMenuEntry menu = new WebMenuEntry(i18n.translate("I18N_BROWSE"));
             menu.setLinkUri("#");
             SortedSet<IWebMenuEntry> childs = new TreeSet<IWebMenuEntry>();
             IWebMenuEntry entry = new WebMenuEntry();
