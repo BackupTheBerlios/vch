@@ -78,5 +78,13 @@
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
+        <!--
+		<dependency>
+			<groupId>de.berlios.vch</groupId>
+			<artifactId>search</artifactId>
+			<type>bundle</type>
+			<scope>provided</scope>
+		</dependency>
+        -->
 	</dependencies>
 </project>

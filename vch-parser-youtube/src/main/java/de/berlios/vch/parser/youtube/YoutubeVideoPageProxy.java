@@ -1,10 +1,13 @@
 package de.berlios.vch.parser.youtube;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.prefs.Preferences;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.osgi.service.log.LogService;
 
@@ -41,22 +44,31 @@ public class YoutubeVideoPageProxy extends VideoPage {
             StringTokenizer st = new StringTokenizer(pageConent, "\n");
             while(st.hasMoreTokens()) {
                 String line = st.nextToken();
-                if (line.contains("SWF_ARGS")) {
-                    int firstColon = line.indexOf(':');
-                    String jsonObjectString = line.substring(firstColon+1).trim();
+                if (line.contains("var swfConfig")) {
+//                    logger.log(LogService.LOG_DEBUG, line);
+                    int openingBracket = line.indexOf('{');
+                    String jsonObjectString = line.substring(openingBracket).trim();
                     JSONObject jsonObject = new JSONObject(jsonObjectString);
 //                    for (Iterator iterator = jsonObject.sortedKeys(); iterator.hasNext();) {
 //                        String key = (String) iterator.next();
 //                        System.out.println(key + " = " + jsonObject.get(key));
 //                    }
-                    String video_id = jsonObject.getString("video_id");
-                    String t = jsonObject.getString("t");
+                    JSONObject args = (JSONObject) jsonObject.get("args");
+                    String video_id = args.getString("video_id");
+                    String t = args.getString("t");
+                    List<Integer> formatList = getFormatList(args);
+                    logger.log(LogService.LOG_DEBUG, "The following formats are available " + formatList);
                     int format = prefs.getInt("video.quality", 34);
+                    if(!formatList.contains(format)) {
+                        logger.log(LogService.LOG_INFO, "Video is not available in preferred format " + format
+                                + ". Using format " + formatList.get(0));
+                        format = formatList.get(0);
+                    }
                     medialink = new URI("http://www.youtube.com/get_video" + "?video_id=" + video_id + "&t=" + t + "&fmt=" + format);
                     
                     // parse duration
                     try {
-                        long duration = jsonObject.getLong("length_seconds");
+                        long duration = args.getLong("length_seconds");
                         setDuration(duration);
                     } catch (Exception e) {
                         logger.log(LogService.LOG_WARNING, "Couldn't parse video duration");
@@ -69,4 +81,18 @@ public class YoutubeVideoPageProxy extends VideoPage {
 
         return medialink; 
     }
+
+    private List<Integer> getFormatList(JSONObject args) throws JSONException {
+        List<Integer> result = new ArrayList<Integer>();
+        String formatList = args.getString("fmt_list");
+        String[] formats = formatList.split(",");
+        for (String format : formats) {
+            String[] tokens = format.split("/");
+            String formatId = tokens[0];
+            result.add(Integer.parseInt(formatId));
+        }
+        return result;
+    }
+    
+    
 }

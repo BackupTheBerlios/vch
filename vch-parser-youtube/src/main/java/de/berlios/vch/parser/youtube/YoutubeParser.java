@@ -2,6 +2,7 @@ package de.berlios.vch.parser.youtube;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -20,6 +21,7 @@ import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.htmlparser.util.ParserException;
 import org.htmlparser.util.Translate;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -31,6 +33,7 @@ import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.feed.synd.SyndImage;
 import com.sun.syndication.feed.synd.SyndImageImpl;
+import com.sun.syndication.io.FeedException;
 import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.XmlReader;
 
@@ -51,7 +54,7 @@ import de.berlios.vch.web.menu.WebMenuEntry;
 
 @Component
 @Provides
-public class YoutubeParser implements IWebParser, ResourceBundleProvider {
+public class YoutubeParser implements IWebParser, /*ISearchProvider,*/ ResourceBundleProvider {
 
     @Requires
     private ConfigService cs;
@@ -103,7 +106,7 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider {
 
     @Override
     public String getTitle() {
-        return "Youtube Parser";
+        return "Youtube";
     }
 
     @Override
@@ -112,53 +115,57 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider {
             return page;
         } else {
             logger.log(LogService.LOG_INFO, "Parsing youtube rss feed " + page.getUri());
-            SyndFeedInput input = new SyndFeedInput();
-
-            // RSS in das SyndFeed Object Parsen
-            XmlReader xmlReader = new XmlReader(page.getUri().toURL());
-            SyndFeed feed = input.build(xmlReader);
-            feed.setEncoding(xmlReader.getEncoding());
-            String title = feed.getTitle();
-            feed.setTitle("Youtube - " + title);
-            feed.setDescription(title);
-            SyndImage image = new SyndImageImpl();
-            image.setUrl("http://www.youtube.com/img/pic_youtubelogo_123x63.gif");
-            feed.setImage(image);
-            
-            OverviewPage feedPage = new OverviewPage();
-            feedPage.setParser(getId());
+            IOverviewPage feedPage = parseFeed(page.getUri());
             feedPage.setTitle(page.getTitle());
             feedPage.setUri(page.getUri());
-            for (Iterator<?> iterator = feed.getEntries().iterator(); iterator.hasNext();) {
-                SyndEntry entry = (SyndEntry) iterator.next();
-                VideoPage video = new YoutubeVideoPageProxy(logger, prefs);
-                video.setParser(getId());
-                video.setTitle(entry.getTitle());
-                
-                // parse description
-                String rawDescription = null;
-                if(entry.getDescription() != null) {
-                    rawDescription = entry.getDescription().getValue();
-                } else if(entry.getContents().size() > 0) {
-                    rawDescription = ((SyndContent)entry.getContents().get(0)).getValue(); 
-                }
-                if(rawDescription != null) {
-                    String desc = HtmlParserUtils.getText(rawDescription, "UTF-8", "div span");
-                    video.setDescription(Translate.decode(desc));
-                }
-                
-                // parse publish date
-                Calendar pubCal = Calendar.getInstance();
-                pubCal.setTime(entry.getPublishedDate());
-                video.setPublishDate(pubCal);
-                
-                // parse video uri
-                video.setUri(new URI(entry.getLink()));
-                
-                feedPage.getPages().add(video);
-            }
             return feedPage;
         }
+    }
+    
+    private IOverviewPage parseFeed(URI feedURI) throws IOException, ParserException, IllegalArgumentException, FeedException, URISyntaxException {
+        // RSS in das SyndFeed Object Parsen
+        XmlReader xmlReader = new XmlReader(feedURI.toURL());
+        SyndFeedInput input = new SyndFeedInput();
+        SyndFeed feed = input.build(xmlReader);
+        feed.setEncoding(xmlReader.getEncoding());
+        String title = feed.getTitle();
+        feed.setTitle("Youtube - " + title);
+        feed.setDescription(title);
+        SyndImage image = new SyndImageImpl();
+        image.setUrl("http://www.youtube.com/img/pic_youtubelogo_123x63.gif");
+        feed.setImage(image);
+        
+        OverviewPage feedPage = new OverviewPage();
+        feedPage.setParser(getId());
+        for (Iterator<?> iterator = feed.getEntries().iterator(); iterator.hasNext();) {
+            SyndEntry entry = (SyndEntry) iterator.next();
+            VideoPage video = new YoutubeVideoPageProxy(logger, prefs);
+            video.setParser(getId());
+            video.setTitle(entry.getTitle());
+            
+            // parse description
+            String rawDescription = null;
+            if(entry.getDescription() != null) {
+                rawDescription = entry.getDescription().getValue();
+            } else if(entry.getContents().size() > 0) {
+                rawDescription = ((SyndContent)entry.getContents().get(0)).getValue(); 
+            }
+            if(rawDescription != null) {
+                String desc = HtmlParserUtils.getText(rawDescription, "UTF-8", "div span");
+                video.setDescription(Translate.decode(desc));
+            }
+            
+            // parse publish date
+            Calendar pubCal = Calendar.getInstance();
+            pubCal.setTime(entry.getPublishedDate());
+            video.setPublishDate(pubCal);
+            
+            // parse video uri
+            video.setUri(new URI(entry.getLink()));
+            
+            feedPage.getPages().add(video);
+        }
+        return feedPage;
     }
     
     @Validate
@@ -178,7 +185,7 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider {
             http.registerServlet(ConfigServlet.PATH, servlet, null, null);
             
             // register web interface menu
-            IWebMenuEntry menu = new WebMenuEntry("Parser");
+            IWebMenuEntry menu = new WebMenuEntry(i18n.translate("I18N_BROWSE"));
             menu.setLinkUri("#");
             SortedSet<IWebMenuEntry> childs = new TreeSet<IWebMenuEntry>();
             IWebMenuEntry entry = new WebMenuEntry();
@@ -266,4 +273,15 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider {
         }
         return resourceBundle;
     }
+
+//    @Override
+//    public IOverviewPage search(String query) throws Exception {
+//        String _uri = "http://gdata.youtube.com/feeds/base/videos?client=ytapi-youtube-search&alt=rss&v=2&q="
+//            + URLEncoder.encode(query, "UTF-8");
+//        URI uri = new URI(_uri);
+//        IOverviewPage result = parseFeed(uri);
+//        result.setUri(uri);
+//        result.setTitle("Search results for \""+query+"\"");
+//        return result;
+//    }
 }

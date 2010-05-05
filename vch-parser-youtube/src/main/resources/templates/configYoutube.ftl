@@ -10,22 +10,22 @@
   <td>
     ${I18N_ADD_NEW_FEED}
   </td><td>
-    <input type="text" name="feed" style="min-width:600px; max-width:600px" />
+    <input type="text" name="feed" style="min-width:600px; max-width:600px" class="ui-widget ui-widget-content ui-corner-all" />
   </td><td>
-    <input type="submit" name="add_feed" value="${I18N_ADD}" />
+    <input type="submit" name="add_feed" value="${I18N_ADD}" class="ui-button" />
   </td>
 </tr>
 <tr>
   <td valign="top">
     ${I18N_INSTALLED_FEEDS}
   </td><td>
-    <select name="feeds" size="20" multiple="multiple" style="min-width:600px; max-width:600px">
+    <select name="feeds" size="20" multiple="multiple" style="min-width:600px; max-width:600px" class="ui-widget ui-widget-content ui-corner-all">
         <#list FEEDS as feed>
         <option value="${feed.id}">${feed.title} - ${feed.uri}</option> 
         </#list>
     </select>
   </td><td valign="top">
-    <input type="submit" name="remove_feeds" value="${I18N_DELETE_SELECTED}" />
+    <input type="submit" name="remove_feeds" value="${I18N_DELETE_SELECTED}" class="ui-button" />
   </td>
 </tr>
 <tr><td colspan="3"><hr style="width:100%" /></td></tr>
@@ -33,7 +33,7 @@
   <td>
     ${I18N_QUALITY}
   </td><td>
-    <select name="quality">
+    <select name="quality" class="ui-widget ui-widget-content ui-corner-all">
         <#if QUALITY == 34>
             <option value="34" selected="selected">Flash FLV SD (640x360)</option>
         <#else>
@@ -60,7 +60,7 @@
 <tr>
   <td>&nbsp;</td>
   <td>
-    <input type="submit" name="save_config" value="${I18N_SAVE}" />
+    <input type="submit" name="save_config" value="${I18N_SAVE}" class="ui-button" />
   </td>
 </tr>
 </table>
