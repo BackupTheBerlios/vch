@@ -16,7 +16,6 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
-import org.osgi.framework.ServiceException;
 import org.osgi.service.log.LogService;
 
 import de.berlios.vch.http.client.cache.Cache;
@@ -54,6 +53,7 @@ public class ParserService implements IParserService {
                 if(rootUri.equals(page.getUri().toString())) {
                     logger.log(LogService.LOG_DEBUG, "Getting root page for " + page.getParser());
                     page = getParser(page.getParser()).getRoot();
+                    cache.put(md5(rootUri), page);
                 } else {
                     logger.log(LogService.LOG_DEBUG, "Parsing page " + page.getTitle());
                     page = parsePage(page);
@@ -152,7 +152,7 @@ public class ParserService implements IParserService {
             logger.log(LogService.LOG_DEBUG, "Looking for parser " + parserId);
             IWebParser parser = getParser(parserId);
             if(parser == null) {
-                throw new ServiceException("Parser with ID [" + parserId + "] is not available");
+                throw new Exception("Parser with ID [" + parserId + "] is not available");
             }
             IWebPage parent = null;
             if(scanner.hasNext()) {
@@ -207,8 +207,19 @@ public class ParserService implements IParserService {
     }
     
     private void setVchUri(IWebPage page, URI parent) throws Exception {
-        URI vchUri = new URI(parent.toString() + "/" + md5(page.getUri().toString()));
+        String pageChecksum = md5(page.getUri().toString());
+        URI vchUri = null;
+        if(parent.toString().endsWith(pageChecksum)) {
+            // this page has been parsed before, we don't have to add
+            // the checksum to the uri
+            vchUri = new URI(parent.toString());
+        } else {
+            vchUri = new URI(parent.toString() + "/" + pageChecksum);
+        }
+        
         page.setVchUri(vchUri);
+        
+        // do this recursively for all childs
         if(page instanceof IOverviewPage) {
             IOverviewPage opage = (IOverviewPage) page;
             for (IWebPage subpage : opage.getPages()) {
