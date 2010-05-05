@@ -30,6 +30,7 @@ import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.parser.IParserService;
 import de.berlios.vch.parser.IWebParser;
+import de.berlios.vch.web.ResourceHttpContext;
 import de.berlios.vch.web.TemplateLoader;
 import de.berlios.vch.web.menu.IWebMenuEntry;
 import de.berlios.vch.web.menu.WebMenuEntry;
@@ -78,6 +79,10 @@ public class Activator implements ResourceBundleProvider {
         servlet.setTemplateLoader(templateLoader);
         servlet.setLogger(logger);
         http.registerServlet(BrowseServlet.PATH, servlet, null, null);
+        
+        // register resource context for static files
+        ResourceHttpContext resourceHttpContext = new ResourceHttpContext(ctx, logger);
+        http.registerResources(BrowseServlet.STATIC_PATH, "/htdocs", resourceHttpContext);
     }
     
     private void unregisterServlet() {

@@ -7,16 +7,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.osgi.framework.BundleContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.osgi.service.log.LogService;
 
 import de.berlios.vch.parser.IOverviewPage;
 import de.berlios.vch.parser.IParserService;
@@ -29,10 +28,10 @@ import de.berlios.vch.web.servlets.BundleContextServlet;
 
 public class BrowseServlet extends BundleContextServlet {
 
-    public static String PATH = "/parser";
+    public static final String PATH = "/parser";
     
-    private static transient Logger logger = LoggerFactory.getLogger(BrowseServlet.class);
-
+    public static final String STATIC_PATH = PATH + "/static";
+    
     private IParserService parserService;
     
     public BrowseServlet(IParserService parserService) {
@@ -53,27 +52,15 @@ public class BrowseServlet extends BundleContextServlet {
                 try {
                     URI vchpage = new URI(req.getParameter("uri"));
                     IWebPage parsedPage = parserService.parse(vchpage);
-                    
-//                    IWebPage page = createPage(req);
-//                    page.setParser(parser.getId());
-//                    page.setUri(new URI(req.getParameter("uri")));
-//                    IWebPage parsedPage = null;
-//                    String rootPage = "vchpage://localhost/" + parser.getId();
-//                    if(rootPage.equals(page.getUri().toString())) {
-//                        parsedPage = parser.getRoot();
-//                    } else {
-//                        parsedPage = parser.parse(page);
-//                    }
 
                     if (parsedPage != null) {
-                        String response = "{\"ResultSet\":{\"Result\":";
+                        String response = "";
                         if (parsedPage instanceof IOverviewPage) {
                             IOverviewPage overview = (IOverviewPage) parsedPage;
-                            response += toJSON(overview.getPages());
+                            response = toJSON(overview.getPages());
                         } else {
-                            response += toJSON(parsedPage);
+                            response = toJSON(parsedPage);
                         }
-                        response += "}}";
                         resp.setContentType("application/json; charset=utf-8");
                         resp.getWriter().println(response);
                     } else {
@@ -81,15 +68,15 @@ public class BrowseServlet extends BundleContextServlet {
                         resp.getWriter().print("Couldn't load page");
                     }
                 } catch (NoSupportedVideoFoundException e) {
-                    logger.warn("Couldn't load page: {}", e.getLocalizedMessage());
+                    logger.log(LogService.LOG_WARNING, "Couldn't load page: " + e.getLocalizedMessage());
                     String msg = i18n.translate("no_supported_video_format");
                     error(resp, HttpServletResponse.SC_PRECONDITION_FAILED, msg, true);
                 } catch (Exception e) {
-                    logger.error("Couldn't load page", e);
+                    logger.log(LogService.LOG_ERROR, "Couldn't load page", e);
                     error(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage(), true);
                 }
             } else {
-                logger.info("Using {} parser [{}]", parser.getTitle(), parserId);
+                logger.log(LogService.LOG_INFO, "Using "+parser.getTitle()+" parser ["+parserId+"]");
                 Map<String, Object> params = new HashMap<String, Object>();
                 params.put("TITLE", parser.getTitle());
                 params.put("SERVLET_URI", req.getScheme() + "://" + req.getServerName() + ":" + req.getServerPort()
@@ -98,13 +85,12 @@ public class BrowseServlet extends BundleContextServlet {
                 
                 // add css and javascript for the treeview and for log console
                 List<String> css = new ArrayList<String>();
-                css.add("http://yui.yahooapis.com/2.7.0/build/treeview/assets/skins/sam/treeview.css");
-                css.add("http://yui.yahooapis.com/2.7.0/build/logger/assets/skins/sam/logger.css");
+                css.add(BrowseServlet.STATIC_PATH + "/jstree/themes/themeroller/style.css");
+                css.add(BrowseServlet.STATIC_PATH + "/parser.css");
                 params.put("CSS_INCLUDES", css);
                 List<String> js = new ArrayList<String>();
-                js.add("http://yui.yahooapis.com/2.7.0/build/connection/connection-min.js");
-                js.add("http://yui.yahooapis.com/2.7.0/build/treeview/treeview-min.js");
-                js.add("http://yui.yahooapis.com/2.8.0r4/build/logger/logger-min.js");
+                js.add(BrowseServlet.STATIC_PATH + "/jstree/jquery.tree.js");
+                js.add(BrowseServlet.STATIC_PATH + "/jstree/plugins/jquery.tree.themeroller.js");
                 params.put("JS_INCLUDES", js);
                 
                 try {
@@ -115,87 +101,56 @@ public class BrowseServlet extends BundleContextServlet {
                     page.setVchUri(new URI("vchpage://localhost/"+parserId));
                     params.put("PAGE", page);
                 } catch (Exception e) {
-                    logger.error("Couldn't parse root page", e);
+                    logger.log(LogService.LOG_ERROR, "Couldn't parse root page", e);
                     error(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Couldn't parse root page", e);
                     return;
                 }
+                
                 String page = templateLoader.loadTemplate("parser.ftl", params);
-
                 resp.getWriter().print(page);
             }
         } else {
-            logger.error("Parser with id {} is not available", parserId);
+            logger.log(LogService.LOG_ERROR, "Parser with id "+parserId+" is not available");
             error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Parser with id " + parserId + " is not available", 
                     "XMLHttpRequest".equals(req.getHeader("X-Requested-With")));
         }
     }
-
-//    @SuppressWarnings("unchecked")
-//    private IWebPage createPage(HttpServletRequest req) throws URISyntaxException {
-//        String type = req.getParameter("node.data.type");
-//        IWebPage page;
-//        if (IOverviewPage.class.getSimpleName().equals(type)) {
-//            page = new OverviewPage();
-//        } else if (IVideoPage.class.getSimpleName().equals(type)) {
-//            page = new VideoPage();
-//        } else {
-//            page = new WebPage();
-//        }
-//        Enumeration paramNames = req.getParameterNames();
-//        while(paramNames.hasMoreElements()) {
-//            String key = (String) paramNames.nextElement(); 
-//            if( key.startsWith("node.data.") ) {
-//                page.getUserData().put(key.substring(10), req.getParameter(key));
-//                if("video".equals(key.substring(10))) {
-//                    ((IVideoPage)page).setVideoUri(new URI(req.getParameter(key)));
-//                }
-//            }
-//        }
-//        page.setTitle(req.getParameter("title"));
-//        return page;
-//    }
 
     @Override
     protected void post(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         get(req, resp);
     }
 
-    private String toJSON(IWebPage page) {
-        Map<String, Object> object = new HashMap<String, Object>();
-        // copy the values, which were transmitted from the browser
-        for (Entry<String, Object> entry : page.getUserData().entrySet()) {
-            object.put(entry.getKey(), entry.getValue().toString());
-        }
+    private String toJSON(IWebPage page) throws JSONException {
+        // create the data object
+        Map<String, Object> data = new HashMap<String, Object>();
+        data.put("title", page.getTitle());
+        
+        // create the attributes object
+        Map<String, Object> attributes = new HashMap<String, Object>();
+        attributes.put("id", page.getVchUri());
         
         // set the title
-        object.put("label", page.getTitle());
-        if (page.getUri() != null) {
-            object.put("href", page.getVchUri().toString());
+        Map<String, Object> object = new HashMap<String, Object>();
+        object.put("data", data);
+        object.put("attributes", attributes);
+        if(page instanceof IOverviewPage) {
+            object.put("state", "closed");
         }
         
         if (page instanceof IVideoPage) {
             IVideoPage vpage = (IVideoPage) page;
-            if(vpage.getVideoUri() != null) object.put("video", vpage.getVideoUri().toString());
-            if(object.get("desc") == null && vpage.getDescription() != null) object.put("desc", vpage.getDescription());
-            if(object.get("thumb") == null && vpage.getThumbnail() != null) object.put("thumb", vpage.getThumbnail().toString());
-            if(object.get("pubDate") == null && vpage.getPublishDate() != null) object.put("pubDate", vpage.getPublishDate().getTimeInMillis());
-            if(object.get("duration") == null && vpage.getDuration() > 0) object.put("duration", vpage.getDuration());
-            object.put("isLeaf", true);
-        }
-        
-        if (object.get("type") == null) {
-            if(page instanceof IVideoPage) {
-                object.put("type", IVideoPage.class.getSimpleName());
-            } else if(page instanceof IOverviewPage) {
-                object.put("type", IOverviewPage.class.getSimpleName());
-            } else {
-                object.put("type", IWebPage.class.getSimpleName());
-            }
+            if(vpage.getVideoUri() != null) attributes.put("vchvideo", vpage.getVideoUri().toString());
+            if(vpage.getDescription() != null) attributes.put("vchdesc", vpage.getDescription());
+            if(vpage.getThumbnail() != null) attributes.put("vchthumb", vpage.getThumbnail().toString());
+            if(vpage.getPublishDate() != null) attributes.put("vchpubDate", vpage.getPublishDate().getTimeInMillis());
+            if(vpage.getDuration() > 0) attributes.put("vchduration", vpage.getDuration());
+            attributes.put("vchisLeaf", true);
         }
         return new JSONObject(object).toString();
     }
 
-    private String toJSON(List<IWebPage> pages) {
+    private String toJSON(List<IWebPage> pages) throws JSONException {
         if (!pages.isEmpty()) {
             String json = "[";
             for (Iterator<IWebPage> iterator = pages.iterator(); iterator.hasNext();) {

@@ -4,188 +4,149 @@
 <h1>${TITLE}</h1>
 
 <#if PAGE??>
-    <div id="tree" style="max-height:500px; max-width:800px; overflow:auto; float:left; margin-right:10px"></div>
+    <div id="tree"></div>
 
     <script type="text/javascript">
-        function error(msg) {
-            $.notify({text:msg, title:'${I18N_ERROR}', icon:'/static/notify/dialog-error.png'});
-            //$('div#errors').html(msg);
-            //$('div#errors').show();
-            //$('div#errors').fadeOut(5000);
-        }
-    
+    <!--
         function showDetails(node) {
-            var callback = {
-                success: function(oResponse) {
-                    var oResults = eval("(" + oResponse.responseText + ")");
-                    if((oResults.ResultSet.Result)) {
-                        var node = oResults.ResultSet.Result;
-                        var html = '<p><a href=\"'+node.video+'\">'+node.label+'</a>';
-                        if(node.pubDate) {
-                            var date = new Date();
-                            date.setTime(node.pubDate);
-                            html += '<br/>' + date.toLocaleString();
-                         }
-                        if(node.thumb) html += '<br/><img src="' + node.thumb + '" alt="preview"/>'; 
-                        if(node.desc) html += '<br/>' + node.desc;
-                        $('#content').html(html + '</p>');
+            $.ajax({
+                url: '${SERVLET_URI}',
+                type: 'GET',
+                data: {
+                    id : '${PARSER}',
+                    uri : $(node).attr('id')
+                },
+                dataType: 'json',
+                timeout: 30000,
+                error: function(xhr, text, error) {
+                    $('#content').html('');
+                    $.pnotify( {
+                        pnotify_title : '${I18N_ERROR}',
+                        pnotify_text : '<strong>' + xhr.status + ' - ' + xhr.statusText + '</strong><br/>' + xhr.responseText,
+                        pnotify_type : 'error',
+                        pnotify_hide: false
+                    });
+                },
+                success: function(response){
+                    var html = '<h1>' + response.data.title + '</h1>';
+                    
+                    // add a preview, if available
+                    if(response.attributes.vchthumb) {
+                        html += '<p><img src="'+response.attributes.vchthumb+'" alt="Preview" class="thumb ui-widget-content ui-corner-all"/></p>';
                     }
-                },
-                
-                failure: function(oResponse) {
-                    error(oResponse.responseText);
-                },
-                
-                argument: {
-                    "node": node
-                },
-                
-                timeout: 120000
-            };
-
-            var sUrl = "${SERVLET_URI}/?id=${PARSER}&uri=" + encodeURIComponent(node.href) + "&title=" + encodeURIComponent(node.label);
-            for(var item in node.data) {
-                var value = node.data[item];
-                sUrl += "&node.data." + item + "=" + encodeURIComponent(value);
-            }
-            YAHOO.util.Connect.asyncRequest('GET', sUrl, callback);
-            YAHOO.log("URI " + sUrl);
-        }
-    
-        var tree, currentIconMode;
-    
-        function changeIconMode() {
-            var newVal = parseInt(this.value);
-            if (newVal != currentIconMode) {
-                currentIconMode = newVal;
-            }
-            buildTree();
-        }
-            
-    
-        function buildTree() {
-           //create a new tree:
-           tree = new YAHOO.widget.TreeView("tree");
-           
-           //turn dynamic loading on for entire tree:
-           tree.setDynamicLoad(loadNodeData, currentIconMode);
-           
-           //get root node for tree:
-           var root = tree.getRoot();
-           
-           //add child nodes for tree;
-           var pages = [{id:"${PAGE.parser}", label:"${PAGE.title}", href:"${PAGE.uri}", type:"IOverviewPage"}];
-           
-           for (var i=0, j=pages.length; i<j; i++) {
-                var tempNode = new YAHOO.widget.TextNode(pages[i], root, false);
-           }
-        
-           //render tree with these toplevel nodes; all descendants of these nodes
-           //will be generated as needed by the dynamic loader.
-           tree.draw();
-           
-           tree.subscribe("labelClick", function(node) {
-               if(node.isLeaf) {
-                   showDetails(node);
-               }
-           });
-        }
-        
-        function loadNodeData(node, fnLoadComplete)  {
-            //We'll create child nodes based on what we get back when we
-            //use Connection Manager to pass the text label of the 
-            //expanding node to the Yahoo!
-            //Search "related suggestions" API.  Here, we're at the 
-            //first part of the request -- we'll make the request to the
-            //server.  In our Connection Manager success handler, we'll build our new children
-            //and then return fnLoadComplete back to the tree.
-            
-            //prepare URL for XHR request:
-            var sUrl = "${SERVLET_URI}/?id=${PARSER}&uri=" + encodeURIComponent(node.href) + "&title=" + node.label;
-            for(var item in node.data) {
-                var value = node.data[item];
-                sUrl += "&node.data." + item + "=" + encodeURIComponent(value);
-            }
-            
-            //prepare our callback object
-            var callback = {
-            
-                //if our XHR call is successful, we want to make use
-                //of the returned data and create child nodes.
-                success: function(oResponse) {
-                    YAHOO.log("XHR transaction was successful.", "info");
-                    var oResults = eval("(" + oResponse.responseText + ")");
-                    if((oResults.ResultSet.Result) && (oResults.ResultSet.Result.length)) {
-                        //Result is an array if more than one result, string otherwise
-                        if(YAHOO.lang.isArray(oResults.ResultSet.Result)) {
-                            for (var i=0, j=oResults.ResultSet.Result.length; i<j; i++) {
-                                var childNode = oResults.ResultSet.Result[i];
-                                var tempNode = new YAHOO.widget.TextNode(childNode, node, false);
-                                if(childNode.isLeaf) {
-                                    tempNode.isLeaf = true;
-                                }
-                            }
+                    
+                    // add the pubdate, if available
+                    if(response.attributes.vchpubDate) {
+                        var date = new Date();
+                        date.setTime(response.attributes.vchpubDate);
+                        html += '<p><strong>' + date.toLocaleString();
+                    }
+                    
+                    // add the duration, if available
+                    if(response.attributes.vchduration) {
+                        html += ' - ';
+                        var secs = parseInt(response.attributes.vchduration);
+                        if(secs < 60) {
+                            html += secs + ' ${I18N_SECONDS}';                        
                         } else {
-                            //there is only one result
-                            var childNode = oResults.ResultSet.Result;
-                            var tempNode = new YAHOO.widget.TextNode(childNode, node, false)
-                            tempNode.isLeaf = true;
+                            var minutes = Math.floor(secs / 60);
+                            if(minutes < 10) minutes = "0"+minutes;
+                            var secs = secs % 60;
+                            if(secs < 10) secs = "0"+secs;
+                            html += minutes+':'+secs + ' ${I18N_MINUTES}'; 
                         }
                     }
-                                        
-                    //When we're done creating child nodes, we execute the node's
-                    //loadComplete callback method which comes in via the argument
-                    //in the response object (we could also access it at node.loadComplete,
-                    //if necessary):
-                    oResponse.argument.fnLoadComplete();
-                },
-                
-                //if our XHR call is not successful, we want to
-                //fire the TreeView callback and let the Tree
-                //proceed with its business.
-                failure: function(oResponse) {
-                    error(oResponse.responseText);
-                    oResponse.argument.fnLoadComplete();
-                },
-                
-                //our handlers for the XHR response will need the same
-                //argument information we got to loadNodeData, so
-                //we'll pass those along:
-                argument: {
-                    "node": node,
-                    "fnLoadComplete": fnLoadComplete
-                },
-                
-                //timeout -- if more than x seconds go by, we'll abort
-                //the transaction and assume there are no children:
-                timeout: 120000
-            };
-            
-            //With our callback object ready, it's now time to 
-            //make our XHR call using Connection Manager's
-            //asyncRequest method:
-            YAHOO.util.Connect.asyncRequest('GET', sUrl, callback);
+                    
+                    html += '</strong></p>';
+                    
+                    // add the description, if available
+                    if(response.attributes.vchdesc) {
+                        html += '<p>' + response.attributes.vchdesc + '</p>';
+                    } 
+                    
+                    // add the video link, if available
+                    if(response.attributes.vchvideo) {
+                        html += '<a id="watch" href="'+response.attributes.vchvideo+'">${I18N_WATCH}</a>';
+                    }
+                    
+                    // display the details
+                    $('#content').html(html);
+                    $('#watch').button({
+                        icons: { primary: 'ui-icon-play'},
+                    });
+                }
+            });
         }
         
-        YAHOO.util.Event.on(["mode0", "mode1"], "click", changeIconMode);
-        var el = document.getElementById("mode1");
-        if (el && el.checked) {
-            currentIconMode = parseInt(el.value);
-        } else {
-            currentIconMode = 0;
-        }
-
-        buildTree();
-
+        
+        $(document).ready(function() {
+            var stat =  [{ 
+                attributes : { 
+                    id : "${PAGE.vchUri}" }, 
+                data: { 
+                    title : "${TITLE}", 
+                    icon : "" }, 
+                state : "closed"
+            }];
+            
+            $(function () { 
+                $("#tree").tree({
+                    data : { 
+                        type : "json",
+                        async : true,
+                        opts : {
+                            async : true,
+                            method : "POST",
+                            url : "${SERVLET_URI}"
+                        }
+                    },
+                    callback : { 
+                        // Make sure static is not used once the tree has loaded for the first time
+                        onload : function (t) { 
+                            t.settings.data.opts.static = false; 
+                        },
+                        // Take care of refresh calls - n will be false only when the whole tree is refreshed or loaded of the first time
+                        beforedata : function (n, t) { 
+                            if(n == false) { t.settings.data.opts.static = stat; }
+                            return {
+                                id : "${PARSER}", 
+                                uri : $(n).attr("id")
+                            };
+                        },
+                        onselect : function(n, t) { 
+                            if($(n).attr("vchisleaf")) {
+                                $('#content').html('<h1>${I18N_LOADING}</h1><img src="/static/icons/loadingAnimation.gif" alt=""/>');
+                                showDetails(n);
+                            }
+                        },
+                        error : function(text, tree) {
+                            if(text.indexOf("DESELECT") >= 0) return;
+                            
+                            $.pnotify( {
+                                pnotify_title : '${I18N_ERROR}',
+                                pnotify_text : text,
+                                pnotify_type : 'error',
+                                pnotify_hide: false
+                            });
+                        }
+                    },
+                    ui : {
+                        theme_name : "themeroller",
+                        dots : false,
+                        animation : 500
+                    },
+                    lang : {
+                        loading: '${I18N_LOADING}'
+                    },
+                    plugins : {
+                        themeroller : { }
+                    }
+                });
+            });
+        });
+    // -->
     </script>
     
     <div id="content"></div>
-    
-    <script type="text/javascript">
-        var myContainer = document.body.appendChild(document.createElement("div"));
-        $(myContainer).css('float', 'right');
-        var myLogReader = new YAHOO.widget.LogReader(myContainer);
-    </script>
-    
 </#if>
 <#include "footer.ftl">
