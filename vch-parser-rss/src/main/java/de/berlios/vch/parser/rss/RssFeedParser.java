@@ -20,6 +20,7 @@ import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.jdom.Element;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.http.HttpService;
@@ -131,6 +132,19 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
                 } else {
                     video.setUri(video.getVideoUri());
                 }
+                
+                // look, if we have a duration in the foreign markup
+                @SuppressWarnings("unchecked")
+                List<Element> fm = (List<Element>)entry.getForeignMarkup();
+                for (Element element : fm) {
+                    if("duration".equals(element.getName())) {
+                        try {
+                            video.setDuration(Long.parseLong(element.getText()));
+                        } catch(Exception e) {}
+                    }
+                }
+                
+                // add the entry to the overview page
                 feedPage.getPages().add(video);
             }
             return feedPage;
