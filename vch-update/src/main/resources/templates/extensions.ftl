@@ -4,7 +4,7 @@
 
 <h1>${I18N_EXTENSIONS}</h1>
 <div id="container">
-    <div id="tabs" style="float:left; min-width:455px">
+    <div id="tabs" class="ui-tabs ui-corner-all" style="float:left; min-width:455px">
         <ul>
             <li><a href="${ACTION}?tab=installed"><span>${I18N_BUNDLES_INSTALLED}</span></a></li>
             <li><a href="${ACTION}?tab=available"><span>${I18N_BUNDLES_AVAILABLE}</span></a></li>
@@ -18,7 +18,7 @@
             <tr><td>${I18N_AUTHOR}</td><td id="bundle_author"></td></tr>
             <tr><td>${I18N_STATE}</td><td id="bundle_state"></td></tr>
             <tr><td colspan="2">${I18N_DESCRIPTION}:<br/>
-                <textarea readonly="readonly" id="bundle_description" cols="40" rows="11"></textarea>
+                <textarea readonly="readonly" id="bundle_description" cols="40" rows="11" class="ui-widget ui-widget-content ui-corner-all"></textarea>
                 </td>
             </tr>
         </table>
@@ -30,14 +30,19 @@
     $(document).ready(function() {
         // enable tabs
         $('#tabs').tabs({
-            spinner: '<img src="${STATIC_PATH}/indicator.gif" alt=""/> ${I18N_LOADING_DATA}', 
+            spinner: '<img border="0" src="${STATIC_PATH}/indicator.gif" alt=""/> ${I18N_LOADING_DATA}', 
             ajaxOptions: {
                 error: function(request, textStatus, exception) {
-                    $.notify({text:request.responseText, title:request.statusText, icon:'/static/notify/dialog-error.png'});
+                    $.pnotify( {
+                        pnotify_title : request.statusText,
+                        pnotify_text : request.responseText,
+                        pnotify_type : 'error'
+                    });
                     $('#tabs').tabs('abort');
                 } 
             } 
         }); 
+        $('#tabs').removeClass('ui-widget');
         
         // tweak the look
         $('#tabs').removeClass('ui-widget-content');

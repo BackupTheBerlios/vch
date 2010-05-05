@@ -302,14 +302,8 @@ public class UpdateServlet extends BundleContextServlet {
         tplParams.put("STATIC_PATH", STATIC_PATH);
         tplParams.put("TITLE", i18n.translate("I18N_EXTENSIONS"));
         
-        // add additional js and css
-        List<String> js = new ArrayList<String>();
-        js.add("http://jquery-ui.googlecode.com/svn/tags/latest/ui/jquery.ui.core.js");
-        js.add("http://jquery-ui.googlecode.com/svn/tags/latest/ui/jquery.ui.widget.js");
-        js.add("http://jquery-ui.googlecode.com/svn/tags/latest/ui/jquery.ui.tabs.js");
-        tplParams.put("JS_INCLUDES", js);
+        // add additional css
         List<String> css = new ArrayList<String>();
-        css.add("http://jquery-ui.googlecode.com/svn/tags/latest/themes/base/jquery.ui.all.css");
         css.add(STATIC_PATH + "/extensions.css");
         tplParams.put("CSS_INCLUDES", css);
         

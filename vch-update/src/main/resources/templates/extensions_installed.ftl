@@ -28,15 +28,21 @@
     </select>
 </div>
 <br/>
-<input id="button_update" type="submit" name="submit_update" value="${I18N_UPDATE}"/>
-<input id="button_start" type="submit" name="submit_start" value="${I18N_START}"/>
-<input id="button_stop" type="submit" name="submit_stop" value="${I18N_STOP}"/>
-<input id="button_uninstall" type="submit" name="submit_uninstall" value="${I18N_UNINSTALL}"/>
+<input id="button_update" class="ui-button" type="submit" name="submit_update" value="${I18N_UPDATE}"/>
+<input id="button_start" class="ui-button" type="submit" name="submit_start" value="${I18N_START}"/>
+<input id="button_stop" class="ui-button" type="submit" name="submit_stop" value="${I18N_STOP}"/>
+<input id="button_uninstall" class="ui-button" type="submit" name="submit_uninstall" value="${I18N_UNINSTALL}"/>
 </form>
 
 <script type="text/javascript">
     $(document).ready(function() {
-        $.notify({text:'${I18N_INFO}', title:'${I18N_UPDATES_SEARCHING}', icon:'/static/notify/dialog-information.png'});
+        var notice = $.pnotify({
+            pnotify_title: '${I18N_INFO}',
+            pnotify_text : '${I18N_UPDATES_SEARCHING}',
+            pnotify_notice_icon: 'icon ui-icon-loading',
+            pnotify_hide: false,
+            pnotify_closer: false}
+        );
         $.ajax({
             type: "GET",
             url: "${ACTION}",
@@ -53,22 +59,52 @@
                         var option = options[j];
                         if($(option).attr('vch:bundle-symbolicname') == name) {
                             if($(option).attr('vch:bundle-version') != version) {
-                                $(option).addClass('update_available');
-                                $(option).text($(option).text() + ' -- ${I18N_UPDATES_AVAILABLE} - ${I18N_VERSION}:' + version);
+                                $(option).addClass('ui-state-highlight');
+                                $(option).text($(option).text() + ' - ${I18N_UPDATES_AVAILABLE} - ${I18N_VERSION}:' + version);
                                 updates_available = true;
                             } 
                         }
                     }
-                    
                 }
                 if(updates_available) {
-                    $.notify({text:'${I18N_UPDATES_AVAILABLE_TEXT}', title:'${I18N_UPDATES_AVAILABLE}', icon:'/static/notify/dialog-information.png'});
+                    var options = {
+                        pnotify_title : '${I18N_UPDATES_AVAILABLE}',
+                        pnotify_text : '${I18N_UPDATES_AVAILABLE_TEXT}',
+                        pnotify_hide : true,
+                        pnotify_closer : true,
+                        pnotify_notice_icon : 'ui-icon ui-icon-info'
+                    };
+                    notice.pnotify(options);
+                    notice.effect('bounce');
+                } else {
+                    var options = {
+                        pnotify_title : '${I18N_INFO}',
+                        pnotify_text : '${I18N_NO_UPDATES_AVAILABLE}',
+                        pnotify_hide : true,
+                        pnotify_closer : true,
+                        pnotify_notice_icon : 'ui-icon ui-icon-info'
+                    };
+                    notice.pnotify(options);
+                    notice.effect('bounce');
                 }
             },
             error: function(request, textStatus, exception){
-                console.log(request);
-                $.notify({text:request.responseText, title:request.statusText, icon:'/static/notify/dialog-error.png'});
+                var options = {
+                    pnotify_title : request.statusText,
+                    pnotify_text : request.responseText,
+                    pnotify_type : 'error',
+                    pnotify_closer : true,
+                    pnotify_hide: false
+                };
+                notice.pnotify(options);
+                notice.effect('bounce');
             }
         });
+    });
+    
+    // enable button hover and click effect
+    $(function() {
+        $('.ui-button').button();
+        $('.ui-button').removeClass('ui-widget');
     });
 </script>

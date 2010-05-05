@@ -9,5 +9,12 @@
     </select>
 </div>
 <br/>
-<input id="button_install" type="submit" name="submit_install" value="${I18N_INSTALL}"/>
+<input id="button_install" class="ui-button" type="submit" name="submit_install" value="${I18N_INSTALL}"/>
 </form>
+<script type="text/javascript">
+    // enable button hover and click effect
+    $(function() {
+        $('.ui-button').button();
+        $('.ui-button').removeClass('ui-widget');
+    });
+</script>
