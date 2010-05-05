@@ -107,7 +107,28 @@ public class Osd implements IEventDispatcher {
     }
     
     public void createOsdItem(Menu menu, OsdItem item) throws IOException, OsdException {
-        // create osd item
+        if(item instanceof StringEditOsdItem) {
+            createStringEditItem(menu, item);
+        } else {
+            createStaticOsdItem(menu, item);
+        }
+        
+    }
+    
+    private void createStringEditItem(Menu menu, OsdItem item) throws IOException, OsdException {
+        String createEditStringItem = item.getId() + " = NEW EDITSTRITEM '" + item.getTitle() + "' 'bla'";
+        conn.send(createEditStringItem);
+        
+        String addToMenu = menu.getId() + ".add " + item.getId();
+        conn.send(addToMenu);
+
+        // register events for the item
+        registerEvents(item, null);
+        
+        context.put(item.getId(), item);
+    }
+
+    private void createStaticOsdItem(Menu menu, OsdItem item) throws IOException, OsdException {
         StringBuilder sb = new StringBuilder(item.getId());
         sb.append(" = ").append(menu.getId()).append(".AddNew OsdItem");
         if(!item.isSelectable()) {
@@ -299,5 +320,15 @@ public class Osd implements IEventDispatcher {
         createMenu(menu);
         appendTo(menuStack.peek(), menu);
         show(menu);
+    }
+
+    public String getStringItemValue(StringEditOsdItem item) throws IOException, OsdException {
+        List<Response> list = (List<Response>) conn.send(item.getId() + ".getvalue");
+        for (Response response : list) {
+            if(response.getCode() == 600) {
+                return response.getMessage();
+            }
+        }
+        return null;
     }
 }
