@@ -1,0 +1,46 @@
+table {
+    border-spacing: 0px;
+}
+
+img {
+    border: none;
+    vertical-align: middle;
+    margin: 0;
+}
+
+td {
+    line-height: 2em;
+    padding: 3px;
+    font-size: 80%;	
+}
+
+select {
+    min-height: 24px;
+    padding-left: 3px;
+}
+
+input[type=text] {
+    padding: 2px 3px;	
+}
+
+.nojs {
+    font-size: 200%;
+    color: red;
+}
+
+.odd {
+    background-color: #f0f0f0;
+}
+
+.ui-icon-loading {
+    background-image: url("/static/icons/indicator.gif");
+}
+
+.icon , .ui-icon {
+    margin-top: 0.3em;
+}
+
+.icon {
+    width: 16px;
+    height: 16px;
+}

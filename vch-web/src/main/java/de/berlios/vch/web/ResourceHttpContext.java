@@ -26,6 +26,10 @@ public class ResourceHttpContext implements HttpContext {
         if(name != null) {
             if(name.endsWith(".jpg")) {
                 return "image/jpg";
+            } else if(name.endsWith(".js")) {
+                return "application/javascript";
+            } else if(name.endsWith(".css")) {
+                return "text/css";
             }
         }
         return null;

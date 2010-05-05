@@ -1,17 +1,33 @@
 <#if NOTIFY_MESSAGES??>
-    <#assign delay="10000">
-    <#assign errorDelay="15000">
     <script type="text/javascript">
+    $.pnotify.defaults.pnotify_width = "400px";
     <#list NOTIFY_MESSAGES as msg>
         <#if msg.type == "INFO">
-            $.notify({text:'${msg.message}', title:'${I18N_INFO}', icon:'/static/notify/dialog-information.png', delay:${delay}});
+            $.pnotify( {
+                pnotify_title : '${I18N_INFO}',
+                pnotify_text : '${msg.message}'
+            });
         <#elseif msg.type == "WARNING">
-            $.notify({text:'${msg.message}', title:'${I18N_WARNING}', icon:'/static/notify/dialog-warning.png', delay:${delay}});
+            $.pnotify( {
+                pnotify_title : '${I18N_WARNING}',
+                pnotify_text : '${msg.message}',
+                pnotify_notice_icon : 'ui-icon io-icon-alert'
+            });
         <#elseif msg.type == "ERROR">
             <#if msg.exception?? >
-                $.notify({text:'${msg.message}<br/>${msg.stackTrace}', title:'${I18N_ERROR}', icon:'/static/notify/dialog-error.png', delay:${errorDelay}});
+                $.pnotify( {
+                    pnotify_title : '${I18N_ERROR}',
+                    pnotify_text : '${msg.message}<br/>${msg.stackTrace}',
+                    pnotify_type : 'error',
+                    pnotify_hide: false
+                });
             <#else>
-                $.notify({text:'${msg.message}', title:'${I18N_ERROR}', icon:'/static/notify/dialog-error.png', delay:${errorDelay}});
+                $.pnotify( {
+                    pnotify_title : '${I18N_ERROR}',
+                    pnotify_text : '${msg.message}',
+                    pnotify_type : 'error',
+                    pnotify_hide: false
+                });
             </#if>            
         </#if>
     </#list>
