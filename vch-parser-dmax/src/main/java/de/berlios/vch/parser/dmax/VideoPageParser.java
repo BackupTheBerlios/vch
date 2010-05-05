@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import de.berlios.vch.http.client.HttpUtils;
 import de.berlios.vch.parser.HtmlParserUtils;
 import de.berlios.vch.parser.IVideoPage;
-import de.berlios.vch.parser.VideoPage;
 import flex.messaging.io.amf.ASObject;
 import flex.messaging.io.amf.client.AMFConnection;
 
@@ -29,7 +28,7 @@ public class VideoPageParser {
 
     private static transient Logger logger = LoggerFactory.getLogger(VideoPageParser.class);
     
-    public IVideoPage parse(VideoPage page) throws Exception {
+    public IVideoPage parse(IVideoPage page) throws Exception {
         String pageContent = HttpUtils.get(page.getUri().toString(), null, DmaxParser.CHARSET);
 
         // parse the video uri

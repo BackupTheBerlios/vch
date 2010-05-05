@@ -28,8 +28,6 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import de.berlios.vch.config.ConfigService;
 import de.berlios.vch.http.client.HttpUtils;
@@ -55,8 +53,6 @@ import de.berlios.vch.web.menu.WebMenuEntry;
 @Provides
 public class DmaxParser implements IWebParser, ResourceBundleProvider {
 
-    private static transient Logger logger = LoggerFactory.getLogger(DmaxParser.class);
-
     final static String CHARSET = "utf-8";
 
     final static String BASE_URI = "http://www.dmax.de";
@@ -74,7 +70,7 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
     private Messages i18n;
     
     @Requires
-    private LogService log;
+    private LogService logger;
     
     @Requires 
     private ConfigService config;
@@ -136,7 +132,7 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
                             }
                         }
                     } catch (Exception e) {
-                        logger.error("Couldn't parse overview page", e);
+                        logger.log(LogService.LOG_ERROR, "Couldn't parse overview page", e);
                     }
                 }
             };
@@ -160,7 +156,7 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
             return programParser.parse(page);
         } else if(EpisodePage.class.getSimpleName().equals(type)) {
             int episodeChunkCount = Integer.parseInt((String)page.getUserData().get("episodeChunkCount"));
-            logger.info("Selected episode has {} videos", episodeChunkCount);
+            logger.log(LogService.LOG_INFO, "Selected episode has "+episodeChunkCount+" videos");
             String videoPageUri = page.getUri().toString();
             String videoPageUriTemplate = videoPageUri.substring(0, videoPageUri.lastIndexOf('-')+1);
             IOverviewPage opage = (IOverviewPage) page;
@@ -211,7 +207,7 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
     
     private void registerServlet() {
         ConfigServlet servlet = new ConfigServlet(prefs);
-        servlet.setLogger(log);
+        servlet.setLogger(logger);
         servlet.setBundleContext(ctx);
         servlet.setMessages(i18n);
         servlet.setTemplateLoader(templateLoader);
@@ -241,7 +237,7 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
             entry.setChilds(childs);
             menuReg = ctx.registerService(IWebMenuEntry.class.getName(), menu, null);
         } catch (Exception e) {
-            log.log(LogService.LOG_ERROR, "Couldn't register "+getTitle()+" config servlet", e);
+            logger.log(LogService.LOG_ERROR, "Couldn't register "+getTitle()+" config servlet", e);
         }
     }
 
@@ -254,10 +250,10 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
     public ResourceBundle getResourceBundle() {
         if(resourceBundle == null) {
             try {
-                log.log(LogService.LOG_DEBUG, "Loading resource bundle for " + getClass().getSimpleName());
+                logger.log(LogService.LOG_DEBUG, "Loading resource bundle for " + getClass().getSimpleName());
                 resourceBundle = ResourceBundleLoader.load(ctx, Locale.getDefault());
             } catch (IOException e) {
-                log.log(LogService.LOG_ERROR, "Couldn't load resource bundle", e);
+                logger.log(LogService.LOG_ERROR, "Couldn't load resource bundle", e);
             }
         }
         return resourceBundle;
@@ -267,7 +263,7 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
         LinkTag a = (LinkTag) HtmlParserUtils.getTag(cellHtml, DmaxParser.CHARSET, "div.vp-promo-image a");
         String videoPageUri = DmaxParser.BASE_URI + a.getLink();
         String videoPageContent = HttpUtils.get(videoPageUri, null, DmaxParser.CHARSET);
-        logger.debug("Parsing page {}", videoPageUri);
+        logger.log(LogService.LOG_DEBUG, "Parsing page " + videoPageUri);
         NodeList breadCrumbLinks = HtmlParserUtils.getTags(videoPageContent, DmaxParser.CHARSET, "div#vp-breadcrumb span[class~=showHub] a");
         a = (LinkTag) breadCrumbLinks.elementAt(breadCrumbLinks.size()-1);
         String programId = a.extractLink();
