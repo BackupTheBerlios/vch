@@ -5,6 +5,8 @@ import java.text.SimpleDateFormat;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.shell.Command;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceException;
@@ -16,13 +18,15 @@ import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.parser.IWebParser;
 
+@Provides
+@Component
 public class GetWebPage implements Command {
 
     private BundleContext ctx = null;
 
     private ServiceTracker st;
 
-    private Stack<IWebPage> menuStack = new Stack<IWebPage>();
+    static Stack<IWebPage> menuStack = new Stack<IWebPage>();
 
     public GetWebPage(BundleContext context) {
         ctx = context;
@@ -41,6 +45,10 @@ public class GetWebPage implements Command {
             String[] args = cmd.split(" ");
             if (args.length == 1) {
                 if (menuStack.isEmpty()) {
+                    IOverviewPage page = parserService.getParserOverview();
+                    menuStack.push(page);
+                } else if(menuStack.size() == 1) {
+                    menuStack.pop();
                     IOverviewPage page = parserService.getParserOverview();
                     menuStack.push(page);
                 }
@@ -92,12 +100,12 @@ public class GetWebPage implements Command {
                 }
             }
         } catch (Exception e) {
-            err.println("Couldn't execute command: " + cmd);
+            err.println("Couldn't execute command: " + cmd + ": " + e.getLocalizedMessage());
             e.printStackTrace(err);
         }
     }
 
-    private void showMenu(PrintStream out, PrintStream err, IWebPage page) throws Exception {
+    public static void showMenu(PrintStream out, PrintStream err, IWebPage page) throws Exception {
         int count = 0;
         if (page instanceof IOverviewPage) {
             IOverviewPage opage = (IOverviewPage) page;

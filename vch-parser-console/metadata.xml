@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<iPOJO>
+    <instance component="de.berlios.vch.parser.console.commands.GetWebPage" name="Console browse command" />
+    <!-- 
+    <instance component="de.berlios.vch.parser.console.commands.Search" name="Console search command" />
+    -->
+</iPOJO>
