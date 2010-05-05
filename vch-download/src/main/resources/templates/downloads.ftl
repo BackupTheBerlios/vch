@@ -4,20 +4,28 @@
 
 <h1>${TITLE}</h1>
 <#include "status_messages.ftl">
+<script type="text/javascript">
+    $(function() {
+        $('div.progressbar').each(function() {
+            var progress = parseInt( $(this).attr('vch:value') );
+            $(this).progressbar({ value:progress });
+        });
+    });
+</script>
 <form action="${ACTION}" method="post" style="display: inline">
-    <div id="downloads">
-    <table class="download" width="100%" border="1">
-        <tr>
-            <th width="30%">${I18N_DL_TITLE}</th>
-            <th width="15%">${I18N_DL_PROGRESS}</th>
-            <th width="05%">${I18N_DL_SPEED}</th>
-            <th width="15%">${I18N_DL_STATUS}</th>
+    <div id="downloads"  class="ui-widget-content ui-corner-all">
+    <table class="download" width="100%">
+        <tr class="ui-widget-header">
+            <th style="width:30%">${I18N_DL_TITLE}</th>
+            <th style="width:15%">${I18N_DL_PROGRESS}</th>
+            <th style="width:05%">${I18N_DL_SPEED}</th>
+            <th style="width:15%">${I18N_DL_STATUS}</th>
             <th>${I18N_DL_OPTIONS}</th>
         </tr>
         <#list DOWNLOADS as download>
             <#-- if download.status != "FINISHED" -->
             <#if download_index % 2 == 0>
-            <tr class="even" id="tr_${download_index}">
+            <tr id="tr_${download_index}">
             <#else>
             <tr class="odd" id="tr_${download_index}">
             </#if>
@@ -35,7 +43,7 @@
                 </td>
                 <td>
                     <#if (download.progress >= 0)>
-                    <div class="progressbar" style="width: ${download.progress}%">${download.progress}%</div>
+                    <div class="progressbar" vch:value="${download.progress}"></div>
                     <#else>
                     ${I18N_DL_N_A}
                     </#if>
@@ -58,20 +66,81 @@
                 <td>
                     <#if download.pauseSupported>
                         <#if download.running>
-                            <a href="${ACTION}?action=stop&amp;id=${download.id?url}">
-                                <img src="${STATIC_PATH}/icons/tango/process-stop.png" title="${I18N_DL_STOP}" alt="${I18N_DL_STOP}"/>
-                            </a>
+                            <button id="stop_${download_index}">${I18N_DL_STOP}</button>
+                            <script type="text/javascript">
+                                $(function () {
+                                    $('button#stop_${download_index}').button(
+                                        {
+                                            icons: { primary: 'ui-icon-stop'},
+                                            text: false
+                                        }
+                                    ).click(function() {
+                                        window.location.href = '${ACTION}?action=stop&id=${download.id?url}';
+                                    });
+                                });
+                            </script>
                         <#else>
                             <#if download.startable && download.status != "FINISHED">
-                                <a href="${ACTION}?action=start&amp;id=${download.id?url}">
-                                    <img src="${STATIC_PATH}/icons/tango/media-playback-start.png" title="${I18N_DL_START}" alt="${I18N_DL_START}"/>
-                                </a>
+                                <button id="start_${download_index}">${I18N_DL_START}</button>
+                                <script type="text/javascript">
+                                    $(function () {
+                                        $('button#start_${download_index}').button(
+                                            {
+                                                icons: { primary: 'ui-icon-play'},
+                                                text: false
+                                            }
+                                        ).click(function() {
+                                            window.location.href = '${ACTION}?action=start&id=${download.id?url}';
+                                        });
+                                    });
+                                </script>
                             </#if>
                         </#if> 
                     </#if>
-                    <a id="delete_${download_index}" href="${ACTION}?action=delete&amp;id=${download.id?url}">
-                        <img src="${STATIC_PATH}/icons/tango/user-trash-full.png" title="${I18N_DL_DELETE}" alt="${I18N_DL_DELETE}"/>
-                    </a>
+                    <button id="delete_${download_index}">${I18N_DL_DELETE}</button>
+                    <script type="text/javascript">
+                        $(function () {
+                            $('button#delete_${download_index}').button(
+                                {
+                                    icons: { primary: 'ui-icon-trash'},
+                                    text: false
+                                }
+                            ).click(function() {
+                            <#if AJAX_ENABLED>
+                                var tableRow = $("#" + $(this).attr("id").replace(/delete_/, "tr_") );
+                                
+                                // show process indicator and hide delete link
+                                var link = $(this);
+                                var indicator = $("#indicator_" + $(this).attr("id"));  
+                                
+                                indicator.css("display", "inline");
+                                $(this).css("display", "none");
+                
+                                // make a ajax get request with the "delete url"
+                                $(this).queue(function() {
+                                    $.ajax({
+                                        url: '${ACTION}?action=delete&id=${download.id?url}',
+                                        type: 'GET',
+                                        dataType: 'html',
+                                        timeout: 30000,
+                                        error: function(){
+                                            // hide process indicator and show delete link
+                                            indicator.css("display", "none");
+                                            $(this).css("display", "inline");
+                                            alert("${I18N_DL_COULDNT_DELETE}");
+                                        },
+                                        success: function(html){
+                                            tableRow.fadeOut("slow");
+                                            console.log('success');
+                                        }
+                                    });
+                                });
+                            <#else>
+                                window.location.href = '${ACTION}?action=delete&id=${download.id?url}';
+                            </#if>
+                            });
+                        });
+                    </script>
                     <img id="indicator_delete_${download_index}" src="${STATIC_PATH}/icons/tango/indicator.gif" alt="" style="display:none"/> 
                 </td>
             </tr>
@@ -84,12 +153,10 @@
                 </div>
             </td></tr>
             </#if>
-            <#--</#if>-->
         </#list>    
     </table>
     </div>
-    <br/>
-    <input type="button" value="${I18N_DL_REFRESH}" onclick="javascript:window.location.href='${ACTION}'"/>
+    <p style="display:inline"><br/><input class="ui-button" type="button" value="${I18N_DL_REFRESH}" onclick="javascript:window.location.href='${ACTION}'" /></p>
     <#if AJAX_ENABLED>
         <!-- disabled because it prevents other ajax request from working correctly
         <input type="checkbox" id="auto_refresh"/>${I18N_DL_AUTO_REFRESH}
@@ -98,28 +165,32 @@
 </form>
 
 <form action="${ACTION}" method="post" style="display: inline; margin-left: 2em">
-    <input type="hidden" name="action" value="start_all"/>
-    <input type="submit" value="${I18N_DL_START_ALL}"/>
+    <p style="display:inline">
+    <input type="hidden" name="action" value="start_all" />
+    <input class="ui-button" type="submit" value="${I18N_DL_START_ALL}" />
+    </p>
 </form>
 <form action="${ACTION}" method="post" style="display: inline">
-    <input type="hidden" name="action" value="stop_all"/>
-    <input type="submit" value="${I18N_DL_STOP_ALL}"/>
+    <p style="display:inline">
+    <input type="hidden" name="action" value="stop_all" />
+    <input class="ui-button" type="submit" value="${I18N_DL_STOP_ALL}" />
+    </p>
 </form>
 
 <div style="padding: 2em"></div>
 
 <h1>${I18N_DL_FINISHED_DOWNLOADS}</h1>
 <form action="${ACTION}" method="post" style="display: inline">
-    <div id="finished_downloads">
-    <table class="download" width="100%" border="1">
-        <tr>
-            <th width="30%">${I18N_DL_TITLE}</th>
-            <th width="41%">${I18N_DL_FILE}</th>
+    <div id="finished_downloads" class="ui-widget-content ui-corner-all">
+    <table class="download" width="100%">
+        <tr class="ui-widget-header">
+            <th style="width:30%">${I18N_DL_TITLE}</th>
+            <th style="width:41%">${I18N_DL_FILE}</th>
             <th>${I18N_DL_OPTIONS}</th>
         </tr>
         <#list FINISHED_DOWNLOADS as download>
             <#if download_index % 2 == 0>
-            <tr class="even" id="tr_finished_${download_index}">
+            <tr id="tr_finished_${download_index}">
             <#else>
             <tr class="odd" id="tr_finished_${download_index}">
             </#if>
@@ -141,9 +212,50 @@
                     <a href="${FILE_PATH}/${download.videoFile?substring(pos?number)?url}">${download.videoFile?substring(pos?number)}</a>
                 </td>
                 <td>
-                    <a id="delete_finished_${download_index}" href="${ACTION}?action=delete_finished&amp;id=${download.id?url}">
-                        <img src="${STATIC_PATH}/icons/tango/user-trash-full.png" title="${I18N_DL_DELETE}" alt="${I18N_DL_DELETE}"/>
-                    </a>
+                    <button id="delete_finished_${download_index}">${I18N_DL_DELETE}</button>
+                    <script type="text/javascript">
+                        $(function () {
+                            $('button#delete_finished_${download_index}').button(
+                                {
+                                    icons: { primary: 'ui-icon-trash'},
+                                    text: false
+                                }
+                            ).click(function() {
+                            <#if AJAX_ENABLED>
+                                var tableRow = $("#" + $(this).attr("id").replace(/delete_/, "tr_") );
+                                
+                                // show process indicator and hide delete link
+                                var link = $(this);
+                                var indicator = $("#indicator_" + $(this).attr("id"));  
+                                
+                                indicator.css("display", "inline");
+                                $(this).css("display", "none");
+                
+                                // make a ajax get request with the "delete url"
+                                $(this).queue(function() {
+                                    $.ajax({
+                                        url: '${ACTION}?action=delete_finished&id=${download.id?url}',
+                                        type: 'GET',
+                                        dataType: 'html',
+                                        timeout: 30000,
+                                        error: function(){
+                                            // hide process indicator and show delete link
+                                            indicator.css("display", "none");
+                                            $(this).css("display", "inline");
+                                            alert("${I18N_DL_COULDNT_DELETE}");
+                                        },
+                                        success: function(html){
+                                            tableRow.fadeOut("slow");
+                                            console.log('success');
+                                        }
+                                    });
+                                });
+                            <#else>
+                                window.location.href = '${ACTION}?action=delete_finished&id=${download.id?url}';
+                            </#if>
+                            });
+                        });
+                    </script>
                     <img id="indicator_delete_finished_${download_index}" src="${STATIC_PATH}/icons/tango/indicator.gif" alt="" style="display:none"/>
                 </td>
             </tr>
@@ -152,7 +264,7 @@
     </div>
 </form>
 
-<script type="text/javascript"><!--
+<script type="text/javascript">
 
     $("a[rel='tooltip']").bind("mouseover", function(e) {
         var id = $(this).attr("id");
@@ -168,71 +280,7 @@
         var tooltip = id.replace(/download/, "tooltip");
         $("#" + tooltip).fadeOut("slow");
     });
-    
-    <#if AJAX_ENABLED>
-        // manipulate delete links and register listeners
-        // for ajax requests
-        var ajaxEnabled=true;
-        if(ajaxEnabled) {
-            var links = $("a[id^='delete_']");
-            for(var i=0; i<links.length; i++) {
-                links[i].rel = links[i].href;
-                links[i].href = "javascript:void(0)";
-            }
-            $("a[id^='delete_']").click(function() {
-                var tableRow = $("#" + $(this).attr("id").replace(/delete_/, "tr_") );
-                
-                // show process indicator and hide delete link
-                var link = $(this);
-                var indicator = $("#indicator_" + $(this).attr("id"));  
-                
-                indicator.css("display", "inline");
-                link.css("display", "none");
-
-                $(this).queue(function() {
-                    // make a ajax get request with the "delete url"
-                    $.ajax({
-                        url: $(this).attr("rel"),
-                        type: 'GET',
-                        dataType: 'html',
-                        timeout: 30000,
-                        error: function(){
-                            // hide process indicator and show delete link
-                            indicator.css("display", "none");
-                            link.css("display", "inline");
-                            alert("${I18N_DL_COULDNT_DELETE}");
-                        },
-                        success: function(html){
-                            tableRow.fadeOut("slow");
-                        }
-                    });
-                });
-            });
-        }
         
-        // ajax auto refresh
-        if(ajaxEnabled) {
-            $("#auto_refresh").click(function() {
-                if($(this).attr("checked")) {
-                    window.setInterval("refresh()", 1000);
-                }
-            });
-        }
-        
-        function refresh() {
-            var url = "/downloads";
-            if($("#auto_refresh").attr("checked")) {
-                jQuery.get(url, function(data){
-                    $("#downloads").replaceWith($(data).find("#downloads"));
-                });
-            } else {
-                stopInterval();
-            }
-            
-            return false;
-        }
-    </#if>
-    
     // exception tooltip
     $("*[id^='exception_']").css("display","none");               
     $("img[id^='img_exception_']").bind("click", function(e) {
@@ -240,6 +288,6 @@
         var tooltip = id.replace(/img_exception_/, "exception_");
         $("#" + tooltip).toggle();
     });
---></script>
+</script>
 
 <#include "footer.ftl">

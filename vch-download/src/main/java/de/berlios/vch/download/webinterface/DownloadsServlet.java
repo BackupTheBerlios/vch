@@ -1,7 +1,9 @@
 package de.berlios.vch.download.webinterface;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -69,8 +71,13 @@ public class DownloadsServlet extends BundleContextServlet {
         params.put("FINISHED_DOWNLOADS", dm.getFinishedDownloads());
         params.put("AJAX_ENABLED", true);
         params.put("NOTIFY_MESSAGES", getNotifyMessages(req));
+        
+        // additional css
+        List<String> css = new ArrayList<String>();
+        css.add(STATIC_PATH + "/downloads.css");
+        params.put("CSS_INCLUDES", css);
+        
         String page = templateLoader.loadTemplate("downloads.ftl", params);
-
         resp.getWriter().print(page);
     }
 
