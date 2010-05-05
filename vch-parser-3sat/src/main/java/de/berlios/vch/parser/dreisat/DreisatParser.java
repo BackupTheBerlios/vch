@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.htmlparser.Node;
@@ -13,6 +14,7 @@ import org.htmlparser.tags.LinkTag;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.Translate;
+import org.jdom.Element;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
@@ -127,6 +129,18 @@ public class DreisatParser implements IWebParser, BundleActivator {
                 pubCal.setTime(entry.getPublishedDate());
                 video.setPublishDate(pubCal);
                 video.setVideoUri( new URI( ((SyndEnclosure)entry.getEnclosures().get(0)).getUrl() ) );
+                
+                // look, if we have a duration in the foreign markup
+                @SuppressWarnings("unchecked")
+                List<Element> fm = (List<Element>)entry.getForeignMarkup();
+                for (Element element : fm) {
+                    if("duration".equals(element.getName())) {
+                        try {
+                            video.setDuration(Long.parseLong(element.getText()));
+                        } catch(Exception e) {}
+                    }
+                }
+                
                 feedPage.getPages().add(video);
             }
             return feedPage;
