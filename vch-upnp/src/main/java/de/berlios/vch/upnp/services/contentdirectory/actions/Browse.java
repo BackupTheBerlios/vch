@@ -11,8 +11,6 @@ import org.osgi.framework.ServiceException;
 import org.osgi.service.upnp.UPnPAction;
 import org.osgi.service.upnp.UPnPStateVariable;
 import org.osgi.util.tracker.ServiceTracker;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.net.INetworkProtocol;
@@ -33,8 +31,6 @@ import de.berlios.vch.upnp.services.contentdirectory.variables.UpdateID;
 
 public class Browse implements UPnPAction {
 
-    private static transient Logger logger = LoggerFactory.getLogger(Browse.class);
-    
     // variables
     private ObjectID objectID = new ObjectID();
     private BrowseFlag browseFlag = new BrowseFlag();
@@ -98,7 +94,6 @@ public class Browse implements UPnPAction {
     @Override
     @SuppressWarnings("unchecked")
     public Dictionary invoke(Dictionary args) throws Exception {
-        logger.debug("Browse({})", args);
         String objectId = (String) args.get("ObjectID");
         IParserService parserService = (IParserService) parserTracker.getService();
         if(parserService == null) {
@@ -146,7 +141,6 @@ public class Browse implements UPnPAction {
             result.put("TotalMatches", 1);
         }
 
-        logger.debug("Returning {}", result);
         return result;
     }
 }

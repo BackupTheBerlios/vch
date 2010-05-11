@@ -6,8 +6,6 @@ import java.util.Map;
 
 import org.osgi.service.upnp.UPnPAction;
 import org.osgi.service.upnp.UPnPStateVariable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import de.berlios.vch.upnp.services.connectionmanager.variables.AVTransportID;
 import de.berlios.vch.upnp.services.connectionmanager.variables.ConnectionID;
@@ -19,8 +17,6 @@ import de.berlios.vch.upnp.services.connectionmanager.variables.RcsID;
 
 public class GetCurrentConnectionInfo implements UPnPAction {
     
-    private static transient Logger logger = LoggerFactory.getLogger(GetCurrentConnectionInfo.class);
-
     private Map<String, UPnPStateVariable> variables = new HashMap<String, UPnPStateVariable>();
     
     public GetCurrentConnectionInfo() {
@@ -64,7 +60,6 @@ public class GetCurrentConnectionInfo implements UPnPAction {
     @SuppressWarnings("unchecked")
     public Dictionary invoke(Dictionary args) throws Exception {
         // TODO implement
-        logger.debug("invoke({})", args);
         return null;
     }
 

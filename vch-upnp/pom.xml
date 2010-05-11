@@ -16,12 +16,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.upnp.basedriver</artifactId>
-            <type>bundle</type>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>de.berlios.vch</groupId>
             <artifactId>parser</artifactId>
             <type>bundle</type>
