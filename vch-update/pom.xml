@@ -34,11 +34,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-        	<groupId>org.apache.felix</groupId>
-        	<artifactId>org.apache.felix.bundlerepository</artifactId>
-        	<scope>provided</scope>
-        </dependency>
-        <dependency>
         	<groupId>de.berlios.vch</groupId>
         	<artifactId>config</artifactId>
         	<type>bundle</type>
@@ -50,6 +45,12 @@
         	<version>20090211</version>
         	<type>jar</type>
         	<scope>compile</scope>
+        </dependency>
+        <dependency>
+        	<groupId>org.apache.felix</groupId>
+        	<artifactId>org.osgi.service.obr</artifactId>
+        	<type>bundle</type>
+        	<scope>provided</scope>
         </dependency>
 	</dependencies>
 </project>

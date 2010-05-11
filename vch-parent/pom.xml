@@ -63,6 +63,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+        	<groupId>org.apache.felix</groupId>
+        	<artifactId>org.osgi.service.obr</artifactId>
+        	<type>bundle</type>
+        	<scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.bundlerepository</artifactId>
             <scope>provided</scope>
@@ -147,10 +153,17 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
+            	<groupId>org.apache.felix</groupId>
+            	<artifactId>org.osgi.service.obr</artifactId>
+            	<version>1.0.2</version>
+            	<type>bundle</type>
+            	<scope>provided</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>org.apache.felix.bundlerepository
                 </artifactId>
-                <version>1.4.2</version>
+                <version>1.6.2</version>
                 <scope>runtime</scope>
             </dependency>
             <dependency>
