@@ -70,8 +70,8 @@
                     }
                     
                     // add the page link, if available
-                    if(response.attributes.vchlink) {
-                        html += '<a style="margin-left: 1em;" id="open" href="'+response.attributes.vchlink+'">${I18N_OPEN}</a>';
+                    if(response.attributes.vchlink && response.attributes.vchlink.indexOf("http") == 0) {
+                        html += '<a target="_blank" style="margin-left: 1em;" id="open" href="'+response.attributes.vchlink+'">${I18N_OPEN}</a>';
                     }
                     
                     // display the details
