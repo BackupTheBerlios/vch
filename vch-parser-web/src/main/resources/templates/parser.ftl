@@ -69,11 +69,15 @@
                         html += '<a id="watch" href="'+response.attributes.vchvideo+'">${I18N_WATCH}</a>';
                     }
                     
+                    // add the page link, if available
+                    if(response.attributes.vchlink) {
+                        html += '<a style="margin-left: 1em;" id="open" href="'+response.attributes.vchlink+'">${I18N_OPEN}</a>';
+                    }
+                    
                     // display the details
                     $('#content').html(html);
-                    $('#watch').button({
-                        icons: { primary: 'ui-icon-play'},
-                    });
+                    $('#watch').button( {icons: { primary: 'ui-icon-play'}} );
+                    $('#open').button( {icons: { primary: 'ui-icon-extlink'}} );
                 }
             });
         }
