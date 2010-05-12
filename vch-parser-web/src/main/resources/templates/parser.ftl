@@ -66,12 +66,12 @@
                     
                     // add the video link, if available
                     if(response.attributes.vchvideo) {
-                        html += '<a id="watch" href="'+response.attributes.vchvideo+'">${I18N_WATCH}</a>';
+                        html += '<a id="watch" style="margin-right: 1em;" href="'+response.attributes.vchvideo+'">${I18N_WATCH}</a>';
                     }
                     
                     // add the page link, if available
                     if(response.attributes.vchlink && response.attributes.vchlink.indexOf("http") == 0) {
-                        html += '<a target="_blank" style="margin-left: 1em;" id="open" href="'+response.attributes.vchlink+'">${I18N_OPEN}</a>';
+                        html += '<a target="_blank" style="margin-right: 1em;" id="open" href="'+response.attributes.vchlink+'">${I18N_OPEN}</a>';
                     }
                     
                     // display the details
