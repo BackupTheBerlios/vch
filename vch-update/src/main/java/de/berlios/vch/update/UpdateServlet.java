@@ -370,8 +370,8 @@ public class UpdateServlet extends BundleContextServlet {
             addNotify(req, new NotifyMessage(TYPE.INFO, i18n.translate("info.please_restart")));
         } else {
             for (Requirement requirement : resolver.getUnsatisfiedRequirements()) {
-                String msg = "Unsatisfied requirement: " + requirement.getName() + " " + requirement.toString();
-                logger.log(LogService.LOG_INFO, msg);
+                String msg = "Unsatisfied requirement: " + requirement.getName() + " " + requirement.getFilter();
+                logger.log(LogService.LOG_WARNING, msg);
                 addNotify(req, new NotifyMessage(TYPE.WARNING, msg));
             }
         }
