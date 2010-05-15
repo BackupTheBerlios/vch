@@ -166,7 +166,7 @@ public class Cache<K, V> implements Map<K, V> {
     @Override
     public int size() {
         evict();
-        return 0;
+        return hashtable.size();
     }
 
     @Override
