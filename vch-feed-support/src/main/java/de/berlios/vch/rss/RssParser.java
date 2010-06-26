@@ -104,12 +104,11 @@ public class RssParser {
      * Removes all items which don't have an video enclosure
      * @param feed
      */
-    @SuppressWarnings("unchecked")
     private static void removeNonVideoItems(SyndFeed feed) {
-        for (Iterator iterator = feed.getEntries().iterator(); iterator.hasNext();) {
+        for (Iterator<?> iterator = feed.getEntries().iterator(); iterator.hasNext();) {
             SyndEntry entry = (SyndEntry) iterator.next();
             boolean hasVideo = true;
-            for (Iterator encIter = entry.getEnclosures().iterator(); encIter.hasNext();) {
+            for (Iterator<?> encIter = entry.getEnclosures().iterator(); encIter.hasNext();) {
                 SyndEnclosure enclosure = (SyndEnclosure) encIter.next();
                 if(enclosure.getType() != null && !enclosure.getType().startsWith("video")) {
                     hasVideo = false;
