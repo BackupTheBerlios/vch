@@ -163,21 +163,16 @@ public class HttpUtils {
 
     public static Map<String, List<String>> head(String url, Map<String, String> headers, String charset) throws IOException {
         logger.trace("Request HEAD for page {}", url);
-        Map<String, List<String>> header = null; //headerCache.get(url);
-        if(header != null) {
-            return header;
-        } else {
-            URL page = new URL(url);
-            URLConnection con = page.openConnection();
-            if(headers != null) {
-                for (Iterator<Entry<String,String>> iterator = headers.entrySet().iterator(); iterator.hasNext();) {
-                    Entry<String, String> entry = iterator.next();
-                    con.setRequestProperty(entry.getKey(), entry.getValue());
-                }
+        URL page = new URL(url);
+        URLConnection con = page.openConnection();
+        if(headers != null) {
+            for (Iterator<Entry<String,String>> iterator = headers.entrySet().iterator(); iterator.hasNext();) {
+                Entry<String, String> entry = iterator.next();
+                con.setRequestProperty(entry.getKey(), entry.getValue());
             }
-            
-            return con.getHeaderFields();
         }
+        
+        return con.getHeaderFields();
     }
     
     public static String getHeaderField(Map<String, List<String>> headers, String headerField) {
