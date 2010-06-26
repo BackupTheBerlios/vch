@@ -106,7 +106,7 @@ private static transient Logger logger = LoggerFactory.getLogger(BrainblogParser
             
             // only parse video pages
             boolean isVideo = false;
-            for (Iterator iterator = current.getCategories().iterator(); iterator.hasNext();) {
+            for (Iterator<?> iterator = current.getCategories().iterator(); iterator.hasNext();) {
                 SyndCategory cat = (SyndCategory) iterator.next();
                 if ("videos".equalsIgnoreCase(cat.getName()) ) {
                     isVideo = true;
