@@ -120,11 +120,14 @@ public class VideoPageParser {
         obj.put("featuredRefId", null);
         obj.put("contentType", "0");
         obj.put("contentId", Double.parseDouble(mediaId));
-        Object response = conn.call("com.brightcove.experience.ExperienceRuntimeFacade.getProgrammingWithOverrides", Double.parseDouble(playerId), new Object[] {obj});
+        logger.trace("playerID is {}", playerId);
+        logger.trace("contentId is {}", mediaId);
+        logger.trace("AMF request: com.brightcove.experience.ExperienceRuntimeFacade.getProgrammingWithOverrides {},{}", playerId, obj);
+        Object response = conn.call("com.brightcove.experience.ExperienceRuntimeFacade.getProgrammingWithOverrides", "53ca9964d092b6de1b4703ea90c81c9c8d7113f9", Double.parseDouble(playerId), new Object[] {obj});
         logger.trace("AMF response: {}", response);
         
-        HashMap videoPlayer = (HashMap) ((HashMap) response).get("videoPlayer");
-        HashMap mediaDTO = (HashMap) videoPlayer.get("mediaDTO");
+        HashMap<?, ?> videoPlayer = (HashMap<?, ?>) ((HashMap<?, ?>) response).get("videoPlayer");
+        HashMap<?, ?> mediaDTO = (HashMap<?, ?>) videoPlayer.get("mediaDTO");
         Map<String, Object> video = new HashMap<String, Object>();
         String videoUri = (String) mediaDTO.get("FLVFullLengthURL");
         double length = (Double) mediaDTO.get("length");
