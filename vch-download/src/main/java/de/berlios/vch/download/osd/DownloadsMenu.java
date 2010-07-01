@@ -12,19 +12,21 @@ import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.osdserver.io.StringUtils;
 import de.berlios.vch.osdserver.osd.OsdItem;
 import de.berlios.vch.osdserver.osd.menu.Menu;
+import de.berlios.vch.playlist.PlaylistService;
 
 public class DownloadsMenu extends Menu {
 
-    public DownloadsMenu(DownloadManager dm, LogService logger, Messages i18n, Preferences prefs) {
+    public DownloadsMenu(DownloadManager dm, LogService logger, Messages i18n, Preferences prefs, PlaylistService pls) {
         super("downloads", i18n.translate("I18N_DOWNLOADS"));
 
+        // create actions
         DeleteAction deleteAction = new DeleteAction(i18n, dm);
         CancelAction cancelAction = new CancelAction(i18n, dm);
         UpdateColorButtonsAction updateColorButtons = new UpdateColorButtonsAction(logger);
-        PlayFinishedAction playFinished = new PlayFinishedAction(i18n);
-        PlayActiveAction playActive = new PlayActiveAction(i18n);
+        PlayFinishedAction playFinished = new PlayFinishedAction(pls, i18n);
+        PlayActiveAction playActive = new PlayActiveAction(pls, i18n);
         StartStopAction startStop = new StartStopAction(i18n, dm);
-        ChangeOrderAction sortAction = new ChangeOrderAction(dm, logger, i18n, prefs); 
+        ChangeOrderAction sortAction = new ChangeOrderAction(dm, logger, i18n, prefs, pls); 
         
         // add the active downloads to the menu
         List<Download> activeDownloads = dm.getActiveDownloads();

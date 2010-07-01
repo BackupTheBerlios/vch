@@ -14,6 +14,7 @@ import de.berlios.vch.osdserver.osd.OsdException;
 import de.berlios.vch.osdserver.osd.OsdObject;
 import de.berlios.vch.osdserver.osd.menu.Menu;
 import de.berlios.vch.osdserver.osd.menu.actions.OverviewAction;
+import de.berlios.vch.playlist.PlaylistService;
 
 public class OpenDownloadsAction implements OverviewAction {
 
@@ -27,18 +28,21 @@ public class OpenDownloadsAction implements OverviewAction {
     
     private Preferences prefs;
     
-    public OpenDownloadsAction(Messages i18n, DownloadManager dm, LogService logger, Preferences prefs) {
+    private PlaylistService pls;
+    
+    public OpenDownloadsAction(Messages i18n, DownloadManager dm, LogService logger, Preferences prefs, PlaylistService pls) {
         super();
         this.i18n = i18n;
         this.dm = dm;
         this.logger = logger;
         this.prefs = prefs;
+        this.pls = pls;
     }
 
     @Override
     public void execute(OsdObject oo) throws IOException, OsdException {
         osd.showMessage(new OsdMessage(i18n.translate("loading"), OsdMessage.STATUS));
-        Menu downloadsMenu = new DownloadsMenu(dm, logger, i18n, prefs);
+        Menu downloadsMenu = new DownloadsMenu(dm, logger, i18n, prefs, pls);
         osd.createMenu(downloadsMenu);
         osd.appendToFocus(downloadsMenu);
         osd.showMessage(new OsdMessage("", OsdMessage.STATUSCLEAR));

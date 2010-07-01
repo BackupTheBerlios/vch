@@ -11,6 +11,7 @@ import de.berlios.vch.osdserver.osd.Osd;
 import de.berlios.vch.osdserver.osd.OsdObject;
 import de.berlios.vch.osdserver.osd.menu.Menu;
 import de.berlios.vch.osdserver.osd.menu.actions.ItemDetailsAction;
+import de.berlios.vch.playlist.PlaylistService;
 
 public class ChangeOrderAction implements ItemDetailsAction {
 
@@ -26,18 +27,21 @@ public class ChangeOrderAction implements ItemDetailsAction {
     
     private LogService logger;
     
-    public ChangeOrderAction(DownloadManager dm, LogService logger, Messages i18n, Preferences prefs) {
+    private PlaylistService pls;
+    
+    public ChangeOrderAction(DownloadManager dm, LogService logger, Messages i18n, Preferences prefs, PlaylistService pls) {
         super();
         name = i18n.translate("I18N_SORT");
         this.i18n = i18n;
         this.prefs = prefs;
         this.dm = dm;
         this.logger = logger;
+        this.pls = pls;
     }
     
     @Override
     public void execute(OsdObject oo) throws Exception {
-        Menu sortMenu = new ChangeOrderMenu(dm, logger, i18n, prefs);
+        Menu sortMenu = new ChangeOrderMenu(dm, logger, i18n, prefs, pls);
         osd.createMenu(sortMenu);
         osd.appendToFocus(sortMenu);
         osd.show(sortMenu);

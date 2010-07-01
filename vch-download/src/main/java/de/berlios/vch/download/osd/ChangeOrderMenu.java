@@ -14,10 +14,11 @@ import de.berlios.vch.osdserver.osd.OsdItem;
 import de.berlios.vch.osdserver.osd.OsdObject;
 import de.berlios.vch.osdserver.osd.menu.Menu;
 import de.berlios.vch.osdserver.osd.menu.actions.IOsdAction;
+import de.berlios.vch.playlist.PlaylistService;
 
 public class ChangeOrderMenu extends Menu {
 
-    public ChangeOrderMenu(final DownloadManager dm, final LogService logger, final Messages i18n, final Preferences prefs) {
+    public ChangeOrderMenu(final DownloadManager dm, final LogService logger, final Messages i18n, final Preferences prefs, final PlaylistService pls) {
         super("changeOrder", i18n.translate("I18N_SORT"));
 
         int i = 0;
@@ -46,7 +47,7 @@ public class ChangeOrderMenu extends Menu {
                     osd.closeMenu(); // close the sort menu
                     osd.closeMenu(); // close the downloads menu
                     // recreate the downloads menu with new sort strategy
-                    DownloadsMenu menu = new DownloadsMenu(dm, logger, i18n, prefs);
+                    DownloadsMenu menu = new DownloadsMenu(dm, logger, i18n, prefs, pls);
                     osd.createMenu(menu);
                     osd.show(menu);
                 }

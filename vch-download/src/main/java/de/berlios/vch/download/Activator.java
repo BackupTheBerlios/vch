@@ -32,6 +32,7 @@ import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.osdserver.osd.menu.actions.ItemDetailsAction;
 import de.berlios.vch.osdserver.osd.menu.actions.OverviewAction;
+import de.berlios.vch.playlist.PlaylistService;
 import de.berlios.vch.web.ResourceHttpContext;
 import de.berlios.vch.web.TemplateLoader;
 import de.berlios.vch.web.menu.IWebMenuEntry;
@@ -63,6 +64,9 @@ public class Activator implements ResourceBundleProvider {
     private ConfigService cs;
     
     private Preferences prefs;
+    
+    @Requires
+    private PlaylistService playlistService;
     
     private List<ServiceRegistration> serviceRegs = new LinkedList<ServiceRegistration>();
     
@@ -100,7 +104,7 @@ public class Activator implements ResourceBundleProvider {
             DownloadAction action = new DownloadAction(messages, dm, logger);
             sr = ctx.registerService(ItemDetailsAction.class.getName(), action, null);
             serviceRegs.add(sr);
-            OpenDownloadsAction oda = new OpenDownloadsAction(messages, dm, logger, prefs);
+            OpenDownloadsAction oda = new OpenDownloadsAction(messages, dm, logger, prefs, playlistService);
             sr = ctx.registerService(OverviewAction.class.getName(), oda, null);
             serviceRegs.add(sr);
         } catch (Exception e) {

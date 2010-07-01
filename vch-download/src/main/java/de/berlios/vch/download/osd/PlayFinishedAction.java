@@ -2,21 +2,25 @@ package de.berlios.vch.download.osd;
 
 import de.berlios.vch.download.jaxb.DownloadDTO;
 import de.berlios.vch.i18n.Messages;
-import de.berlios.vch.osdserver.OsdSession;
-import de.berlios.vch.osdserver.PlaylistEntry;
 import de.berlios.vch.osdserver.io.response.Event;
 import de.berlios.vch.osdserver.osd.Osd;
 import de.berlios.vch.osdserver.osd.OsdItem;
 import de.berlios.vch.osdserver.osd.OsdObject;
 import de.berlios.vch.osdserver.osd.menu.actions.ItemDetailsAction;
+import de.berlios.vch.playlist.Playlist;
+import de.berlios.vch.playlist.PlaylistEntry;
+import de.berlios.vch.playlist.PlaylistService;
 
 public class PlayFinishedAction implements ItemDetailsAction {
 
     private Messages i18n;
+    
+    private PlaylistService playlistService;
      
-    public PlayFinishedAction(Messages i18n) {
+    public PlayFinishedAction(PlaylistService playlistService, Messages i18n) {
         super();
         this.i18n = i18n;
+        this.playlistService = playlistService;
     }
 
     @Override
@@ -24,7 +28,9 @@ public class PlayFinishedAction implements ItemDetailsAction {
         Osd osd = Osd.getInstance();
         OsdItem item = osd.getCurrentItem();
         DownloadDTO dto = (DownloadDTO)item.getUserData();
-        OsdSession.play(new PlaylistEntry(dto.getTitle(), dto.getVideoFile().getAbsolutePath()));
+        Playlist pl = new Playlist();
+        pl.add(new PlaylistEntry(dto.getTitle(), dto.getVideoFile().getAbsolutePath()));
+        playlistService.play(pl);
     }
 
     @Override
