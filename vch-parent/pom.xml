@@ -16,6 +16,12 @@
     <description>Parent POM for all VCH bundles</description>
     <url>http://developer.berlios.de/projects/vch</url>
 
+    <properties>
+        <project.build.sourceEncoding>UTF-8
+        </project.build.sourceEncoding>
+        <felix.main.version>3.0.1</felix.main.version>
+    </properties>
+
     <developers>
         <developer>
             <id>hampelratte</id>
@@ -102,7 +108,7 @@
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.ipojo.arch</artifactId>
-            <version>1.4.0</version>
+            <version>1.6.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -124,20 +130,20 @@
             <dependency>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>org.apache.felix.main</artifactId>
-                <version>1.8.1</version>
+                <version>${felix.main.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>org.apache.felix.ipojo.annotations
                 </artifactId>
-                <version>1.4.0</version>
+                <version>1.6.2</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>org.apache.felix.ipojo</artifactId>
-                <version>1.4.0</version>
+                <version>1.6.2</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -187,7 +193,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>httpclient</artifactId>
-            	<version>1.0.0</version>
+            	<version>1.0.1</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
@@ -208,7 +214,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>osdserver</artifactId>
-            	<version>1.0.3-SNAPSHOT</version>
+            	<version>1.0.3</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
@@ -243,7 +249,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>feedsupport</artifactId>
-            	<version>1.0.0-SNAPSHOT</version>
+            	<version>1.0.0</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
@@ -256,14 +262,15 @@
             	<scope>provided</scope>
             </dependency>
             -->
+            <dependency>
+            	<groupId>de.berlios.vch</groupId>
+            	<artifactId>playlist</artifactId>
+            	<version>1.0.0-SNAPSHOT</version>
+            	<type>bundle</type>
+            	<scope>provided</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8
-        </project.build.sourceEncoding>
-        <felix.main.version>1.8.1</felix.main.version>
-    </properties>
 
     <build>
         <resources>
