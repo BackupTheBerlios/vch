@@ -99,7 +99,7 @@ public class ConfigServlet extends BundleContextServlet {
             String json = "[";
             for (Iterator<Group> iterator = groups.iterator(); iterator.hasNext();) {
                 Group group = iterator.next();
-                json += toJSON(group);
+                json += groupToJSON(group);
                 if (iterator.hasNext()) {
                     json += ", ";
                 }
@@ -110,14 +110,14 @@ public class ConfigServlet extends BundleContextServlet {
         }
     }
 
-    private String toJSON(Group group) {
+    private String groupToJSON(Group group) {
         Map<String, Object> object = new HashMap<String, Object>();
         object.put("title", group.title);
-        object.put("feeds", toJSON(group.feeds));
+        object.put("feeds", feedsToJSON(group.feeds));
         return new JSONObject(object).toString();
     }
 
-    private List<JSONObject> toJSON(List<Feed> feeds) {
+    private List<JSONObject> feedsToJSON(List<Feed> feeds) {
         List<JSONObject> result = new ArrayList<JSONObject>();
         if (!feeds.isEmpty()) {
             for (Iterator<Feed> iterator = feeds.iterator(); iterator.hasNext();) {
