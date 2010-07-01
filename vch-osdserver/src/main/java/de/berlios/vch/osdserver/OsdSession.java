@@ -1,13 +1,7 @@
 package de.berlios.vch.osdserver;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.net.URLDecoder;
 import java.util.prefs.Preferences;
 
-import org.hampelratte.svdrp.Command;
-import org.hampelratte.svdrp.Response;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceException;
 import org.osgi.framework.ServiceReference;
@@ -16,15 +10,12 @@ import org.slf4j.LoggerFactory;
 
 import de.berlios.vch.config.ConfigService;
 import de.berlios.vch.i18n.Messages;
-import de.berlios.vch.osdserver.io.command.OsdMessage;
-import de.berlios.vch.osdserver.io.svdrp.CheckMplayerSvdrpInterface;
-import de.berlios.vch.osdserver.io.svdrp.CheckXineliboutputSvdrpInterface;
 import de.berlios.vch.osdserver.osd.Osd;
-import de.berlios.vch.osdserver.osd.OsdException;
 import de.berlios.vch.osdserver.osd.menu.Menu;
 import de.berlios.vch.osdserver.osd.menu.OverviewMenu;
 import de.berlios.vch.parser.IOverviewPage;
 import de.berlios.vch.parser.IParserService;
+import de.berlios.vch.playlist.PlaylistService;
 
 /**
  * TODO create a logger, which logs to the osd
@@ -42,10 +33,6 @@ public class OsdSession implements Runnable {
     
     private static boolean running = false;
     
-    public static enum MediaPlayer {MPLAYER, XINELIBOUTPUT};
-    
-    public static MediaPlayer player = null;
-    
     private Messages i18n;
     
     private BundleContext ctx;
@@ -57,9 +44,12 @@ public class OsdSession implements Runnable {
     
     private static Preferences prefs;
     
-    public OsdSession(BundleContext ctx, Messages i18n) {
+    private PlaylistService playlistService;
+    
+    public OsdSession(BundleContext ctx, Messages i18n, PlaylistService playlistService) {
         this.i18n = i18n;
         this.ctx = ctx;
+        this.playlistService = playlistService;
         
         ServiceReference sr = ctx.getServiceReference(ConfigService.class.getName());
         if (sr != null) {
@@ -97,7 +87,7 @@ public class OsdSession implements Runnable {
 //                logger.debug("Found previous menu");
 //                menu = osd.getCurrentMenu();
 //            } else {
-                menu = new OverviewMenu(ctx, getParsers(), i18n);
+                menu = new OverviewMenu(ctx, getParsers(), i18n, playlistService);
 //            }
             osd.createMenu(menu);
             osd.show(menu);
@@ -121,89 +111,6 @@ public class OsdSession implements Runnable {
             }
         }
         logger.info("osdserver session ended");
-    }
-    
-    /**
-     * Starts the mplayer plugin with the given playlist
-     * @param playlist a list of URIs to play
-     * @throws IOException
-     */
-    public static void play(PlaylistEntry...playlist) throws IOException {
-        logger.debug("Requested playback of {}", playlist);
-        Osd.getInstance().showMessageSilent(new OsdMessage("Wiedergabe wird gestartet. Bitte warten...", OsdMessage.STATUS));
-        String svdrpHost = prefs.get("svdrp.host", "localhost");
-        int svdrpPort = prefs.getInt("svdrp.port", 2001);
-        logger.info("Starting media player plugin with SVDRP on {}:{} for {}", new Object[] {svdrpHost, svdrpPort, playlist});
-        org.hampelratte.svdrp.Connection svdrp = null;
-        try {
-            svdrp = new org.hampelratte.svdrp.Connection(svdrpHost, svdrpPort);
-            Command playCmd = getPlayCommand(svdrp);
-            Osd.getInstance().showMessageSilent(new OsdMessage("", OsdMessage.STATUSCLEAR));
-            Osd.getInstance().showMessageSilent(new OsdMessage("Wiedergabeliste wird erstellt...", OsdMessage.STATUS));
-            FileWriter fw = new FileWriter(new File("/tmp/vch.pls"));
-            if(player == MediaPlayer.MPLAYER) {
-                for (PlaylistEntry playlistEntry : playlist) {
-                    fw.write(playlistEntry.getUrl() + '\n');
-                }
-            } else if(player == MediaPlayer.XINELIBOUTPUT) {
-                for (int i = 0; i < playlist.length; i++) {
-                    fw.write("File"+(i+1)+"="+URLDecoder.decode(playlist[i].getUrl(), "utf-8")+"\n");
-                    fw.write("Title"+(i+1)+"="+playlist[i].getTitle()+'\n');
-                }
-            }
-            fw.close();
-            
-            org.hampelratte.svdrp.Response resp = svdrp.send(playCmd);
-            Osd.getInstance().showMessageSilent(new OsdMessage("", OsdMessage.STATUSCLEAR));
-            logger.debug("SVDRP response: {} {}", resp.getCode(), resp.getMessage());
-            if( resp.getCode() < 900 || resp.getCode() > 999 ) {
-                Osd.getInstance().showMessageSilent(new OsdMessage(resp.getMessage().trim(), OsdMessage.ERROR));
-            } else {
-                try {
-                    Osd.getInstance().sendState("osEnd");
-                } catch (OsdException e) {}
-            }
-        } finally {
-            if(svdrp != null) {
-                svdrp.close();
-            }
-        }
-    }
-    
-    private static Command getPlayCommand(org.hampelratte.svdrp.Connection svdrp) throws IOException {
-        Response res = svdrp.send(new CheckMplayerSvdrpInterface());
-        if(res.getCode() == 214) {
-            logger.trace("Using MPlayer to play the file");
-            player = MediaPlayer.MPLAYER;
-            return new Command() {
-                @Override
-                public String getCommand() {
-                    return "plug mplayer play /tmp/vch.pls";
-                }
-                @Override
-                public String toString() {
-                    return "MPlayer PLAY";
-                }
-            };
-        } else {
-            res = svdrp.send(new CheckXineliboutputSvdrpInterface());
-            if(res.getCode() == 214) {
-                logger.trace("Using xineliboutput to play the file");
-                player = MediaPlayer.XINELIBOUTPUT;
-                return new Command() {
-                    @Override
-                    public String getCommand() {
-                        return "plug xineliboutput pmda /tmp/vch.pls";
-                    }
-                    @Override
-                    public String toString() {
-                        return "Xineliboutput PMDA";
-                    }
-                };
-            } else {
-                throw new IOException("No media player plugin available");
-            }
-        }
     }
     
     public static void stop() {

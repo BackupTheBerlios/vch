@@ -9,14 +9,16 @@ import org.osgi.util.tracker.ServiceTracker;
 
 import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.net.INetworkProtocol;
-import de.berlios.vch.osdserver.OsdSession;
-import de.berlios.vch.osdserver.PlaylistEntry;
+import de.berlios.vch.osdserver.io.command.OsdMessage;
 import de.berlios.vch.osdserver.io.response.Event;
 import de.berlios.vch.osdserver.osd.Osd;
 import de.berlios.vch.osdserver.osd.OsdException;
 import de.berlios.vch.osdserver.osd.OsdItem;
 import de.berlios.vch.osdserver.osd.OsdObject;
 import de.berlios.vch.parser.IVideoPage;
+import de.berlios.vch.playlist.Playlist;
+import de.berlios.vch.playlist.PlaylistEntry;
+import de.berlios.vch.playlist.PlaylistService;
 
 public class PlayAction implements IOsdAction {
 
@@ -26,8 +28,11 @@ public class PlayAction implements IOsdAction {
     
     private Osd osd = Osd.getInstance();
     
-    public PlayAction(BundleContext ctx, Messages i18n) {
+    private PlaylistService playlistService;
+    
+    public PlayAction(BundleContext ctx, Messages i18n, PlaylistService playlistService) {
         this.i18n = i18n;
+        this.playlistService = playlistService;
         
         protos = new ServiceTracker(ctx, INetworkProtocol.class.getName(), null);
         protos.open();
@@ -48,7 +53,10 @@ public class PlayAction implements IOsdAction {
                 }
             }
         }
-        OsdSession.play(new PlaylistEntry(page.getTitle(), video.toString()));
+        Osd.getInstance().showMessageSilent(new OsdMessage(i18n.translate("starting_playback"), OsdMessage.STATUS));
+        Playlist pl = new Playlist();
+        pl.add(new PlaylistEntry(page.getTitle(), video.toString()));
+        playlistService.play(pl);
     }
 
     @Override

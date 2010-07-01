@@ -23,6 +23,7 @@ import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.parser.IParserService;
+import de.berlios.vch.playlist.PlaylistService;
 import de.berlios.vch.web.TemplateLoader;
 import de.berlios.vch.web.menu.IWebMenuEntry;
 import de.berlios.vch.web.menu.WebMenuEntry;
@@ -49,6 +50,9 @@ public class Activator implements ResourceBundleProvider {
     
     @Requires
     private TemplateLoader templateLoader;
+    
+    @Requires
+    private PlaylistService playlistService;
 
     private ResourceBundle resourceBundle;
     
@@ -64,7 +68,7 @@ public class Activator implements ResourceBundleProvider {
         parserServiceTracker.open();
 
         try {
-            httpService.registerServlet("/osdserver", new ActivatorServlet(ctx, i18n), null, null);
+            httpService.registerServlet("/osdserver", new ActivatorServlet(ctx, i18n, playlistService), null, null);
             registerConfigServlet();
         } catch (Exception e) {
             logger.log(LogService.LOG_ERROR, "Couldn't register osdserver startup servlet", e);

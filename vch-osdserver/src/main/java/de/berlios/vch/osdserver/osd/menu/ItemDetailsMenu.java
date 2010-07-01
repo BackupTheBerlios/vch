@@ -12,17 +12,18 @@ import de.berlios.vch.osdserver.osd.menu.actions.IOsdAction;
 import de.berlios.vch.osdserver.osd.menu.actions.ItemDetailsAction;
 import de.berlios.vch.osdserver.osd.menu.actions.PlayAction;
 import de.berlios.vch.parser.IVideoPage;
+import de.berlios.vch.playlist.PlaylistService;
 
 public class ItemDetailsMenu extends Menu {
 
     private int index = 0;
     
-    public ItemDetailsMenu(BundleContext ctx, IVideoPage page, Messages i18n) {
+    public ItemDetailsMenu(BundleContext ctx, IVideoPage page, Messages i18n, PlaylistService playlistService) {
         super(ID.randomId(), page.getTitle());
         
         if(page.getVideoUri() != null && !page.getVideoUri().toString().isEmpty()) {
             // register play action
-            registerAction(new PlayAction(ctx, i18n));
+            registerAction(new PlayAction(ctx, i18n, playlistService));
             
             // register actions from other osgi bundles
             Object[] actions = getOsdActions(ctx);

@@ -17,6 +17,7 @@ import de.berlios.vch.osdserver.osd.menu.Menu;
 import de.berlios.vch.parser.IParserService;
 import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebParser;
+import de.berlios.vch.playlist.PlaylistService;
 
 public class OpenDetailsAction implements IOsdAction {
 
@@ -28,9 +29,12 @@ public class OpenDetailsAction implements IOsdAction {
     
     private BundleContext ctx;
     
-    public OpenDetailsAction(BundleContext ctx, Messages i18n) {
+    private PlaylistService playlistService;
+    
+    public OpenDetailsAction(BundleContext ctx, Messages i18n, PlaylistService playlistService) {
         this.i18n = i18n;
         this.ctx = ctx;
+        this.playlistService = playlistService;
     }
 
     @Override
@@ -52,7 +56,7 @@ public class OpenDetailsAction implements IOsdAction {
             }
             
             page = (IVideoPage) parserService.parse(page.getVchUri());
-            Menu itemDetailsMenu = new ItemDetailsMenu(ctx, page, i18n);
+            Menu itemDetailsMenu = new ItemDetailsMenu(ctx, page, i18n, playlistService);
             osd.createMenu(itemDetailsMenu);
             osd.appendToFocus(itemDetailsMenu);
             osd.showMessage(new OsdMessage("", OsdMessage.STATUSCLEAR));

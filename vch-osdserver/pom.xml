@@ -4,7 +4,7 @@
 	<artifactId>osdserver</artifactId>
 	<packaging>bundle</packaging>
 	<name>VCH osdserver</name>
-	<version>1.0.3-SNAPSHOT</version>
+	<version>1.0.3</version>
 	<description>This bundle provides an VDR osd menu with the help of the VDR osdserver-Plugin</description>
     
     <parent>
@@ -15,13 +15,6 @@
     </parent>
     
 	<dependencies>
-		<dependency>
-			<groupId>org.hampelratte</groupId>
-			<artifactId>svdrp4j</artifactId>
-			<version>0.0.3</version>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
 		<dependency>
 			<groupId>de.berlios.vch</groupId>
 			<artifactId>i18n</artifactId>
@@ -54,6 +47,12 @@
 		<dependency>
 			<groupId>de.berlios.vch</groupId>
 			<artifactId>net</artifactId>
+			<type>bundle</type>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.berlios.vch</groupId>
+			<artifactId>playlist</artifactId>
 			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>
