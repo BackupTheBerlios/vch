@@ -33,7 +33,7 @@ public class DreisatFeedParser {
         feed.setLink(feedUri);
         feed.setTitle(page.getTitle());
 
-        for (Iterator iterator = feed.getEntries().iterator(); iterator.hasNext();) {
+        for (Iterator<?> iterator = feed.getEntries().iterator(); iterator.hasNext();) {
             SyndEntry entry = (SyndEntry) iterator.next();
             // sort enclosures, so that the best quality is enclosure[0],
             Collections.sort(entry.getEnclosures(), comparator);
