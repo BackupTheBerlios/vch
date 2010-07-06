@@ -235,7 +235,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>download</artifactId>
-            	<version>1.0.3-SNAPSHOT</version>
+            	<version>1.0.3</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
