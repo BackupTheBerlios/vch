@@ -5,12 +5,51 @@
 <h1>${TITLE}</h1>
 <#include "status_messages.ftl">
 <script type="text/javascript">
+    var tooltip;
+    
     $(function() {
         $('div.progressbar').each(function() {
             var progress = parseInt( $(this).attr('vch:value') );
             $(this).progressbar({ value:progress });
         });
+        
+        
+        // This notice is used as a tooltip.
+        tooltip = $.pnotify({
+            pnotify_title: "Tooltip",
+            pnotify_text: "I'm not in a stack. I'm positioned like a tooltip with JavaScript.",
+            pnotify_hide: false,
+            pnotify_closer: false,
+            pnotify_history: false,
+            pnotify_animate_speed: 100,
+            pnotify_opacity: .9,
+            pnotify_notice_icon: "ui-icon ui-icon-comment",
+            // Setting stack to false causes Pines Notify to ignore this notice when positioning.
+            pnotify_stack: false,
+            pnotify_after_init: function(pnotify){
+                // Remove the notice if the user mouses over it.
+                pnotify.mouseout(function(){
+                    pnotify.pnotify_remove();
+                });
+            },
+            pnotify_before_open: function(pnotify){
+                // This prevents the notice from displaying when it's created.
+                pnotify.pnotify({
+                    pnotify_before_open: null
+                });
+                return false;
+            }
+        });
     });
+    
+    function showTooltip(title, desc) {
+        var options = {
+            pnotify_title: title,
+            pnotify_text: desc
+        };        
+        tooltip.pnotify(options);
+        tooltip.pnotify_display();
+    }
 </script>
 <form action="${ACTION}" method="post" style="display: inline">
     <div id="downloads"  class="ui-widget-content ui-corner-all">
@@ -30,16 +69,10 @@
             <tr class="odd" id="tr_${download_index}">
             </#if>
                 <td>
-                    <a id="download_${download_index}" href="${download.id?url}" rel="tooltip">
+                    <a id="download_${download_index}" href="${download.id?url}" rel="tooltip" onmouseout="tooltip.pnotify_remove();" 
+                        onmousemove="tooltip.css({'top': event.clientY+12, 'left': event.clientX+12});" onmouseover="showTooltip('${download.videoPage.title}', '${download.videoPage.description}');">
                         ${download.videoPage.title}
                     </a>
-                    <div id="tooltip_${download_index}" class="tooltip">
-                        ${download.videoPage.title}
-                        <#if download.videoPage.description??>
-                        <br/>
-                        ${download.videoPage.description}
-                        </#if>
-                    </div>
                 </td>
                 <td>
                     <#if (download.progress >= 0)>
@@ -195,16 +228,10 @@
             <tr class="odd" id="tr_finished_${download_index}">
             </#if>
                 <td>
-                    <a id="finished_download_${download_index}" href="#" rel="tooltip">
+                    <a id="finished_download_${download_index}" href="#" rel="tooltip" onmouseout="tooltip.pnotify_remove();" 
+                        onmousemove="tooltip.css({'top': event.clientY+12, 'left': event.clientX+12});" onmouseover="showTooltip('${download.title}', '${download.description}')">
                         ${download.title}
                     </a>
-                    <div id="finished_tooltip_${download_index}" class="tooltip">
-                        ${download.title}
-                        <#if download.description??>
-                        <br/>
-                        ${download.description}
-                        </#if>
-                    </div>
                 </td>
                 <td>
                     <#assign pos="${download.videoFile?last_index_of(\"/\")}" >
@@ -265,21 +292,6 @@
 </form>
 
 <script type="text/javascript">
-
-    $("a[rel='tooltip']").bind("mouseover", function(e) {
-        var id = $(this).attr("id");
-        var tooltip = id.replace(/download/, "tooltip");
-        $("#" + tooltip).fadeIn("slow");
-        $("#" + tooltip).css("top", e.pageY+20);
-        $("#" + tooltip).css("left", e.pageX+10);
-    });
-    
-    
-    $("a[rel='tooltip']").bind("mouseout", function(e) {
-        var id = $(this).attr("id");
-        var tooltip = id.replace(/download/, "tooltip");
-        $("#" + tooltip).fadeOut("slow");
-    });
         
     // exception tooltip
     $("*[id^='exception_']").css("display","none");               
