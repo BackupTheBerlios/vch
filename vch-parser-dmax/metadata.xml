@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <iPOJO>
-	<instance component="de.berlios.vch.parser.dmax.DmaxParser" name="DmaxParser" />
+	<instance component="de.berlios.vch.parser.dmax.DmaxParser" name="VCH Dmax Parser" />
 </iPOJO>
