@@ -6,8 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.osgi.service.log.LogService;
 
 import com.sun.syndication.feed.synd.SyndEnclosure;
 import com.sun.syndication.feed.synd.SyndEntry;
@@ -19,15 +18,19 @@ import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.rss.RssParser;
 
 public class DreisatFeedParser {
-    private static transient Logger logger = LoggerFactory.getLogger(DreisatFeedParser.class);
+    private transient LogService logger;
 
     private Comparator<SyndEnclosure> comparator = new SyndEnclosureComparator();
+
+    public DreisatFeedParser(LogService logger) {
+        this.logger = logger;
+    }
 
     @SuppressWarnings("unchecked")
     public SyndFeed parse(IWebPage page) throws IllegalArgumentException, MalformedURLException, FeedException, IOException {
         String feedUri = page.getUri().toString();
 
-        logger.info("Parsing rss feed {}", feedUri);
+        logger.log(LogService.LOG_INFO, "Parsing rss feed " + feedUri);
         String rss = HttpUtils.get(feedUri, DreisatParser.HTTP_HEADERS, "UTF-8");
         SyndFeed feed = RssParser.parse(rss);
         feed.setLink(feedUri);

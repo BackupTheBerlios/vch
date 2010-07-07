@@ -8,6 +8,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.htmlparser.Node;
 import org.htmlparser.tags.ImageTag;
 import org.htmlparser.tags.LinkTag;
@@ -15,8 +20,7 @@ import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.Translate;
 import org.jdom.Element;
-import org.osgi.framework.BundleActivator;
-import org.osgi.framework.BundleContext;
+import org.osgi.service.log.LogService;
 
 import com.sun.syndication.feed.synd.SyndEnclosure;
 import com.sun.syndication.feed.synd.SyndEntry;
@@ -32,7 +36,9 @@ import de.berlios.vch.parser.OverviewPage;
 import de.berlios.vch.parser.VideoPage;
 import de.berlios.vch.parser.WebPageTitleComparator;
 
-public class DreisatParser implements IWebParser, BundleActivator {
+@Component
+@Provides
+public class DreisatParser implements IWebParser {
 
     public static final String BASE_URL = "http://www.3sat.de";
     
@@ -50,7 +56,10 @@ public class DreisatParser implements IWebParser, BundleActivator {
         HTTP_HEADERS.put("Accept-Language", "de-de,de;q=0.8,en-us;q=0.5,en;q=0.3");
     }
     
-    public DreisatFeedParser feedParser = new DreisatFeedParser();
+    public DreisatFeedParser feedParser;
+    
+    @Requires
+    private LogService logger;
 
     @Override
     public IOverviewPage getRoot() throws Exception {
@@ -147,14 +156,13 @@ public class DreisatParser implements IWebParser, BundleActivator {
         }
     }
 
-    @Override
-    public void start(BundleContext ctx) throws Exception {
-        ctx.registerService(IWebParser.class.getName(), this, null);
+    @Validate
+    public void start() {
+        feedParser = new DreisatFeedParser(logger);
     }
 
-    @Override
-    public void stop(BundleContext ctx) throws Exception {
-    }
+    @Invalidate
+    public void stop() {}
     
     @Override
     public String getId() {
