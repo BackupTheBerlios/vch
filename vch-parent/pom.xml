@@ -169,7 +169,7 @@
                 <groupId>org.apache.felix</groupId>
                 <artifactId>org.apache.felix.bundlerepository
                 </artifactId>
-                <version>1.6.2</version>
+                <version>1.6.4</version>
                 <scope>runtime</scope>
             </dependency>
             <dependency>
@@ -214,7 +214,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>osdserver</artifactId>
-            	<version>1.0.3</version>
+            	<version>1.0.4</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
