@@ -31,9 +31,6 @@ public class ConfigServlet extends BundleContextServlet {
             prefs.put("osdserver.host", req.getParameter("osdserver_host"));
             prefs.putInt("osdserver.port", Integer.parseInt(req.getParameter("osdserver_port")));
             prefs.put("osdserver.encoding", req.getParameter("osdserver_encoding"));
-            prefs.put("svdrp.host", req.getParameter("svdrp_host"));
-            prefs.putInt("svdrp.port", Integer.parseInt(req.getParameter("svdrp_port")));
-            
             addNotify(req, new NotifyMessage(TYPE.INFO, i18n.translate("I18N_SETTINGS_SAVED")));
         }
         
@@ -44,8 +41,6 @@ public class ConfigServlet extends BundleContextServlet {
         params.put("osdserver_host", prefs.get("osdserver.host", "localhost"));
         params.put("osdserver_port", prefs.get("osdserver.port", "2010"));
         params.put("osdserver_encoding", prefs.get("osdserver.encoding", "UTF-8"));
-        params.put("svdrp_host", prefs.get("svdrp.host", "localhost"));
-        params.put("svdrp_port", prefs.get("svdrp.port", "2001"));
         params.put("NOTIFY_MESSAGES", getNotifyMessages(req));
         
         String page = templateLoader.loadTemplate("configOsdserver.ftl", params);

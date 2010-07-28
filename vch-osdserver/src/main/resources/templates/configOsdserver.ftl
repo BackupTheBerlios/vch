@@ -16,13 +16,6 @@
 <tr>
   <td>${I18N_ENCODING}</td><td><input type="text" name="osdserver_encoding" value="${osdserver_encoding}" class="ui-widget ui-widget-content ui-corner-all"/><td>
 </tr>
-<tr><td><br/>SVDRP</td></tr>
-<tr>
-  <td>${I18N_HOST}</td><td><input type="text" name="svdrp_host" value="${svdrp_host}" class="ui-widget ui-widget-content ui-corner-all"/><td>
-</tr>
-<tr>
-  <td>${I18N_PORT}</td><td><input type="text" name="svdrp_port" value="${svdrp_port}" class="ui-widget ui-widget-content ui-corner-all"/><td>
-</tr>
 <tr>
   <td>&nbsp;</td>
   <td>

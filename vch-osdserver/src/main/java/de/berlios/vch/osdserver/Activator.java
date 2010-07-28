@@ -87,18 +87,18 @@ public class Activator implements ResourceBundleProvider {
             httpService.registerServlet(ConfigServlet.PATH, servlet, null, null);
 
             // register web interface menu
-            IWebMenuEntry menu = new WebMenuEntry("Osdserver");
+            IWebMenuEntry menu = new WebMenuEntry(getResourceBundle().getString("I18N_CONFIGURATION"));
             menu.setPreferredPosition(Integer.MAX_VALUE - 1);
             menu.setLinkUri("#");
             SortedSet<IWebMenuEntry> childs = new TreeSet<IWebMenuEntry>();
             IWebMenuEntry entry = new WebMenuEntry();
-            entry.setTitle(i18n.translate("I18N_CONFIGURATION"));
+            entry.setTitle("Osdserver");
             entry.setLinkUri(ConfigServlet.PATH);
             childs.add(entry);
             menu.setChilds(childs);
             menuReg = ctx.registerService(IWebMenuEntry.class.getName(), menu, null);
         } catch (Exception e) {
-            logger.log(LogService.LOG_ERROR, "Couldn't register youtube parser config servlet", e);
+            logger.log(LogService.LOG_ERROR, "Couldn't register osdserver config servlet", e);
         }
     }
 
