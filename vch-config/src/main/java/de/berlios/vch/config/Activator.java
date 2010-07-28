@@ -24,15 +24,6 @@ public class Activator implements ConfigService, ResourceBundleProvider {
     @Requires
     private LogService logger;
     
-//    @Requires
-//    private HttpService httpService;
-//    
-//    @Requires
-//    private Messages messages;
-//    
-//    @Requires
-//    private TemplateLoader templateLoader;
-    
     private Preferences userPrefs;
     
     private BundleContext ctx;
