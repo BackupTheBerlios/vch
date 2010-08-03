@@ -18,7 +18,7 @@ public class VideoPage extends WebPage implements IVideoPage {
     
     @Override
     public String getDescription() {
-        return description;
+        return description != null ? description : "";
     }
     
     @Override
