@@ -32,7 +32,7 @@ public class VideoPageParser {
         String pageContent = HttpUtils.get(page.getUri().toString(), null, DmaxParser.CHARSET);
 
         // parse the video uri
-        Map<String, Object> video = getVideo(pageContent);
+        Map<String, Object> video = getVideo(page.getUri(), pageContent);
         page.setVideoUri(new URI((String) video.get("video")));
         
         // parse the duration
@@ -93,7 +93,7 @@ public class VideoPageParser {
     }
     
     @SuppressWarnings("unchecked")
-    public Map<String, Object> getVideo(String pageContent) throws Exception {
+    public Map<String, Object> getVideo(URI uri, String pageContent) throws Exception {
         // extract the experienceId
         NodeList params = HtmlParserUtils.getTags(pageContent, DmaxParser.CHARSET, "param");
         NodeIterator iter = params.elements();
@@ -109,24 +109,37 @@ public class VideoPageParser {
         }
         
         AMFConnection conn = new AMFConnection();
-        conn.connect("http://c.brightcove.com/services/messagebroker/amf");
+        conn.connect("http://c.brightcove.com/services/messagebroker/amf?playerId=" + playerId);
+        conn.addHttpRequestHeader("Referer", "http://admin.brightcove.com/viewer/us1.23.03.02/federatedVideo/BrightcovePlayer.swf");
+        conn.addHttpRequestHeader("Content-Type", "application/x-amf");
         
-        ASObject obj = new ASObject("com.brightcove.experience.ContentOverride");
-        obj.put("contentIds", null);
-        obj.put("target", "videoPlayer");
-        obj.put("contentRefIds", null);
-        obj.put("featuredId", Double.NaN);
-        obj.put("contentRefId", null);
-        obj.put("featuredRefId", null);
-        obj.put("contentType", "0");
-        obj.put("contentId", Double.parseDouble(mediaId));
+        
+        ASObject contentOverride = new ASObject("com.brightcove.experience.ContentOverride");
+        contentOverride.put("contentId", Double.parseDouble(mediaId));
+        contentOverride.put("contentRefId", null);
+        contentOverride.put("featuredRefId", null);
+        contentOverride.put("contentRefIds", null);
+        contentOverride.put("featuredId", Double.NaN);
+        contentOverride.put("contentIds", null);
+        contentOverride.put("target", "videoPlayer");
+        contentOverride.put("contentType", 0);
+        
+        ASObject ver = new ASObject("com.brightcove.experience.ViewerExperienceRequest");
+        ver.put("deliveryType", Double.NaN);
+        ver.put("URL", uri.toString());
+        ver.put("TTLToken", "");
+        ver.put("experienceId", Double.parseDouble(playerId));
+        ver.put("contentOverrides", new Object[] {contentOverride, "videoPlayer", 0});
+        
         logger.trace("playerID is {}", playerId);
         logger.trace("contentId is {}", mediaId);
-        logger.trace("AMF request: com.brightcove.experience.ExperienceRuntimeFacade.getProgrammingWithOverrides {},{}", playerId, obj);
-        Object response = conn.call("com.brightcove.experience.ExperienceRuntimeFacade.getProgrammingWithOverrides", "53ca9964d092b6de1b4703ea90c81c9c8d7113f9", Double.parseDouble(playerId), new Object[] {obj});
+        logger.trace("AMF request: com.brightcove.experience.ExperienceRuntimeFacade.getDataForExperience {}", ver);
+        Object response = conn.call("com.brightcove.experience.ExperienceRuntimeFacade.getDataForExperience", 
+                "53ca9964d092b6de1b4703ea90c81c9c8d7113f9", ver);
         logger.trace("AMF response: {}", response);
-        
-        HashMap<?, ?> videoPlayer = (HashMap<?, ?>) ((HashMap<?, ?>) response).get("videoPlayer");
+
+        HashMap<?, ?> programmedContent = (HashMap<?, ?>) ((HashMap<?, ?>) response).get("programmedContent");
+        HashMap<?, ?> videoPlayer = (HashMap<?, ?>) ((HashMap<?, ?>) programmedContent).get("videoPlayer");
         HashMap<?, ?> mediaDTO = (HashMap<?, ?>) videoPlayer.get("mediaDTO");
         Map<String, Object> video = new HashMap<String, Object>();
         String videoUri = (String) mediaDTO.get("FLVFullLengthURL");
