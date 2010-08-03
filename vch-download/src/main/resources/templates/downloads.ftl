@@ -70,7 +70,7 @@
             </#if>
                 <td>
                     <a id="download_${download_index}" href="${download.id?url}" rel="tooltip" onmouseout="tooltip.pnotify_remove();" 
-                        onmousemove="tooltip.css({'top': event.clientY+12, 'left': event.clientX+12});" onmouseover="showTooltip('${download.videoPage.title}', '${download.videoPage.description}');">
+                        onmousemove="tooltip.css({'top': event.clientY+12, 'left': event.clientX+12});" onmouseover="showTooltip('${download.videoPage.title?xml?js_string}', '${download.videoPage.description?replace('\n',' ','m')?xml?js_string}');">
                         ${download.videoPage.title}
                     </a>
                 </td>
@@ -229,7 +229,7 @@
             </#if>
                 <td>
                     <a id="finished_download_${download_index}" href="#" rel="tooltip" onmouseout="tooltip.pnotify_remove();" 
-                        onmousemove="tooltip.css({'top': event.clientY+12, 'left': event.clientX+12});" onmouseover="showTooltip('${download.title}', '${download.description}')">
+                        onmousemove="tooltip.css({'top': event.clientY+12, 'left': event.clientX+12});" onmouseover="showTooltip('${download.title?xml?js_string}', '${download.description?replace('\n',' ','m')?xml?js_string}')">
                         ${download.title}
                     </a>
                 </td>

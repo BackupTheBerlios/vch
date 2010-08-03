@@ -81,7 +81,7 @@ public class DownloadDTO {
      *     
      */
     public String getDescription() {
-        return description;
+        return description != null ? description : "";
     }
 
     /**
