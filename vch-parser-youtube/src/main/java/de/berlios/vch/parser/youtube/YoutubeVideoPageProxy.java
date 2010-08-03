@@ -64,7 +64,7 @@ public class YoutubeVideoPageProxy extends VideoPage {
                                 + ". Using format " + formatList.get(0));
                         format = formatList.get(0);
                     }
-                    medialink = new URI("http://www.youtube.com/get_video" + "?video_id=" + video_id + "&t=" + t + "&fmt=" + format);
+                    medialink = new URI("http://www.youtube.com/get_video" + "?asv=3&el=detailpage&video_id=" + video_id + "&t=" + t + "&fmt=" + format);
                     
                     // parse duration
                     try {
