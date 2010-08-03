@@ -35,14 +35,14 @@
   </td><td>
     <select name="quality" class="ui-widget ui-widget-content ui-corner-all">
         <#if QUALITY == 34>
-            <option value="34" selected="selected">Flash FLV SD (640x360)</option>
+            <option value="34" selected="selected">Flash FLV LQ</option>
         <#else>
-            <option value="34">Flash FLV SD (640x360)</option>
+            <option value="34">Flash FLV LQ</option>
         </#if>
         <#if QUALITY == 35>
-            <option value="35" selected="selected">Flash FLV HD (854x480)</option>
+            <option value="35" selected="selected">Flash FLV HQ</option>
         <#else>
-            <option value="35">Flash FLV HD (854x480)</option>
+            <option value="35">Flash FLV HQ</option>
         </#if>
         <#if QUALITY == 18>
             <option value="18" selected="selected">MP4 SD (480x270)</option>
@@ -53,6 +53,11 @@
             <option value="22" selected="selected">MP4 HD (1280x720)</option>
         <#else>
             <option value="22">MP4 HD (1280x720)</option>
+        </#if>
+        <#if QUALITY == 37>
+            <option value="37" selected="selected">MP4 FullHD (1920x1080)</option>
+        <#else>
+            <option value="37">MP4 FullHD (1920x1080)</option>
         </#if>
     </select>
   <td>
