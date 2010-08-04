@@ -4,12 +4,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
@@ -186,5 +191,36 @@ public class HttpUtils {
         } else {
             throw new RuntimeException("Header contains several values and cannot be mapped to a single String");
         }
+    }
+    
+    public static Map<String, List<String>> parseQuery(String query) throws UnsupportedEncodingException {
+        Map<String, List<String>> parameters = new HashMap<String, List<String>>();
+        if(query != null) {
+            StringTokenizer st = new StringTokenizer(query, "&");
+            while (st.hasMoreTokens()) {
+                String keyValue = st.nextToken();
+                StringTokenizer st2 = new StringTokenizer(keyValue, "=");
+                String key = null;
+                String value = "";
+                if (st2.hasMoreTokens()) {
+                    key = st2.nextToken();
+                    key = URLDecoder.decode(key, "utf-8");
+                }
+
+                if (st2.hasMoreTokens()) {
+                    value = st2.nextToken();
+                    value = URLDecoder.decode(value, "utf-8");
+                }
+
+                logger.debug("Found key value pair: " + key + "," + value);
+                List<String> values = parameters.get(key);
+                if(values == null) {
+                    values = new ArrayList<String>();
+                    parameters.put(key, values);
+                }
+                values.add(value);
+            }
+        }
+        return parameters;
     }
 }
