@@ -163,9 +163,8 @@ private static transient Logger logger = LoggerFactory.getLogger(BrainblogParser
             Pattern p = Pattern.compile("so.addParam\\(\\s*\"flashvars\"\\s*,\\s*\"(.*)\"\\s*\\);");
             Matcher m = p.matcher(pageContent);
             if(m.find()) {
-                Map<String, Object> params = new HashMap<String, Object>();
-                ParameterParser.parseQuery(m.group(1), params);
-                medialink = (String) params.get("file");
+                Map<String, List<String>> params = HttpUtils.parseQuery(m.group(1));
+                medialink = params.get("file").get(0);
                 logger.info("Found video: {}", medialink);
             } else {
                 logger.debug("No video found on page {}", itempage);
