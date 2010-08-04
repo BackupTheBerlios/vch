@@ -70,8 +70,14 @@ public class VideoPageParser {
         }
         st.close();
 
-        // parse the html page to get the video ref file
+        // parse the swf location for swf verification
         String content = HttpUtils.get(video.getUri().toString(), ArteParser.HTTP_HEADERS, ArteParser.CHARSET);
+        Tag embed = HtmlParserUtils.getTag(content, ArteParser.CHARSET, "embed");
+        String swfUri = Translate.decode(embed.getAttribute("src"));
+        video.getUserData().put("swfUri", new URI(swfUri));
+        logger.log(LogService.LOG_INFO, "SWF URI: " + swfUri);
+        
+        // parse the html page to get the video ref file
         Tag param = HtmlParserUtils.getTag(content, ArteParser.CHARSET, "param[name=movie]");
         String movie = Translate.decode(param.getAttribute("value"));
         URI movieUri = new URI(movie);
