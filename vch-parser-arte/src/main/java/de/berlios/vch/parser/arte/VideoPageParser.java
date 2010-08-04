@@ -1,133 +1,124 @@
 package de.berlios.vch.parser.arte;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Map;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.htmlparser.Tag;
 import org.htmlparser.util.ParserException;
 import org.htmlparser.util.Translate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.osgi.framework.BundleContext;
+import org.osgi.service.log.LogService;
+import org.osgi.util.tracker.ServiceTracker;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import de.berlios.vch.http.client.HttpUtils;
-import de.berlios.vch.parser.AsxParser;
+import de.berlios.vch.net.INetworkProtocol;
 import de.berlios.vch.parser.HtmlParserUtils;
 import de.berlios.vch.parser.IVideoPage;
-import de.berlios.vch.parser.VideoPage;
+import de.berlios.vch.parser.exceptions.NoSupportedVideoFoundException;
 
 public class VideoPageParser {
+
+    private Map<String, Integer> formatPrio = new HashMap<String, Integer>();
+
+    private BundleContext ctx;
+
+    private LogService logger;
     
-    private static transient Logger logger = LoggerFactory.getLogger(VideoPageParser.class);
-    
-    public static void parse(IVideoPage v) throws URISyntaxException, IOException, ParserException  {
-        String content = HttpUtils.get(v.getUri().toString(), ArteParser.HTTP_HEADERS, ArteParser.CHARSET);
-        logger.debug("Getting media link in media page:" + v.getUri());
-        
-        VideoPage video = (VideoPage) v;
-        
-        // parse the entry title
-        String title = parseTitle(video, content);
-        if(title != null) video.setTitle(title);
-        
-        // parse description
-        video.setDescription(parseDescription(content));
-        
-        // parse the video link
-        String videoUri = parseVideoUri(content);
-        if (videoUri != null && videoUri.length() > 0) {
-            video.setVideoUri(new URI(videoUri));
-        } 
-    }
-    
-    private static String parseTitle(IVideoPage video, String content) throws ParserException, IOException  {
-        Pattern p = Pattern.compile("var\\s*playerUrl\\s*=\\s*\'(.*)\';");
-        Matcher m = p.matcher(content);
-        if(m.find()) {
-            URL page = new URL(video.getUri().toString());
-            URL detailsPage = new URL(page.getProtocol(), page.getHost(), page.getPort(), m.group(1));
-            String details = HttpUtils.get(detailsPage.toString(), null, ArteParser.CHARSET);
-            return HtmlParserUtils.getText(details, ArteParser.CHARSET, "span[id=abc]");
-        } else {
-            return null;
-        }
+    private static final String APP_NAME = "/a3903/o35/";
+
+    public VideoPageParser(BundleContext ctx, LogService logger) {
+        this.ctx = ctx;
+        this.logger = logger;
+
+        formatPrio.put("hd", 2);
+        formatPrio.put("sd", 1);
+        formatPrio.put("EQ", 0);
     }
 
-    private static String parseDescription(String content) throws ParserException  {
-        String headline = HtmlParserUtils.getText(content, ArteParser.CHARSET, "p.headline");
-        String text = HtmlParserUtils.getText(content, ArteParser.CHARSET, "p.text");
-        
-        headline = headline != null ? headline.trim() : "";
-        text = text != null ? text.trim() : "";
-        
-        return Translate.decode(headline + (headline.length() > 0 ? "\n\n" : "") + text);
+    public void parse(IVideoPage video) throws URISyntaxException, IOException, ParserException, SAXException,
+            ParserConfigurationException, NoSupportedVideoFoundException {
+        logger.log(LogService.LOG_DEBUG, "Getting media link in media page:" + video.getUri());
+
+        // parse the video link
+        parseVideoUri(video);
     }
-    
-    private static String parseVideoUri(String content) throws UnsupportedEncodingException {
-        List<String[]> videos = new ArrayList<String[]>();
-        Pattern pFormat = Pattern.compile("availableFormats\\[\\d*\\]\\[\"format\"\\] = \"(\\w*)\";");
-        Pattern pQuality = Pattern.compile("availableFormats\\[\\d*\\]\\[\"quality\"\\] = \"(\\w*)\";"); 
-        Pattern pUrl = Pattern.compile("availableFormats\\[\\d*\\]\\[\"url\"\\] = \"(.*)\";");
-        Matcher mFormat = pFormat.matcher(content);
-        Matcher mQuality = pQuality.matcher(content);
-        Matcher mUrl = pUrl.matcher(content);
-        while(mFormat.find()) {
-            int index = mFormat.start();
-            String format = mFormat.group(1);
-            if(mQuality.find(index+1)) {
-                index = mQuality.start();
-                String quality = mQuality.group(1);
-                if(mUrl.find(index+1)) {
-                    String uri = mUrl.group(1);
-                    String[] video = new String[] {format, quality, uri};
-                    videos.add(video);
+
+    private void parseVideoUri(IVideoPage video) throws IOException, ParserException, URISyntaxException, SAXException,
+            ParserConfigurationException, NoSupportedVideoFoundException {
+        // create list of supported network protocols
+        List<String> supportedProtocols = new ArrayList<String>();
+        ServiceTracker st = new ServiceTracker(ctx, INetworkProtocol.class.getName(), null);
+        st.open();
+        Object[] protocols = st.getServices();
+        for (Object object : protocols) {
+            INetworkProtocol protocol = (INetworkProtocol) object;
+            supportedProtocols.addAll(protocol.getSchemes());
+        }
+        st.close();
+
+        // parse the html page to get the video ref file
+        String content = HttpUtils.get(video.getUri().toString(), ArteParser.HTTP_HEADERS, ArteParser.CHARSET);
+        Tag param = HtmlParserUtils.getTag(content, ArteParser.CHARSET, "param[name=movie]");
+        String movie = Translate.decode(param.getAttribute("value"));
+        URI movieUri = new URI(movie);
+        Map<String, List<String>> params = HttpUtils.parseQuery(movieUri.getQuery());
+        String refFileUri = params.get("videorefFileUrl").get(0);
+        logger.log(LogService.LOG_DEBUG, "Video ref file is at " + refFileUri);
+
+        // parse the video ref file
+        content = HttpUtils.get(refFileUri, ArteParser.HTTP_HEADERS, ArteParser.CHARSET);
+        Tag v = HtmlParserUtils.getTag(content, ArteParser.CHARSET, "video[lang=de]");
+        String refFileDe = v.getAttribute("ref");
+        logger.log(LogService.LOG_DEBUG, "DE ref file " + refFileDe);
+
+        // parse the de ref file
+        content = HttpUtils.get(refFileDe, ArteParser.HTTP_HEADERS, ArteParser.CHARSET);
+        Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+                .parse(new InputSource(new StringReader(content)));
+        Node urls = doc.getElementsByTagName("urls").item(0);
+        NodeList childs = urls.getChildNodes();
+        URI bestVideo = null;
+        int bestQuali = Integer.MIN_VALUE;
+        for (int i = 0; i < childs.getLength(); i++) {
+            Node url = childs.item(i);
+            if ("url".equals(url.getNodeName())) {
+                String quality = url.getAttributes().getNamedItem("quality").getNodeValue();
+                URI uri = new URI(url.getTextContent());
+                if (supportedProtocols.contains(uri.getScheme())) {
+                    int qualiPrio = formatPrio.get(quality);
+                    if (qualiPrio > bestQuali) {
+                        bestVideo = uri;
+                        bestQuali = qualiPrio;
+                    }
                 }
             }
         }
-        
-        if(videos.size() == 0) {
-            return null;
+
+        if (bestVideo != null) {
+            logger.log(LogService.LOG_INFO, "Best format found is " + bestVideo.toString());
+            video.setVideoUri(bestVideo);
+            String streamName = bestVideo.getPath();
+            streamName += bestVideo.getQuery() != null ? "?" + bestVideo.getQuery() : "";
+            streamName += bestVideo.getFragment() != null ? "#" + bestVideo.getFragment() : "";
+            streamName = streamName.substring(APP_NAME.length());
+            logger.log(LogService.LOG_INFO, "Stream name is " + streamName);
+            video.getUserData().put("streamName", streamName);
+        } else {
+            throw new NoSupportedVideoFoundException(video.getUri().toString(), supportedProtocols);
         }
-        
-        sort(videos);
-        String[] video = videos.get(videos.size()-1);
-        
-        String videoUri = video[2];
-        if(videoUri.endsWith("asx") || videoUri.startsWith("http://")) {
-            videoUri = AsxParser.getUri(videoUri);
-        }
-        return videoUri;
-    }
-    
-    /**
-     * Sorts videos represented by an String[] {format, quality, uri}
-     * WMV > FLV
-     * HQ > MQ
-     * @param videos
-     */
-    private static void sort(List<String[]> videos) {
-        Collections.sort(videos, new Comparator<String[]>() {
-            @Override
-            public int compare(String[] v1, String[] v2) {
-                if(v1[0].equals("WMV") && !v2[0].equals("WMV")) {
-                    return 1;
-                } else if(!v1[0].equals("WMV") && v2[0].equals("WMV")) {
-                    return -1;
-                } else if(v1[1].equals("HQ") && !v2[0].equals("HQ")) {
-                    return 1;
-                } else if(!v1[1].equals("HQ") && v2[0].equals("HQ")) {
-                    return -1;
-                } else {
-                    return 0;
-                }
-            }
-        });
     }
 }

@@ -1,55 +1,66 @@
 package de.berlios.vch.parser.arte;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
-import org.jdom.Element;
-import org.jdom.input.SAXBuilder;
-import org.osgi.framework.BundleActivator;
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
+import org.htmlparser.Node;
+import org.htmlparser.tags.ImageTag;
+import org.htmlparser.tags.LinkTag;
+import org.htmlparser.util.NodeList;
+import org.htmlparser.util.ParserException;
+import org.htmlparser.util.SimpleNodeIterator;
+import org.htmlparser.util.Translate;
 import org.osgi.framework.BundleContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.osgi.service.log.LogService;
 
 import de.berlios.vch.http.client.HttpUtils;
+import de.berlios.vch.parser.HtmlParserUtils;
 import de.berlios.vch.parser.IOverviewPage;
 import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
 import de.berlios.vch.parser.VideoPage;
-import de.berlios.vch.parser.WebPageTitleComparator;
 
-public class ArteParser implements IWebParser, BundleActivator {
-    private static transient Logger logger = LoggerFactory.getLogger(ArteParser.class);
+@Component
+@Provides
+public class ArteParser implements IWebParser {
     
     public static final String CHARSET = "UTF-8";
     
     public static final String ARTE_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
     
-    public static final String CAROUSEL_URL = "http://plus7.arte.tv/de/streaming-home/1698112,templateId=renderCarouselXml,CmPage=1697480,CmPart=com.arte-tv.streaming.xml&preloading=false&introLang=de";
+    public static final String BASE_URI = "http://videos.arte.tv";
+    
+    public static final String START_PAGE = BASE_URI + "/de/videos/sendungen";
     
     public static final String ID = ArteParser.class.getName();
+    
+    @Requires
+    private LogService logger;
+    
+    private BundleContext ctx;
+    
+    private VideoPageParser videoPageParser;
     
     public static Map<String,String> HTTP_HEADERS = new HashMap<String, String>();
     static {
         HTTP_HEADERS.put("User-Agent", "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.1.2) Gecko/20090821 Gentoo Firefox/3.5.2");
         HTTP_HEADERS.put("Accept-Language", "de-de,de;q=0.8,en-us;q=0.5,en;q=0.3");
+    }
+    
+    public ArteParser(BundleContext ctx) {;
+        this.ctx = ctx;
     }
     
     @Override
@@ -58,63 +69,24 @@ public class ArteParser implements IWebParser, BundleActivator {
         page.setParser(ID);
         page.setTitle(getTitle());
         page.setUri(new URI("vchpage://localhost/" + getId()));
-        
-        List<IWebPage> pages = createPageList();
-        Collections.sort(pages, new WebPageTitleComparator());
-        page.getPages().addAll(pages);
-        
+        parsePrograms(page);
         return page;
     }
     
-    private List<IWebPage> createPageList() throws URISyntaxException, NoSuchAlgorithmException {
-        List<IWebPage> pageList = new ArrayList<IWebPage>();
-        List<IVideoPage> videos = getVideos(CAROUSEL_URL);
-        Map<String, List<IVideoPage>> categories = new HashMap<String, List<IVideoPage>>();
-        for (IVideoPage video : videos) {
-            List<IVideoPage> category = categories.get(video.getTitle());
-            if(category == null) {
-                category = new ArrayList<IVideoPage>();
-                categories.put(video.getTitle(), category);
-            }
-            category.add(video);
+    private void parsePrograms(OverviewPage root) throws IOException, ParserException, URISyntaxException {
+        String content = HttpUtils.get(START_PAGE, HTTP_HEADERS, CHARSET);
+        NodeList programs = HtmlParserUtils.getTags(content, CHARSET, "div.newVideos h1 > a");
+        for (SimpleNodeIterator iterator = programs.elements(); iterator.hasMoreNodes();) {
+            LinkTag link = (LinkTag) iterator.nextNode();
+            OverviewPage opage = new OverviewPage();
+            opage.setParser(getId());
+            opage.setTitle(Translate.decode(link.getLinkText()));
+            opage.setUri(new URI(BASE_URI + link.getLink()));
+            root.getPages().add(opage);
+            
+            // skip the second matching link for each program
+            iterator.nextNode();
         }
-        List<String> keys = new ArrayList<String>(categories.keySet());
-        Collections.sort(keys);
-        
-        for (String title : keys) {
-            List<IVideoPage> category = categories.get(title);
-            if(category.size() == 1) {
-                pageList.add(category.get(0));
-            } else {
-                OverviewPage overview = new OverviewPage();
-                overview.setParser(ID);
-                overview.setTitle(title);
-                overview.setUri(new URI("dummy://" + md5(title)));
-                overview.getPages().addAll(category);
-                pageList.add(overview);
-            }
-        }
-        return pageList;
-    }
-    
-    private static String md5(String s) throws NoSuchAlgorithmException {
-        String digest = "";
-
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        byte[] b = s.getBytes();
-        md.update(b, 0, b.length);
-        byte[] md5Bytes = md.digest();
-
-        StringBuffer hexValue = new StringBuffer();
-        for (int i = 0; i < md5Bytes.length; i++) {
-            int val = ((int) md5Bytes[i]) & 0xff;
-            if (val < 16)
-                hexValue.append("0");
-            hexValue.append(Integer.toHexString(val));
-        }
-        digest = hexValue.toString();
-
-        return digest;
     }
 
     @Override
@@ -127,91 +99,68 @@ public class ArteParser implements IWebParser, BundleActivator {
         if(page instanceof IVideoPage) {
             IVideoPage video = (IVideoPage) page;
             if(video.getVideoUri() == null) {
-                VideoPageParser.parse(video);
+                videoPageParser.parse(video);
             }
             return video;
         } else if(page instanceof IOverviewPage) {
             IOverviewPage opage = (IOverviewPage) page;
-            ExecutorService pool = Executors.newFixedThreadPool(10);
-            for (final IWebPage webPage : opage.getPages()) {
-                if(webPage instanceof IVideoPage) {
-                    pool.submit(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                VideoPageParser.parse((IVideoPage) webPage);
-                            } catch (Exception e) {
-                                logger.error("Couldn't parse page " + webPage.getUri(), e);
-                            }                            
-                        }
-                    });
-                }
-            }
-            pool.shutdown();
-            pool.awaitTermination(1, TimeUnit.MINUTES);
-            pool.shutdownNow();
+            parseBroadcasts(opage);
             return page;
         } else {
             return page;
         }
     }
+    
+    private void parseBroadcasts(IOverviewPage opage) throws Exception {
+        String uri = opage.getUri().toString() + "#/de/list///1/150/";
+        String content = HttpUtils.get(uri, HTTP_HEADERS, CHARSET);
+        content = content.replaceAll("<noscript>", "");
+        content = content.replaceAll("</noscript>", "");
+        NodeList videoDivs = HtmlParserUtils.getTags(content, CHARSET, "div.video");
+        for (SimpleNodeIterator iterator = videoDivs.elements(); iterator.hasMoreNodes();) {
+            String nodeContent = iterator.nextNode().toHtml();
+            IVideoPage video = new VideoPage();
+            video.setParser(getId());
 
-    @Override
-    public void start(BundleContext ctx) throws Exception {
-        ctx.registerService(IWebParser.class.getName(), this, null);
+            // parse title and page uri
+            LinkTag link = (LinkTag)HtmlParserUtils.getTag(nodeContent, CHARSET, "h2 a");
+            video.setTitle(Translate.decode(link.getLinkText()));
+            video.setUri(new URI(BASE_URI + link.getLink()));
+            
+            // parse description
+            video.setDescription(HtmlParserUtils.getText(nodeContent, CHARSET, "p.teaserText"));
+            
+            // parse thumbnail
+            ImageTag thumb = (ImageTag) HtmlParserUtils.getTag(nodeContent, CHARSET, "img.thumbnail");
+            video.setThumbnail(new URI(BASE_URI + thumb.getImageURL()));
+            
+            // parse date (Di, 13. Apr 2010, 00:00)
+            try {
+                String format = "EE, dd. MMM yyyy, HH:mm";
+                Node ps = HtmlParserUtils.getTag(nodeContent, CHARSET, "p.views").getPreviousSibling().getPreviousSibling();
+                String dateString = ps.getFirstChild().getText();
+                SimpleDateFormat sdf = new SimpleDateFormat(format);
+                Calendar pubDate = Calendar.getInstance();
+                pubDate.setTime(sdf.parse(dateString));
+                video.setPublishDate(pubDate);
+            } catch (Exception e) {
+                logger.log(LogService.LOG_WARNING, "Couldn't parse publish date", e);
+            }
+            
+            opage.getPages().add(video);
+        }
     }
 
-    @Override
-    public void stop(BundleContext ctx) throws Exception {
+    @Validate
+    public void start() {
+        videoPageParser = new VideoPageParser(ctx, logger);
     }
+
+    @Invalidate
+    public void stop()  {}
 
     @Override
     public String getId() {
         return ID;
-    }
-    
-    private List<IVideoPage> getVideos(String carouselUrl) {
-        List<IVideoPage> list = new ArrayList<IVideoPage>();
-        try {                                      
-            String content = HttpUtils.get(carouselUrl, null, CHARSET);
-            org.jdom.Document doc = new SAXBuilder().build(new StringReader(content));
-            Element videos = doc.getRootElement();
-            List<?> elemente = videos.getChildren();
-            for (Iterator<?> iterator = elemente.iterator(); iterator.hasNext();) {
-                VideoPage videoPage = new VideoPage();
-                videoPage.setParser(ID);
-                Element video = (Element) iterator.next();
-                
-                // parse link
-                String mediaPageUrl = video.getChildText("targetURL");
-                videoPage.setUri(new URI(mediaPageUrl));
-                
-                // parse title
-                String title = video.getChildText("bigTitle");
-                videoPage.setTitle(title);
-                
-                // parse pubDate
-                String dateString = video.getChildText("startDate");
-                Date pubDate = new SimpleDateFormat(ARTE_DATE_FORMAT).parse(dateString);
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(pubDate);
-                videoPage.setPublishDate(cal);
-                
-                // parse previewPicture
-                String previewPicture = video.getChildText("previewPictureURL");
-                videoPage.setThumbnail(new URI(previewPicture));
-                
-                list.add(videoPage);
-            }
-        } catch (Exception e) {
-            logger.error("Couldn't parse carousel " + carouselUrl, e);
-            if(logger.isTraceEnabled()) {
-                try {
-                    String content = HttpUtils.get(carouselUrl, null, ArteParser.CHARSET);
-                    logger.trace("Carousel content: {}", content);
-                } catch (IOException e1) {}
-            }
-        }
-        return list;
     }
 }
