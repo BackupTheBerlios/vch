@@ -125,7 +125,11 @@ public class GetWebPage implements Command {
             } else {
                 out.println("Length: " + TimeUnit.SECONDS.toMinutes(vpage.getDuration()) + " minutes");
             }
-            out.println("Online since: " + SimpleDateFormat.getDateTimeInstance().format(vpage.getPublishDate().getTime()));
+            String pubDate = "N/A";
+            if(vpage.getPublishDate() != null) {
+                pubDate = SimpleDateFormat.getDateTimeInstance().format(vpage.getPublishDate().getTime());
+            }
+            out.println("Online since: " + pubDate);
             out.println("URI: " + vpage.getVideoUri());
             if(vpage.getDescription() != null && !vpage.getDescription().isEmpty()) {
                 out.println("Description: " + vpage.getDescription());
