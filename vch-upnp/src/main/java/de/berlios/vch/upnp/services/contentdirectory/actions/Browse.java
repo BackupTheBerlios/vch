@@ -92,7 +92,6 @@ public class Browse implements UPnPAction {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Dictionary invoke(Dictionary args) throws Exception {
         String objectId = (String) args.get("ObjectID");
         IParserService parserService = (IParserService) parserTracker.getService();

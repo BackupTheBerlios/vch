@@ -68,7 +68,6 @@ public class VchDevice implements UPnPDevice {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Dictionary getDescriptions(String locale) {
         return description;
     }
