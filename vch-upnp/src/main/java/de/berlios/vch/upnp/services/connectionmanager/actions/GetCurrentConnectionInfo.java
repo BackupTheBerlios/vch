@@ -57,7 +57,6 @@ public class GetCurrentConnectionInfo implements UPnPAction {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Dictionary invoke(Dictionary args) throws Exception {
         // TODO implement
         return null;

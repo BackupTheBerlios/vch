@@ -43,8 +43,7 @@ public class GetCurrentConnectionIDs implements UPnPAction {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public Dictionary invoke(Dictionary args) throws Exception {
+    public Dictionary<?,?> invoke(Dictionary args) throws Exception {
         // TODO implement
         return null;
     }
