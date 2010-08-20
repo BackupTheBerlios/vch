@@ -44,7 +44,6 @@ public class GetSortCapabilities implements UPnPAction {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Dictionary invoke(Dictionary args) throws Exception {
         Hashtable<String, String> result = new Hashtable<String, String>();
         result.put("SortCaps", "");
