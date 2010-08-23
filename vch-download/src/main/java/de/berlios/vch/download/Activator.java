@@ -26,13 +26,16 @@ import de.berlios.vch.download.osd.DownloadAction;
 import de.berlios.vch.download.osd.OpenDownloadsAction;
 import de.berlios.vch.download.webinterface.ConfigServlet;
 import de.berlios.vch.download.webinterface.DownloadHttpContext;
+import de.berlios.vch.download.webinterface.DownloadWebAction;
 import de.berlios.vch.download.webinterface.DownloadsServlet;
 import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.osdserver.osd.menu.actions.ItemDetailsAction;
 import de.berlios.vch.osdserver.osd.menu.actions.OverviewAction;
+import de.berlios.vch.parser.IParserService;
 import de.berlios.vch.playlist.PlaylistService;
+import de.berlios.vch.web.IWebAction;
 import de.berlios.vch.web.ResourceHttpContext;
 import de.berlios.vch.web.TemplateLoader;
 import de.berlios.vch.web.menu.IWebMenuEntry;
@@ -67,6 +70,9 @@ public class Activator implements ResourceBundleProvider {
     
     @Requires
     private PlaylistService playlistService;
+    
+    @Requires
+    private IParserService parserService;
     
     private List<ServiceRegistration> serviceRegs = new LinkedList<ServiceRegistration>();
     
@@ -106,6 +112,11 @@ public class Activator implements ResourceBundleProvider {
             serviceRegs.add(sr);
             OpenDownloadsAction oda = new OpenDownloadsAction(messages, dm, logger, prefs, playlistService);
             sr = ctx.registerService(OverviewAction.class.getName(), oda, null);
+            serviceRegs.add(sr);
+            
+            // register web action
+            DownloadWebAction dwa = new DownloadWebAction(messages);
+            sr = ctx.registerService(IWebAction.class.getName(), dwa, null);
             serviceRegs.add(sr);
         } catch (Exception e) {
             logger.log(LogService.LOG_ERROR, "Couldn't start download manager", e);
@@ -152,7 +163,7 @@ public class Activator implements ResourceBundleProvider {
     }
 
     private void registerServlets() throws ServletException, NamespaceException {
-        DownloadsServlet downloads = new DownloadsServlet(dm);
+        DownloadsServlet downloads = new DownloadsServlet(dm, parserService);
         downloads.setBundleContext(ctx);
         downloads.setMessages(messages);
         downloads.setTemplateLoader(templateLoader);

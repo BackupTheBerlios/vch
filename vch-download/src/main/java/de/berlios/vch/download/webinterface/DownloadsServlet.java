@@ -1,6 +1,7 @@
 package de.berlios.vch.download.webinterface;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +12,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import de.berlios.vch.download.DownloadManager;
+import de.berlios.vch.parser.IParserService;
+import de.berlios.vch.parser.IVideoPage;
+import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.web.NotifyMessage;
 import de.berlios.vch.web.NotifyMessage.TYPE;
 import de.berlios.vch.web.servlets.BundleContextServlet;
@@ -26,9 +30,12 @@ public class DownloadsServlet extends BundleContextServlet {
     public static final String STATIC_PATH = PATH + "/static";
     
     private DownloadManager dm;
+
+    private IParserService parserService;
     
-    public DownloadsServlet(DownloadManager dm) {
+    public DownloadsServlet(DownloadManager dm, IParserService parserService) {
         this.dm = dm;
+        this.parserService = parserService;
     }
     
     @Override
@@ -56,6 +63,17 @@ public class DownloadsServlet extends BundleContextServlet {
             String id = req.getParameter("id");
             dm.deleteDownload(id);
             addNotify(req, new NotifyMessage(TYPE.INFO, i18n.translate("I18N_DL_FILE_DELETED")));
+        } else if ("add".equals(action)) {
+            String vchuri = req.getParameter("vchuri");
+            try {
+                URI uri = new URI(vchuri);
+                IWebPage page = parserService.parse(uri);
+                if(page instanceof IVideoPage) {
+                    dm.downloadItem((IVideoPage) page);
+                }
+            } catch (Exception e) {
+                throw new ServletException(e);
+            }
         }
             
         listDownloads(req, resp);

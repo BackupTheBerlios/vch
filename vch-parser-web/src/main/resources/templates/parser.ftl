@@ -28,24 +28,28 @@
                     });
                 },
                 success: function(response){
-                    var html = '<h1>' + response.data.title + '</h1>';
+                    var video = response.video.data;
+                    var attributes = response.video.attributes;
+                    var actions = response.actions;
+                    
+                    var html = '<h1>' + video.title + '</h1>';
                     
                     // add a preview, if available
-                    if(response.attributes.vchthumb) {
-                        html += '<p><img src="'+response.attributes.vchthumb+'" alt="Preview" class="thumb ui-widget-content ui-corner-all"/></p>';
+                    if(attributes.vchthumb) {
+                        html += '<p><img src="'+attributes.vchthumb+'" alt="Preview" class="thumb ui-widget-content ui-corner-all"/></p>';
                     }
                     
                     // add the pubdate, if available
-                    if(response.attributes.vchpubDate) {
+                    if(attributes.vchpubDate) {
                         var date = new Date();
-                        date.setTime(response.attributes.vchpubDate);
+                        date.setTime(attributes.vchpubDate);
                         html += '<p><strong>' + date.toLocaleString();
                     }
                     
                     // add the duration, if available
-                    if(response.attributes.vchduration) {
+                    if(attributes.vchduration) {
                         html += ' - ';
-                        var secs = parseInt(response.attributes.vchduration);
+                        var secs = parseInt(attributes.vchduration);
                         if(secs < 60) {
                             html += secs + ' ${I18N_SECONDS}';                        
                         } else {
@@ -60,24 +64,36 @@
                     html += '</strong></p>';
                     
                     // add the description, if available
-                    if(response.attributes.vchdesc) {
-                        html += '<p>' + response.attributes.vchdesc + '</p>';
+                    if(attributes.vchdesc) {
+                        html += '<p>' + attributes.vchdesc + '</p>';
                     } 
                     
                     // add the video link, if available
-                    if(response.attributes.vchvideo) {
-                        html += '<a id="watch" style="margin-right: 1em;" href="'+response.attributes.vchvideo+'">${I18N_WATCH}</a>';
+                    if(attributes.vchvideo) {
+                        html += '<a id="watch" style="margin-right: 1em;" href="'+attributes.vchvideo+'">${I18N_WATCH}</a>';
                     }
                     
                     // add the page link, if available
-                    if(response.attributes.vchlink && response.attributes.vchlink.indexOf("http") == 0) {
-                        html += '<a target="_blank" style="margin-right: 1em;" id="open" href="'+response.attributes.vchlink+'">${I18N_OPEN}</a>';
+                    if(attributes.vchlink && attributes.vchlink.indexOf("http") == 0) {
+                        html += '<a target="_blank" style="margin-right: 1em;" id="open" href="'+attributes.vchlink+'">${I18N_OPEN}</a>';
+                    }
+                    
+                    // show all dynamic web actions
+                    if(actions) {
+                        for(var i=0; i<actions.length; i++) {
+                            html += '<a style="margin-right: 1em;" id="action'+i+'" href="'+actions[i].uri+'">'+actions[i].title+'</a>';
+                        }
                     }
                     
                     // display the details
                     $('#content').html(html);
                     $('#watch').button( {icons: { primary: 'ui-icon-play'}} );
                     $('#open').button( {icons: { primary: 'ui-icon-extlink'}} );
+                    if(actions) {
+                        for(var i=0; i<actions.length; i++) {
+                            $('#action'+i).button();           
+                        }
+                    }
                 }
             });
         }
