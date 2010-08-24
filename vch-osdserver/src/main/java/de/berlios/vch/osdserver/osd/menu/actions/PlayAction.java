@@ -57,6 +57,7 @@ public class PlayAction implements IOsdAction {
         Playlist pl = new Playlist();
         pl.add(new PlaylistEntry(page.getTitle(), video.toString()));
         playlistService.play(pl);
+        Osd.getInstance().closeMenu();
     }
 
     @Override
