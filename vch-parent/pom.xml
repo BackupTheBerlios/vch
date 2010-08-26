@@ -214,7 +214,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>osdserver</artifactId>
-            	<version>1.0.4</version>
+            	<version>1.0.5-SNAPSHOT</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>

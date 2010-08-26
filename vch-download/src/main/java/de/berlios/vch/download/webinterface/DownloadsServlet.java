@@ -68,6 +68,8 @@ public class DownloadsServlet extends BundleContextServlet {
             try {
                 URI uri = new URI(vchuri);
                 IWebPage page = parserService.parse(uri);
+                // TODO check, if the video is not null and we support the format
+                // fail gracefully otherwise
                 if(page instanceof IVideoPage) {
                     dm.downloadItem((IVideoPage) page);
                 }
