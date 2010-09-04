@@ -1,9 +1,12 @@
 package de.berlios.vch.download;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+
 import de.berlios.vch.parser.IVideoPage;
 
 public interface DownloadFactory {
-    public Download createDownload(IVideoPage page);
+    public Download createDownload(IVideoPage page) throws IOException, URISyntaxException, PlaylistFileFoundException;
     
     /**
      * @param video

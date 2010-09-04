@@ -167,6 +167,7 @@ public class Activator implements ResourceBundleProvider {
         downloads.setBundleContext(ctx);
         downloads.setMessages(messages);
         downloads.setTemplateLoader(templateLoader);
+        downloads.setLogger(logger);
         
         ConfigServlet config = new ConfigServlet(prefs);
         config.setBundleContext(ctx);

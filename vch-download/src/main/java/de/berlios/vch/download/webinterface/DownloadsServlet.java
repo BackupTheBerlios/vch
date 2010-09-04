@@ -11,7 +11,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.osgi.service.log.LogService;
+
 import de.berlios.vch.download.DownloadManager;
+import de.berlios.vch.download.PlaylistFileFoundException;
 import de.berlios.vch.parser.IParserService;
 import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebPage;
@@ -71,7 +74,12 @@ public class DownloadsServlet extends BundleContextServlet {
                 // TODO check, if the video is not null and we support the format
                 // fail gracefully otherwise
                 if(page instanceof IVideoPage) {
-                    dm.downloadItem((IVideoPage) page);
+                    try {
+                        dm.downloadItem((IVideoPage) page);
+                    } catch (PlaylistFileFoundException e) {
+                        logger.log(LogService.LOG_WARNING, "Playlist file found. Retrying to download the video file");
+                        dm.downloadItem((IVideoPage) page);
+                    }
                 }
             } catch (Exception e) {
                 throw new ServletException(e);
