@@ -50,7 +50,7 @@ import de.berlios.vch.web.menu.IWebMenuEntry;
 import de.berlios.vch.web.menu.WebMenuEntry;
 
 @Component
-@Provides
+@Provides(specifications={IWebParser.class})
 public class DmaxParser implements IWebParser, ResourceBundleProvider {
 
     final static String CHARSET = "utf-8";
@@ -184,6 +184,7 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
 
     @Validate
     public void start() throws Exception {
+        i18n.addProvider(this);
         prefs = config.getUserPreferences(ctx.getBundle().getSymbolicName());
         
         // register the config servlet
@@ -203,6 +204,8 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
         if(menuReg != null) {
             menuReg.unregister();
         }
+        
+        i18n.removeProvider(this);
     }
     
     private void registerServlet() {

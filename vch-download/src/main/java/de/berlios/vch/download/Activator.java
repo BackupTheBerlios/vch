@@ -12,7 +12,6 @@ import javax.servlet.ServletException;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
-import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
@@ -42,7 +41,6 @@ import de.berlios.vch.web.menu.IWebMenuEntry;
 import de.berlios.vch.web.menu.WebMenuEntry;
 
 @Component
-@Provides
 public class Activator implements ResourceBundleProvider {
 
     private BundleContext ctx;
@@ -82,6 +80,7 @@ public class Activator implements ResourceBundleProvider {
     
     @Validate
     public void start() {
+        messages.addProvider(this);
         prefs = cs.getUserPreferences(ctx.getBundle().getSymbolicName());
         setDefaults(prefs);
         try {
@@ -145,6 +144,8 @@ public class Activator implements ResourceBundleProvider {
             unregisterService(sr);
             iterator.remove();
         }
+        
+        messages.removeProvider(this);
     }
     
     private void unregisterService(ServiceRegistration sr) {

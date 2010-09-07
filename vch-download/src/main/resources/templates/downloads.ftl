@@ -150,23 +150,20 @@
                                 $(this).css("display", "none");
                 
                                 // make a ajax get request with the "delete url"
-                                $(this).queue(function() {
-                                    $.ajax({
-                                        url: '${ACTION}?action=delete&id=${download.id?url}',
-                                        type: 'GET',
-                                        dataType: 'html',
-                                        timeout: 30000,
-                                        error: function(){
-                                            // hide process indicator and show delete link
-                                            indicator.css("display", "none");
-                                            $(this).css("display", "inline");
-                                            alert("${I18N_DL_COULDNT_DELETE}");
-                                        },
-                                        success: function(html){
-                                            tableRow.fadeOut("slow");
-                                            console.log('success');
-                                        }
-                                    });
+                                $.ajax({
+                                    url: '${ACTION}?action=delete&id=${download.id?url}',
+                                    type: 'GET',
+                                    dataType: 'html',
+                                    timeout: 30000,
+                                    error: function(){
+                                        // hide process indicator and show delete link
+                                        indicator.css("display", "none");
+                                        $(this).css("display", "inline");
+                                        alert("${I18N_DL_COULDNT_DELETE}");
+                                    },
+                                    success: function(html){
+                                        tableRow.fadeOut("slow");
+                                    }
                                 });
                             <#else>
                                 window.location.href = '${ACTION}?action=delete&id=${download.id?url}';
@@ -259,23 +256,20 @@
                                 $(this).css("display", "none");
                 
                                 // make a ajax get request with the "delete url"
-                                $(this).queue(function() {
-                                    $.ajax({
-                                        url: '${ACTION}?action=delete_finished&id=${download.id?url}',
-                                        type: 'GET',
-                                        dataType: 'html',
-                                        timeout: 30000,
-                                        error: function(){
-                                            // hide process indicator and show delete link
-                                            indicator.css("display", "none");
-                                            $(this).css("display", "inline");
-                                            alert("${I18N_DL_COULDNT_DELETE}");
-                                        },
-                                        success: function(html){
-                                            tableRow.fadeOut("slow");
-                                            console.log('success');
-                                        }
-                                    });
+                                $.ajax({
+                                    url: '${ACTION}?action=delete_finished&id=${download.id?url}',
+                                    type: 'GET',
+                                    dataType: 'html',
+                                    timeout: 30000,
+                                    error: function(){
+                                        // hide process indicator and show delete link
+                                        indicator.css("display", "none");
+                                        $(this).css("display", "inline");
+                                        alert("${I18N_DL_COULDNT_DELETE}");
+                                    },
+                                    success: function(html){
+                                        tableRow.fadeOut("slow");
+                                    }
                                 });
                             <#else>
                                 window.location.href = '${ACTION}?action=delete_finished&id=${download.id?url}';

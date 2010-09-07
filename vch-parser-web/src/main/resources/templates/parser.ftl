@@ -79,7 +79,7 @@
                     }
                     
                     // show all dynamic web actions
-                    if(actions) {
+                    if(attributes.vchvideo && actions) {
                         for(var i=0; i<actions.length; i++) {
                             html += '<a style="margin-right: 1em;" id="action'+i+'" href="'+actions[i].uri+'">'+actions[i].title+'</a>';
                         }
@@ -87,13 +87,15 @@
                     
                     // display the details
                     $('#content').html(html);
-                    $('#watch').button( {icons: { primary: 'ui-icon-play'}} );
-                    $('#open').button( {icons: { primary: 'ui-icon-extlink'}} );
-                    if(actions) {
-                        for(var i=0; i<actions.length; i++) {
-                            $('#action'+i).button();           
+                    if(attributes.vchvideo) {
+                        $('#watch').button( {icons: { primary: 'ui-icon-play'}} );
+                        if(actions) {
+                            for(var i=0; i<actions.length; i++) {
+                                $('#action'+i).button();           
+                            }
                         }
                     }
+                    $('#open').button( {icons: { primary: 'ui-icon-extlink'}} );
                 }
             });
         }

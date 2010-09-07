@@ -207,7 +207,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>i18n</artifactId>
-            	<version>1.0.1</version>
+            	<version>1.1.0</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
@@ -265,7 +265,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>playlist</artifactId>
-            	<version>1.0.1</version>
+            	<version>1.0.2</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
