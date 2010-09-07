@@ -200,21 +200,21 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>web</artifactId>
-            	<version>1.0.2-SNAPSHOT</version>
+            	<version>1.0.3-SNAPSHOT</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>i18n</artifactId>
-            	<version>1.0.1</version>
+            	<version>1.1.0</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>osdserver</artifactId>
-            	<version>1.0.4</version>
+            	<version>1.0.5-SNAPSHOT</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
@@ -235,7 +235,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>download</artifactId>
-            	<version>1.0.6</version>
+            	<version>1.0.7-SNAPSHOT</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
@@ -265,7 +265,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>playlist</artifactId>
-            	<version>1.0.0</version>
+            	<version>1.0.2</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>

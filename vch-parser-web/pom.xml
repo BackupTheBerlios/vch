@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>parser.web</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.0.2-SNAPSHOT</version>
+	<version>1.0.3-SNAPSHOT</version>
 	<name>VCH Parser Web Frontend</name>
 	<description>Web frontend for the parsers. Use your favorite browser to browse through the VCH index</description>
     

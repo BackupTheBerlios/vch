@@ -14,7 +14,6 @@ import javax.servlet.ServletException;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
-import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
@@ -36,7 +35,6 @@ import de.berlios.vch.web.menu.IWebMenuEntry;
 import de.berlios.vch.web.menu.WebMenuEntry;
 
 @Component
-@Provides
 public class Activator implements ResourceBundleProvider {
     
     private Map<String, ServiceRegistration> registrations = new HashMap<String, ServiceRegistration>();
@@ -68,6 +66,7 @@ public class Activator implements ResourceBundleProvider {
 
     @Validate
     public void start() throws Exception {
+        messages.addProvider(this);
         openParserTracker(ctx);
         registerServlet();
     }
@@ -151,6 +150,8 @@ public class Activator implements ResourceBundleProvider {
         }
         
         unregisterServlet();
+        
+        messages.removeProvider(this);
     }
 
     @Override

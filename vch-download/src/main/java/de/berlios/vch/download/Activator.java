@@ -12,7 +12,6 @@ import javax.servlet.ServletException;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
-import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
@@ -26,20 +25,22 @@ import de.berlios.vch.download.osd.DownloadAction;
 import de.berlios.vch.download.osd.OpenDownloadsAction;
 import de.berlios.vch.download.webinterface.ConfigServlet;
 import de.berlios.vch.download.webinterface.DownloadHttpContext;
+import de.berlios.vch.download.webinterface.DownloadWebAction;
 import de.berlios.vch.download.webinterface.DownloadsServlet;
 import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.osdserver.osd.menu.actions.ItemDetailsAction;
 import de.berlios.vch.osdserver.osd.menu.actions.OverviewAction;
+import de.berlios.vch.parser.IParserService;
 import de.berlios.vch.playlist.PlaylistService;
+import de.berlios.vch.web.IWebAction;
 import de.berlios.vch.web.ResourceHttpContext;
 import de.berlios.vch.web.TemplateLoader;
 import de.berlios.vch.web.menu.IWebMenuEntry;
 import de.berlios.vch.web.menu.WebMenuEntry;
 
 @Component
-@Provides
 public class Activator implements ResourceBundleProvider {
 
     private BundleContext ctx;
@@ -68,6 +69,9 @@ public class Activator implements ResourceBundleProvider {
     @Requires
     private PlaylistService playlistService;
     
+    @Requires
+    private IParserService parserService;
+    
     private List<ServiceRegistration> serviceRegs = new LinkedList<ServiceRegistration>();
     
     public Activator(BundleContext ctx) {
@@ -76,6 +80,7 @@ public class Activator implements ResourceBundleProvider {
     
     @Validate
     public void start() {
+        messages.addProvider(this);
         prefs = cs.getUserPreferences(ctx.getBundle().getSymbolicName());
         setDefaults(prefs);
         try {
@@ -107,6 +112,11 @@ public class Activator implements ResourceBundleProvider {
             OpenDownloadsAction oda = new OpenDownloadsAction(messages, dm, logger, prefs, playlistService);
             sr = ctx.registerService(OverviewAction.class.getName(), oda, null);
             serviceRegs.add(sr);
+            
+            // register web action
+            DownloadWebAction dwa = new DownloadWebAction(messages);
+            sr = ctx.registerService(IWebAction.class.getName(), dwa, null);
+            serviceRegs.add(sr);
         } catch (Exception e) {
             logger.log(LogService.LOG_ERROR, "Couldn't start download manager", e);
         }
@@ -134,6 +144,8 @@ public class Activator implements ResourceBundleProvider {
             unregisterService(sr);
             iterator.remove();
         }
+        
+        messages.removeProvider(this);
     }
     
     private void unregisterService(ServiceRegistration sr) {
@@ -152,10 +164,11 @@ public class Activator implements ResourceBundleProvider {
     }
 
     private void registerServlets() throws ServletException, NamespaceException {
-        DownloadsServlet downloads = new DownloadsServlet(dm);
+        DownloadsServlet downloads = new DownloadsServlet(dm, parserService);
         downloads.setBundleContext(ctx);
         downloads.setMessages(messages);
         downloads.setTemplateLoader(templateLoader);
+        downloads.setLogger(logger);
         
         ConfigServlet config = new ConfigServlet(prefs);
         config.setBundleContext(ctx);

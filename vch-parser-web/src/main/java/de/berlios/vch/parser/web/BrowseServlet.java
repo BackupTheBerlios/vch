@@ -1,10 +1,12 @@
 package de.berlios.vch.parser.web;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +18,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.log.LogService;
+import org.osgi.util.tracker.ServiceTracker;
 
 import de.berlios.vch.parser.IOverviewPage;
 import de.berlios.vch.parser.IParserService;
@@ -24,6 +27,7 @@ import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
 import de.berlios.vch.parser.exceptions.NoSupportedVideoFoundException;
+import de.berlios.vch.web.IWebAction;
 import de.berlios.vch.web.servlets.BundleContextServlet;
 
 public class BrowseServlet extends BundleContextServlet {
@@ -60,6 +64,13 @@ public class BrowseServlet extends BundleContextServlet {
                             response = toJSON(overview.getPages());
                         } else {
                             response = toJSON(parsedPage);
+                            String actions = actionsToJSON(getWebActions(), parsedPage);
+                            
+                            response = "{\"video\":" + response + "," 
+                                + "\"actions\":" + actions + "}";
+
+                            logger.log(LogService.LOG_INFO, getWebActions().size() + " web actions available");
+                            logger.log(LogService.LOG_INFO, actions);
                         }
                         resp.setContentType("application/json; charset=utf-8");
                         resp.getWriter().println(response);
@@ -116,6 +127,7 @@ public class BrowseServlet extends BundleContextServlet {
         }
     }
 
+
     @Override
     protected void post(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         get(req, resp);
@@ -147,6 +159,7 @@ public class BrowseServlet extends BundleContextServlet {
             if(vpage.getPublishDate() != null) attributes.put("vchpubDate", vpage.getPublishDate().getTimeInMillis());
             if(vpage.getDuration() > 0) attributes.put("vchduration", vpage.getDuration());
             attributes.put("vchisLeaf", true);
+            
         }
         return new JSONObject(object).toString();
     }
@@ -165,5 +178,46 @@ public class BrowseServlet extends BundleContextServlet {
         } else {
             return "[]";
         }
+    }
+
+    private String actionsToJSON(List<IWebAction> webActions, IWebPage page) throws UnsupportedEncodingException {
+        if (!webActions.isEmpty()) {
+            String json = "[";
+            for (Iterator<IWebAction> iterator = webActions.iterator(); iterator.hasNext();) {
+                IWebAction action = iterator.next();
+                json += toJSON(action, page);
+                if (iterator.hasNext()) {
+                    json += ", ";
+                }
+            }
+            return json += "]";
+        } else {
+            return "[]";
+        }
+    }
+    
+    private String toJSON(IWebAction action, IWebPage page) throws UnsupportedEncodingException {
+        Map<String, Object> object = new HashMap<String, Object>();
+        object.put("title", action.getTitle());
+        object.put("uri", action.getUri(page));
+        return new JSONObject(object).toString();
+    }
+    
+    private List<IWebAction> getWebActions() {
+        List<IWebAction> actions = new LinkedList<IWebAction>();
+        
+        ServiceTracker actionsTracker = new ServiceTracker(bundleContext, IWebAction.class.getName(), null); 
+        actionsTracker.open();
+        Object[] services = actionsTracker.getServices();
+        actionsTracker.close();
+        
+        if(services != null) {
+            for (Object object : services) {
+                IWebAction action = (IWebAction) object;
+                actions.add((IWebAction) action);
+            }
+        }
+        
+        return actions;
     }
 }

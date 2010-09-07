@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
@@ -116,7 +117,7 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
     }
 
     @Override
-    public void downloadItem(IVideoPage page) throws InstantiationException  {
+    public void downloadItem(IVideoPage page) throws InstantiationException, IOException, URISyntaxException, PlaylistFileFoundException  {
         // create download
         Download d = createDownload(page);
         if(d == null) {
@@ -143,7 +144,7 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
         }
     }
 
-    private Download createDownload(IVideoPage page) {
+    private Download createDownload(IVideoPage page) throws IOException, URISyntaxException, PlaylistFileFoundException {
         Object[] downloadFactories = downloadFactoryTracker.getServices();
         if(downloadFactories != null) {
             for (Object factoryObject : downloadFactories) {
