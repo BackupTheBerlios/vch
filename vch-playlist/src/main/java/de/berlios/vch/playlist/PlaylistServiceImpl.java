@@ -74,9 +74,11 @@ public class PlaylistServiceImpl implements PlaylistService {
             fw.close();
             
             org.hampelratte.svdrp.Response resp = svdrp.send(playCmd);
-            logger.log(LogService.LOG_DEBUG, "SVDRP response: " + resp.getCode() + " " + resp.getMessage());
-            if( resp.getCode() < 900 || resp.getCode() > 999 ) {
-                throw new IOException(resp.getMessage().trim());
+            if(resp != null) {
+                logger.log(LogService.LOG_DEBUG, "SVDRP response: " + resp.getCode() + " " + resp.getMessage());
+                if( resp.getCode() < 900 || resp.getCode() > 999 ) {
+                    throw new IOException(resp.getMessage().trim());
+                }
             }
         } finally {
             if(svdrp != null) {
