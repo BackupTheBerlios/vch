@@ -18,7 +18,6 @@
     <modules>
         <module>../vch-bundle-loader</module>
         <module>../vch-config</module>
-        <module>../vch-config-playlist</module>
         <module>../vch-download</module>
         <module>../vch-download-http</module>
         <module>../vch-download-mms</module>
@@ -41,6 +40,8 @@
         <module>../vch-parser-youtube</module>
         <module>../vch-parser-zdf</module>
         <module>../vch-playlist</module>
+        <module>../vch-playlist-config</module>
+        <module>../vch-playlist-web</module>
         <module>../vch-update</module>
         <module>../vch-upnp</module>
         <module>../vch-web</module>

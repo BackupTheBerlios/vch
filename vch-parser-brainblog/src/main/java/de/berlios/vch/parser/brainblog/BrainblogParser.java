@@ -16,8 +16,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.htmlparser.tags.ImageTag;
 import org.htmlparser.util.Translate;
 import org.osgi.framework.BundleContext;
@@ -46,7 +48,7 @@ import de.berlios.vch.parser.OverviewPage;
 import de.berlios.vch.parser.VideoPage;
 
 @Component
-@Provides
+@Provides(specifications= {IWebParser.class})
 public class BrainblogParser implements IWebParser, ResourceBundleProvider {
 private static transient Logger logger = LoggerFactory.getLogger(BrainblogParser.class);
     
@@ -73,6 +75,16 @@ private static transient Logger logger = LoggerFactory.getLogger(BrainblogParser
     
     @Requires
     private LogService log;
+    
+    @Validate
+    public void start() {
+        i18n.addProvider(this);
+    }
+    
+    @Invalidate
+    public void stop() {
+        i18n.removeProvider(this);
+    }
     
     @SuppressWarnings("unchecked")
     @Override

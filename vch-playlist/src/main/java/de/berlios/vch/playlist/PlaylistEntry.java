@@ -1,6 +1,10 @@
 package de.berlios.vch.playlist;
 
-public class PlaylistEntry {
+import java.io.Serializable;
+
+public class PlaylistEntry implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
     private String title;
     private String url;
 

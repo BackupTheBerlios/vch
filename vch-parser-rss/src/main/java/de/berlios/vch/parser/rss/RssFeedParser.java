@@ -45,7 +45,7 @@ import de.berlios.vch.web.menu.IWebMenuEntry;
 import de.berlios.vch.web.menu.WebMenuEntry;
 
 @Component
-@Provides
+@Provides(specifications= {IWebParser.class})
 public class RssFeedParser implements IWebParser, ResourceBundleProvider {
 
     @Requires
@@ -153,6 +153,7 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
     
     @Validate
     public void start() {
+        i18n.addProvider(this);
         prefs = cs.getUserPreferences(ctx.getBundle().getSymbolicName());
         registerServlet();
     }
@@ -204,6 +205,8 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
         if(menuReg != null) {
             menuReg.unregister();
         }
+        
+        i18n.removeProvider(this);
     }
 
     private void unregisterServlet() {

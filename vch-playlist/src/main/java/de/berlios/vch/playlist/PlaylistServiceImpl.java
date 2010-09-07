@@ -56,10 +56,11 @@ public class PlaylistServiceImpl implements PlaylistService {
         int svdrpPort = prefs.getInt("svdrp.port", 2001);
         logger.log(LogService.LOG_INFO, "Starting media player plugin with SVDRP on "+svdrpHost+":"+svdrpPort);
         org.hampelratte.svdrp.Connection svdrp = null;
+        FileWriter fw = null;
         try {
             svdrp = new org.hampelratte.svdrp.Connection(svdrpHost, svdrpPort);
             Command playCmd = getPlayCommand(svdrp);
-            FileWriter fw = new FileWriter(new File("/tmp/vch.pls"));
+            fw = new FileWriter(new File("/tmp/vch.pls"));
             if(player == MediaPlayer.MPLAYER) {
                 for (PlaylistEntry playlistEntry : playlist) {
                     fw.write(playlistEntry.getUrl() + '\n');
@@ -73,13 +74,18 @@ public class PlaylistServiceImpl implements PlaylistService {
             fw.close();
             
             org.hampelratte.svdrp.Response resp = svdrp.send(playCmd);
-            logger.log(LogService.LOG_DEBUG, "SVDRP response: " + resp.getCode() + " " + resp.getMessage());
-            if( resp.getCode() < 900 || resp.getCode() > 999 ) {
-                throw new IOException(resp.getMessage().trim());
+            if(resp != null) {
+                logger.log(LogService.LOG_DEBUG, "SVDRP response: " + resp.getCode() + " " + resp.getMessage());
+                if( resp.getCode() < 900 || resp.getCode() > 999 ) {
+                    throw new IOException(resp.getMessage().trim());
+                }
             }
         } finally {
             if(svdrp != null) {
                 svdrp.close();
+            }
+            if(fw != null) {
+                fw.close();
             }
         }
     }
