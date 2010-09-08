@@ -70,7 +70,7 @@ public class BrowseServlet extends BundleContextServlet {
                                 + "\"actions\":" + actions + "}";
 
                             logger.log(LogService.LOG_INFO, getWebActions().size() + " web actions available");
-                            logger.log(LogService.LOG_INFO, actions);
+                            logger.log(LogService.LOG_DEBUG, actions);
                         }
                         resp.setContentType("application/json; charset=utf-8");
                         resp.getWriter().println(response);
