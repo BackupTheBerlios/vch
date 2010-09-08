@@ -47,7 +47,7 @@ public class PlaylistServlet extends BundleContextServlet {
         if("add".equalsIgnoreCase(action)) {
             String title = req.getParameter("title");
             String uri = req.getParameter("uri");
-            PlaylistEntryIdDecorator entry = new PlaylistEntryIdDecorator(title, uri);
+            PlaylistEntry entry = new PlaylistEntry(title, uri);
             pl.add(entry);
         } else if("play".equals(action)) {
             if(activator.getPlaylistService() != null) {
@@ -61,9 +61,8 @@ public class PlaylistServlet extends BundleContextServlet {
             for (int i = 0; i < order.length; i++) {
                 String id = order[i];
                 for (PlaylistEntry playlistEntry : pl) {
-                    PlaylistEntryIdDecorator entry = (PlaylistEntryIdDecorator) playlistEntry;
-                    if(id.equals(entry.getId())) {
-                        newPl.add(entry);
+                    if(id.equals(playlistEntry.getId())) {
+                        newPl.add(playlistEntry);
                     }
                 }
             }
@@ -77,8 +76,7 @@ public class PlaylistServlet extends BundleContextServlet {
             String id = req.getParameter("id");
             for (Iterator<PlaylistEntry> iterator = pl.iterator(); iterator.hasNext();) {
                 PlaylistEntry playlistEntry = iterator.next();
-                PlaylistEntryIdDecorator entry = (PlaylistEntryIdDecorator) playlistEntry;
-                if(id.equals(entry.getId())) {
+                if(id.equals(playlistEntry.getId())) {
                     iterator.remove();
                     resp.getWriter().println("OK");
                     return;
