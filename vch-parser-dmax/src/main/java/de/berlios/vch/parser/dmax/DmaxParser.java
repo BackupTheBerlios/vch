@@ -3,26 +3,25 @@ package de.berlios.vch.parser.dmax;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.prefs.Preferences;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
-import org.htmlparser.tags.Div;
+import org.htmlparser.Node;
+import org.htmlparser.Tag;
+import org.htmlparser.tags.ImageTag;
 import org.htmlparser.tags.LinkTag;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
-import org.htmlparser.util.ParserException;
 import org.htmlparser.util.Translate;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -42,9 +41,6 @@ import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
 import de.berlios.vch.parser.VideoPage;
 import de.berlios.vch.parser.WebPageTitleComparator;
-import de.berlios.vch.parser.dmax.pages.EpisodePage;
-import de.berlios.vch.parser.dmax.pages.ProgramListing;
-import de.berlios.vch.parser.dmax.pages.RootPage;
 import de.berlios.vch.web.TemplateLoader;
 import de.berlios.vch.web.menu.IWebMenuEntry;
 import de.berlios.vch.web.menu.WebMenuEntry;
@@ -59,7 +55,6 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
     
     public static final String ID = DmaxParser.class.getName();
 
-    private ProgramParser programParser = new ProgramParser();
     private VideoPageParser videoParser = new VideoPageParser();
     
     private BundleContext ctx;
@@ -90,91 +85,148 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
     
     @Override
     public IOverviewPage getRoot() throws Exception {
-        IOverviewPage overview = new RootPage();
+        IOverviewPage overview = new OverviewPage();
         overview.setUri(new URI("vchpage://localhost/" + getId()));
         overview.setTitle(getTitle());
         overview.setParser(ID);
         
-        int maxVideos = prefs.getInt("max.videos", 400);
-        String landingPage = BASE_URI + "/video/morevideo.shtml?name=longform&sort=date&contentSize=" + maxVideos
-                + "&pageType=longFormHub&displayBlockName=popularLong";
-        
-        final Set<IWebPage> categories = new HashSet<IWebPage>();
-        List<Thread> threads = new LinkedList<Thread>();
-        for (int i = 1; i <= maxVideos / 20; i++) {
-            final String URI = landingPage + "&page=" + i;
-            Thread t = new Thread() {
-                public void run() {
-                    try {
-                        String content = HttpUtils.get(URI, null, CHARSET);
-                        NodeList itemCells = HtmlParserUtils.getTags(content, CHARSET,
-                                "div#vp-perpage-promolist div[class~=vp-promo-item]");
-                        for (NodeIterator iterator = itemCells.elements(); iterator.hasMoreNodes();) {
-                            final Div itemCell = (Div) iterator.nextNode();
-                            String cellHtml = itemCell.toHtml();
-
-                            OverviewPage page = new ProgramListing();
-                            
-                            // parse the page title
-                            String title = Translate.decode(HtmlParserUtils.getText(cellHtml,
-                                    DmaxParser.CHARSET, "a.vp-promo-title").trim());
-                            page.setTitle(title);
-                            
-                            if(!categories.contains(page)) {
-                                // parse the programId to get thr right URI
-                                String programId = parseProgramId(cellHtml);
-                                String programUri = DmaxParser.BASE_URI + "/video/morevideo.shtml?sort=date&contentSize=100&pageType=showHub&displayBlockName=recentLong&name="+programId;
-                                page.setUri(new URI(programUri));
-                                
-    
-                                page.setParser(ID);
-                                categories.add(page);
-                            }
-                        }
-                    } catch (Exception e) {
-                        logger.log(LogService.LOG_ERROR, "Couldn't parse overview page", e);
-                    }
-                }
-            };
-            threads.add(t);
-            t.start();
+        try {
+            String content = HttpUtils.get(BASE_URI + "/video/shows/", null, CHARSET);
+            NodeList itemCells = HtmlParserUtils.getTags(content, CHARSET, "div#video-allshows ol li a");
+            for (NodeIterator iterator = itemCells.elements(); iterator.hasMoreNodes();) {
+                LinkTag link = (LinkTag) iterator.nextNode();
+                
+                IOverviewPage programPage = new OverviewPage();
+                programPage.setParser(getId());
+                programPage.setTitle(Translate.decode(link.getLinkText()));
+                programPage.setUri(new URI(BASE_URI + link.getLink()));
+                overview.getPages().add(programPage);
+                logger.log(LogService.LOG_DEBUG, "Added "+link.getLinkText()+" at " + link.getLink());
+            }
+        } catch (Exception e) {
+            logger.log(LogService.LOG_ERROR, "Couldn't parse overview page", e);
         }
-        
-        // wait for all threads to finish
-        for (Thread thread : threads) {
-            thread.join();
-        }
-        overview.getPages().addAll(categories);
+                
         Collections.sort(overview.getPages(), new WebPageTitleComparator());
         return overview;
     }
 
     @Override
     public IWebPage parse(IWebPage page) throws Exception {
-        String type = (String) page.getUserData().get("dmax.type");
-        if(ProgramListing.class.getSimpleName().equals(type)) {
-            return programParser.parse(page);
-        } else if(EpisodePage.class.getSimpleName().equals(type)) {
-            int episodeChunkCount = Integer.parseInt((String)page.getUserData().get("episodeChunkCount"));
-            logger.log(LogService.LOG_INFO, "Selected episode has "+episodeChunkCount+" videos");
-            String videoPageUri = page.getUri().toString();
-            String videoPageUriTemplate = videoPageUri.substring(0, videoPageUri.lastIndexOf('-')+1);
+        if(page instanceof IOverviewPage) {
             IOverviewPage opage = (IOverviewPage) page;
-            for (int i = 1; i <= episodeChunkCount ; i++) {
-                VideoPage videoPage = new VideoPage();
-                videoPage.setParser(ID);
-                String title = page.getTitle();
-                title += " " + i;
-                videoPage.setTitle(title);
-                videoPage.setUri(new URI(videoPageUriTemplate + i + '/'));
-                opage.getPages().add(videoPage);
+            String uri = opage.getUri().toString();
+            String path = opage.getUri().getPath();
+            if(countSlashes(path) == 4 && uri.contains("video/shows")) {
+                return parseProgramPage(opage);
+            } else if(uri.endsWith("/moreepisodes/")) {
+                logger.log(LogService.LOG_INFO, "Parsing videos on " + uri);
+                parseEpisodesOverview(opage);
+                return opage;
+            } else if(uri.endsWith("/morevideo/")) {
+                logger.log(LogService.LOG_INFO, "Parsing videos on " + uri);
+                parseVideoOverview(opage);
+                return opage;
+            } else if("dummy".equals(page.getUri().getScheme())) {
+                return page;
             }
-            return page;
         } else if(page instanceof IVideoPage) {
             return videoParser.parse((VideoPage) page);
         }
 
         throw new Exception("Not yet implemented!");
+    }
+
+    private void parseEpisodesOverview(IOverviewPage opage) throws Exception {
+        String content = HttpUtils.get(opage.getUri().toString(), null, CHARSET);
+        NodeList items = HtmlParserUtils.getTags(content, CHARSET, "dl[class~=item]");
+        NodeIterator iter = items.elements();
+        while(iter.hasMoreNodes()) {
+            Node node = iter.nextNode();
+            String nodeHtml = node.toHtml();
+            String title = HtmlParserUtils.getText(nodeHtml, CHARSET, "dd.description");
+            LinkTag link = (LinkTag) HtmlParserUtils.getTag(nodeHtml, CHARSET, "dt.title a");
+            String description = HtmlParserUtils.getText(nodeHtml, CHARSET, "dd.summary");
+            String uri = BASE_URI + link.getLink();
+            String baseuri = uri.substring(0, uri.lastIndexOf('-'));
+            
+            IOverviewPage episodesContainer = new OverviewPage();
+            episodesContainer.setParser(getId());
+            episodesContainer.setTitle(title.substring(0, title.lastIndexOf(' ')));
+            episodesContainer.setUri(new URI(baseuri.replaceAll("http", "dummy"))); // dummy uri
+            
+            // determine the number of parts
+            String parts = HtmlParserUtils.getText(nodeHtml, CHARSET, "dd.part");
+            Matcher m = Pattern.compile("\\(Teil \\d von (\\d)\\)").matcher(parts);
+            if(m.matches()) {
+                int numberOfParts = Integer.parseInt(m.group(1));
+                for (int i = 0; i < numberOfParts; i++) {
+                    IVideoPage video = new VideoPage();
+                    video.setParser(getId());
+                    video.setTitle(episodesContainer.getTitle() + " " + (i+1));
+                    video.setUri(new URI(baseuri + '-' + (i+1) + "/"));
+                    video.setDescription(description);
+                    ImageTag img = (ImageTag) HtmlParserUtils.getTag(nodeHtml, CHARSET, "dd.thumbnail img");
+                    video.setThumbnail(new URI(img.extractImageLocn()));
+                    episodesContainer.getPages().add(video);
+                }
+            } else {
+                logger.log(LogService.LOG_WARNING, "Couldn't determine number of episode parts.");
+                continue;
+            }
+            
+            opage.getPages().add(episodesContainer);
+        }
+        logger.log(LogService.LOG_INFO, "Found " + items.size() + " items");
+    }
+
+    private void parseVideoOverview(IOverviewPage opage) throws Exception {
+        String content = HttpUtils.get(opage.getUri().toString(), null, CHARSET);
+        NodeList items = HtmlParserUtils.getTags(content, CHARSET, "dl[class~=item]");
+        NodeIterator iter = items.elements();
+        while(iter.hasMoreNodes()) {
+            Node node = iter.nextNode();
+            String nodeHtml = node.toHtml();
+            String title = HtmlParserUtils.getText(nodeHtml, CHARSET, "dd.description");
+            LinkTag link = (LinkTag) HtmlParserUtils.getTag(nodeHtml, CHARSET, "dt.title a");
+            String description = HtmlParserUtils.getText(nodeHtml, CHARSET, "dd.summary");
+            URI uri = new URI(BASE_URI + link.getLink());
+            
+            IVideoPage video = new VideoPage();
+            video.setParser(getId());
+            video.setTitle(title);
+            video.setUri(uri);
+            video.setDescription(description);
+            ImageTag img = (ImageTag) HtmlParserUtils.getTag(nodeHtml, CHARSET, "dd.thumbnail img");
+            video.setThumbnail(new URI(img.extractImageLocn()));
+            opage.getPages().add(video);
+        }
+        logger.log(LogService.LOG_INFO, "Found " + items.size() + " items");
+    }
+
+    private IOverviewPage parseProgramPage(IOverviewPage opage) throws Exception {
+        String content = HttpUtils.get(opage.getUri().toString(), null, CHARSET);
+        Tag episodesDiv = HtmlParserUtils.getTag(content, CHARSET, "div#video-show-longform");
+        if(episodesDiv != null) {
+            LinkTag episodesLink = (LinkTag) HtmlParserUtils.getTag(episodesDiv.toHtml(), CHARSET, "a[class=section-more-link][title=Alle]");
+            IOverviewPage episodes = new OverviewPage();
+            episodes.setParser(getId());
+            episodes.setTitle(i18n.translate("I18N_EPISODES"));
+            episodes.setUri(new URI(BASE_URI + episodesLink.getLink()));
+            opage.getPages().add(episodes);
+        }
+        
+        Tag clipsDiv = HtmlParserUtils.getTag(content, CHARSET, "div#video-show-videos");
+        if(clipsDiv != null) {
+            LinkTag clipsLink = (LinkTag) HtmlParserUtils.getTag(clipsDiv.toHtml(), CHARSET, "a[class=section-more-link][title=Alle]");
+            IOverviewPage clips = new OverviewPage();
+            clips.setParser(getId());
+            clips.setTitle(i18n.translate("I18N_CLIPS"));
+            clips.setUri(new URI(BASE_URI + clipsLink.getLink()));
+            opage.getPages().add(clips);
+        }
+
+        return opage;
     }
 
     @Override
@@ -185,7 +237,9 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
     @Validate
     public void start() throws Exception {
         i18n.addProvider(this);
+        
         prefs = config.getUserPreferences(ctx.getBundle().getSymbolicName());
+        prefs.remove("max.videos");
         
         // register the config servlet
         registerServlet();
@@ -262,16 +316,13 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
         return resourceBundle;
     }
     
-    private String parseProgramId(String cellHtml) throws ParserException, IOException {
-        LinkTag a = (LinkTag) HtmlParserUtils.getTag(cellHtml, DmaxParser.CHARSET, "div.vp-promo-image a");
-        String videoPageUri = DmaxParser.BASE_URI + a.getLink();
-        String videoPageContent = HttpUtils.get(videoPageUri, null, DmaxParser.CHARSET);
-        logger.log(LogService.LOG_DEBUG, "Parsing page " + videoPageUri);
-        NodeList breadCrumbLinks = HtmlParserUtils.getTags(videoPageContent, DmaxParser.CHARSET, "div#vp-breadcrumb span[class~=showHub] a");
-        a = (LinkTag) breadCrumbLinks.elementAt(breadCrumbLinks.size()-1);
-        String programId = a.extractLink();
-        programId = programId.substring(0, programId.length() -1);
-        programId = programId.substring(programId.lastIndexOf('/') + 1, programId.length());
-        return programId;
+    private int countSlashes(String path) {
+        int count = 0;
+        int pos = 0;
+        while( (pos = path.indexOf('/', pos)) >= 0) {
+            count++;
+            pos++;
+        }
+        return count;
     }
 }
