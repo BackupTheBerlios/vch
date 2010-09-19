@@ -5,8 +5,6 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,8 +22,6 @@ import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.Translate;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogService;
 
 import de.berlios.vch.config.ConfigService;
@@ -41,9 +37,6 @@ import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
 import de.berlios.vch.parser.VideoPage;
 import de.berlios.vch.parser.WebPageTitleComparator;
-import de.berlios.vch.web.TemplateLoader;
-import de.berlios.vch.web.menu.IWebMenuEntry;
-import de.berlios.vch.web.menu.WebMenuEntry;
 
 @Component
 @Provides(specifications={IWebParser.class})
@@ -70,14 +63,6 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
     @Requires 
     private ConfigService config;
     private Preferences prefs;
-    
-    @Requires
-    private HttpService http;
-    
-    @Requires
-    private TemplateLoader templateLoader;
-    
-    private ServiceRegistration menuReg;
     
     public DmaxParser(BundleContext ctx) {
         this.ctx = ctx;
@@ -240,62 +225,12 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
         
         prefs = config.getUserPreferences(ctx.getBundle().getSymbolicName());
         prefs.remove("max.videos");
-        
-        // register the config servlet
-        registerServlet();
     }
     
     @Invalidate
     public void stop() {
         prefs = null;
-        
-        // unregister the config servlet
-        if(http != null) {
-            http.unregister(ConfigServlet.PATH);
-        }
-        
-        // unregister the web menu
-        if(menuReg != null) {
-            menuReg.unregister();
-        }
-        
         i18n.removeProvider(this);
-    }
-    
-    private void registerServlet() {
-        ConfigServlet servlet = new ConfigServlet(prefs);
-        servlet.setLogger(logger);
-        servlet.setBundleContext(ctx);
-        servlet.setMessages(i18n);
-        servlet.setTemplateLoader(templateLoader);
-        try {
-            // register the servlet
-            http.registerServlet(ConfigServlet.PATH, servlet, null, null);
-            
-            // register web interface menu
-            IWebMenuEntry menu = new WebMenuEntry(i18n.translate("I18N_BROWSE"));
-            menu.setLinkUri("#");
-            SortedSet<IWebMenuEntry> childs = new TreeSet<IWebMenuEntry>();
-            IWebMenuEntry entry = new WebMenuEntry();
-            entry.setTitle(getTitle());
-            entry.setLinkUri("/parser?id=" + getClass().getName());
-            childs.add(entry);
-            menu.setChilds(childs);
-            childs = new TreeSet<IWebMenuEntry>();
-            IWebMenuEntry open = new WebMenuEntry();
-            open.setTitle(getResourceBundle().getString("I18N_OPEN"));
-            open.setLinkUri("/parser?id=" + getClass().getName());
-            childs.add(open);
-            IWebMenuEntry config = new WebMenuEntry();
-            config.setTitle(getResourceBundle().getString("I18N_CONFIGURATION"));
-            config.setLinkUri(ConfigServlet.PATH);
-            config.setPreferredPosition(Integer.MAX_VALUE);
-            childs.add(config);
-            entry.setChilds(childs);
-            menuReg = ctx.registerService(IWebMenuEntry.class.getName(), menu, null);
-        } catch (Exception e) {
-            logger.log(LogService.LOG_ERROR, "Couldn't register "+getTitle()+" config servlet", e);
-        }
     }
 
     @Override
