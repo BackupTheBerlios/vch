@@ -62,7 +62,7 @@ public class HtmlParserUtils {
     public static String getText(String html, String charset, String cssSelector) throws ParserException {
         Tag tag = getTag(html, charset, cssSelector);
         if (tag != null) {
-            return Translate.decode(tag.toPlainTextString());
+            return Translate.decode(tag.toPlainTextString()).trim();
         } else {
             return "";
         }
