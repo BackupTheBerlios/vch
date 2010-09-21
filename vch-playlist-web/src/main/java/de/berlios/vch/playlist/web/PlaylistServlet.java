@@ -10,8 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.osgi.service.log.LogService;
-
 import de.berlios.vch.playlist.Playlist;
 import de.berlios.vch.playlist.PlaylistEntry;
 import de.berlios.vch.web.NotifyMessage;
@@ -21,8 +19,6 @@ import de.berlios.vch.web.servlets.BundleContextServlet;
 public class PlaylistServlet extends BundleContextServlet {
 
     public static final String PATH = "/playlist";
-    
-    private static final String PLAYLIST = "playlist";
     
     private Activator activator;
     
@@ -35,13 +31,7 @@ public class PlaylistServlet extends BundleContextServlet {
         HttpSession session = req.getSession();
         session.setMaxInactiveInterval(-1);
         
-        // get the playlist from the session or create a new one
-        Playlist pl = (Playlist) session.getAttribute(PLAYLIST);
-        if(pl == null) {
-            logger.log(LogService.LOG_INFO, "Adding new playlist to session");
-            pl = new Playlist();
-            session.setAttribute(PLAYLIST, pl);
-        }
+        Playlist pl = activator.getPlaylistService().getPlaylist();
         
         String action = req.getParameter("action");
         if("add".equalsIgnoreCase(action)) {
@@ -67,7 +57,7 @@ public class PlaylistServlet extends BundleContextServlet {
                 }
             }
             pl = newPl;
-            session.setAttribute(PLAYLIST, pl);
+            activator.getPlaylistService().setPlaylist(pl);
             resp.getWriter().println("OK");
             return;
         } else if("clear".equals(action)) {
