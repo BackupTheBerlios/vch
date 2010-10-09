@@ -104,11 +104,11 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
             String path = opage.getUri().getPath();
             if(countSlashes(path) == 4 && uri.contains("video/shows")) {
                 return parseProgramPage(opage);
-            } else if(uri.endsWith("/moreepisodes/")) {
+            } else if(uri.contains("/moreepisodes/?")) {
                 logger.log(LogService.LOG_INFO, "Parsing videos on " + uri);
                 parseEpisodesOverview(opage);
                 return opage;
-            } else if(uri.endsWith("/morevideo/")) {
+            } else if(uri.contains("/morevideo/?")) {
                 logger.log(LogService.LOG_INFO, "Parsing videos on " + uri);
                 parseVideoOverview(opage);
                 return opage;
@@ -197,7 +197,8 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
             IOverviewPage episodes = new OverviewPage();
             episodes.setParser(getId());
             episodes.setTitle(i18n.translate("I18N_EPISODES"));
-            episodes.setUri(new URI(BASE_URI + episodesLink.getLink()));
+            String uri = HttpUtils.addParameter(BASE_URI + episodesLink.getLink(), "sort", "date");
+            episodes.setUri(new URI(uri));
             opage.getPages().add(episodes);
         }
         
@@ -207,7 +208,8 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
             IOverviewPage clips = new OverviewPage();
             clips.setParser(getId());
             clips.setTitle(i18n.translate("I18N_CLIPS"));
-            clips.setUri(new URI(BASE_URI + clipsLink.getLink()));
+            String uri = HttpUtils.addParameter(BASE_URI + clipsLink.getLink(), "sort", "date");
+            clips.setUri(new URI(uri));
             opage.getPages().add(clips);
         }
 

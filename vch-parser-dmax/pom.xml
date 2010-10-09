@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>parser.dmax</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.1.1</version>
+	<version>1.1.2</version>
 	<name>VCH DMAX Parser</name>
     <description>Parser for the DMAX Videotheke. Only complete episodes are included.</description>
     
