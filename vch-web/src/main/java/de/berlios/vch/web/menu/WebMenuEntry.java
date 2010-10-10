@@ -61,6 +61,10 @@ public class WebMenuEntry implements IWebMenuEntry {
 
     @Override
     public int compareTo(IWebMenuEntry other) {
+        if(other == null) {
+            return -1;
+        }
+        
         if(this.getPreferredPosition() < other.getPreferredPosition()) {
             return -1;
         } else if(this.getPreferredPosition() > other.getPreferredPosition()) {

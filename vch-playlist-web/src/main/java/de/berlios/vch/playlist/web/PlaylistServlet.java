@@ -10,8 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.osgi.service.log.LogService;
-
 import de.berlios.vch.playlist.Playlist;
 import de.berlios.vch.playlist.PlaylistEntry;
 import de.berlios.vch.web.NotifyMessage;
@@ -21,8 +19,6 @@ import de.berlios.vch.web.servlets.BundleContextServlet;
 public class PlaylistServlet extends BundleContextServlet {
 
     public static final String PATH = "/playlist";
-    
-    private static final String PLAYLIST = "playlist";
     
     private Activator activator;
     
@@ -35,19 +31,13 @@ public class PlaylistServlet extends BundleContextServlet {
         HttpSession session = req.getSession();
         session.setMaxInactiveInterval(-1);
         
-        // get the playlist from the session or create a new one
-        Playlist pl = (Playlist) session.getAttribute(PLAYLIST);
-        if(pl == null) {
-            logger.log(LogService.LOG_INFO, "Adding new playlist to session");
-            pl = new Playlist();
-            session.setAttribute(PLAYLIST, pl);
-        }
+        Playlist pl = activator.getPlaylistService().getPlaylist();
         
         String action = req.getParameter("action");
         if("add".equalsIgnoreCase(action)) {
             String title = req.getParameter("title");
             String uri = req.getParameter("uri");
-            PlaylistEntryIdDecorator entry = new PlaylistEntryIdDecorator(title, uri);
+            PlaylistEntry entry = new PlaylistEntry(title, uri);
             pl.add(entry);
         } else if("play".equals(action)) {
             if(activator.getPlaylistService() != null) {
@@ -61,14 +51,13 @@ public class PlaylistServlet extends BundleContextServlet {
             for (int i = 0; i < order.length; i++) {
                 String id = order[i];
                 for (PlaylistEntry playlistEntry : pl) {
-                    PlaylistEntryIdDecorator entry = (PlaylistEntryIdDecorator) playlistEntry;
-                    if(id.equals(entry.getId())) {
-                        newPl.add(entry);
+                    if(id.equals(playlistEntry.getId())) {
+                        newPl.add(playlistEntry);
                     }
                 }
             }
             pl = newPl;
-            session.setAttribute(PLAYLIST, pl);
+            activator.getPlaylistService().setPlaylist(pl);
             resp.getWriter().println("OK");
             return;
         } else if("clear".equals(action)) {
@@ -77,8 +66,7 @@ public class PlaylistServlet extends BundleContextServlet {
             String id = req.getParameter("id");
             for (Iterator<PlaylistEntry> iterator = pl.iterator(); iterator.hasNext();) {
                 PlaylistEntry playlistEntry = iterator.next();
-                PlaylistEntryIdDecorator entry = (PlaylistEntryIdDecorator) playlistEntry;
-                if(id.equals(entry.getId())) {
+                if(id.equals(playlistEntry.getId())) {
                     iterator.remove();
                     resp.getWriter().println("OK");
                     return;

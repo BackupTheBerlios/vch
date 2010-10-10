@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>parser.dmax</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.0.5</version>
+	<version>1.1.2</version>
 	<name>VCH DMAX Parser</name>
     <description>Parser for the DMAX Videotheke. Only complete episodes are included.</description>
     
@@ -44,12 +44,6 @@
 			<version>3.2.0.3978</version>
 			<type>jar</type>
 			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.berlios.vch</groupId>
-			<artifactId>web</artifactId>
-			<type>bundle</type>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.felix</groupId>

@@ -9,6 +9,7 @@ import org.osgi.util.tracker.ServiceTracker;
 
 import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.net.INetworkProtocol;
+import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.io.command.OsdMessage;
 import de.berlios.vch.osdserver.io.response.Event;
 import de.berlios.vch.osdserver.osd.Osd;
@@ -43,6 +44,7 @@ public class PlayAction implements IOsdAction {
         OsdItem osditem = osd.getCurrentItem();
         IVideoPage page = (IVideoPage) osditem.getUserData();
         URI video = page.getVideoUri();
+        // TODO move this to playlist service
         Object[] protocols = protos.getServices();
         for (Object object : protocols) {
             INetworkProtocol proto = (INetworkProtocol) object;
@@ -57,6 +59,7 @@ public class PlayAction implements IOsdAction {
         Playlist pl = new Playlist();
         pl.add(new PlaylistEntry(page.getTitle(), video.toString()));
         playlistService.play(pl);
+        OsdSession.stop();
         Osd.getInstance().closeMenu();
     }
 
