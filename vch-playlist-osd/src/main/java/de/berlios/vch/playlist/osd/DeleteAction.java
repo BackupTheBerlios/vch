@@ -26,11 +26,15 @@ public class DeleteAction implements ItemDetailsAction {
     public void execute(OsdObject oo) throws Exception {
         Osd osd = Osd.getInstance();
         OsdItem item = osd.getCurrentItem();
-        pls.getPlaylist().remove(item.getUserData());
-        Menu current = osd.getCurrentMenu();
-        current.removeOsdItem(item);
-        osd.refreshMenu(current);
-        osd.showMessageSilent(new OsdMessage(i18n.translate("I18N_ENTRY_DELETED"), OsdMessage.INFO));
+        if(item != null) {
+            pls.getPlaylist().remove(item.getUserData());
+            Menu current = osd.getCurrentMenu();
+            current.removeOsdItem(item);
+            osd.refreshMenu(current);
+            osd.showMessageSilent(new OsdMessage(i18n.translate("I18N_ENTRY_DELETED"), OsdMessage.INFO));
+        } else {
+            osd.showMessageSilent(new OsdMessage(i18n.translate("I18N_NO_ENTRY_SELECTED"), OsdMessage.WARN));
+        }
     }
 
     @Override

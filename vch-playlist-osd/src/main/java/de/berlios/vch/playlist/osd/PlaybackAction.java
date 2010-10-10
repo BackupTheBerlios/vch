@@ -23,8 +23,12 @@ public class PlaybackAction implements ItemDetailsAction {
     @Override
     public void execute(OsdObject oo) throws Exception {
         Osd osd = Osd.getInstance();
-        osd.showMessageSilent(new OsdMessage(i18n.translate("I18N_STARTING_PLAYBACK"), OsdMessage.INFO));
-        pls.play(pls.getPlaylist());
+        if(pls.getPlaylist().size() > 0) {
+            osd.showMessageSilent(new OsdMessage(i18n.translate("I18N_STARTING_PLAYBACK"), OsdMessage.INFO));
+            pls.play(pls.getPlaylist());
+        } else {
+            osd.showMessageSilent(new OsdMessage(i18n.translate("I18N_PLAYLIST_EMPTY"), OsdMessage.WARN));
+        }
     }
 
     @Override

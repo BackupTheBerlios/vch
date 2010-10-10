@@ -1,6 +1,7 @@
 package de.berlios.vch.playlist.osd;
 
 import de.berlios.vch.i18n.Messages;
+import de.berlios.vch.osdserver.io.command.OsdMessage;
 import de.berlios.vch.osdserver.io.response.Event;
 import de.berlios.vch.osdserver.osd.Osd;
 import de.berlios.vch.osdserver.osd.OsdItem;
@@ -26,19 +27,23 @@ public class MoveDownAction implements ItemDetailsAction {
     public void execute(OsdObject oo) throws Exception {
         Osd osd = Osd.getInstance();
         OsdItem item = osd.getCurrentItem();
-        PlaylistEntry entry = (PlaylistEntry) item.getUserData();
-        Playlist pl = pls.getPlaylist();
-        int index = -1;
-        if( (index = pl.indexOf(entry)) < pls.getPlaylist().size()-1) {
-            pl.remove(index++);
-            pl.add(index, entry);
+        if(item != null) {
+            PlaylistEntry entry = (PlaylistEntry) item.getUserData();
+            Playlist pl = pls.getPlaylist();
+            int index = -1;
+            if( (index = pl.indexOf(entry)) < pls.getPlaylist().size()-1) {
+                pl.remove(index++);
+                pl.add(index, entry);
+            }
+            
+            PlaylistMenu playlistMenu = (PlaylistMenu) osd.getCurrentMenu();
+            playlistMenu.reorder();
+            osd.refreshMenu(playlistMenu);
+            osd.getConnection().send(playlistMenu.getId()+".SETCURRENT " + index);
+            osd.show(playlistMenu);
+        } else {
+            osd.showMessageSilent(new OsdMessage(i18n.translate("I18N_NO_ENTRY_SELECTED"), OsdMessage.WARN));
         }
-        
-        PlaylistMenu playlistMenu = (PlaylistMenu) osd.getCurrentMenu();
-        playlistMenu.reorder();
-        osd.refreshMenu(playlistMenu);
-        osd.getConnection().send(playlistMenu.getId()+".SETCURRENT " + index);
-        osd.show(playlistMenu);
     }
 
     @Override
