@@ -200,25 +200,34 @@ public class Osd implements IEventDispatcher {
     }
 
     @Override
-    public void dispatchEvent(Event event) {
+    public synchronized void dispatchEvent(Event event) {
+        logger.debug("Trying to dispatch event {} {} {}", new Object[] {event.getCode(), event.getType(), event.getSourceId()});
         String srcId = event.getSourceId();
         OsdObject oo = context.get(srcId);
         if(oo != null) {
             event.setSource(oo);
             if(oo instanceof IEventBased) {
                 IEventBased ieb = (IEventBased) oo;
+                IOsdAction actionToExecute = null;
                 for (Iterator<IOsdAction> iterator = ieb.getRegisteredActions().iterator(); iterator.hasNext();) {
                     IOsdAction action = iterator.next();
                     if(action.getEvent().equals(event.getType())) {
-                        try {
-                            action.execute(oo);
-                        } catch (Exception e) {
-                            String s = "Couldn't execute action [" + action.getName() + "] " + e.getLocalizedMessage();
-                            logger.error(s, e);
-                            OsdMessage msg = new OsdMessage(s, OsdMessage.ERROR);
-                            Osd.getInstance().showMessageSilent(msg);
-                        }
+                        actionToExecute = action;
+                        break;
                     }
+                }
+                if(actionToExecute != null) {
+                    try {
+                        logger.debug("Dispatching event {}-{} to action {}", new Object[] {event.getCode(), event.getType(), actionToExecute.getName()} );
+                        actionToExecute.execute(oo);
+                    } catch (Exception e) {
+                        String s = "Couldn't execute action [" + actionToExecute.getName() + "] " + e.getLocalizedMessage();
+                        logger.error(s, e);
+                        OsdMessage msg = new OsdMessage(s, OsdMessage.ERROR);
+                        Osd.getInstance().showMessageSilent(msg);
+                    }
+                } else {
+                    logger.warn("Couldn't dispatch event {} {} {}", new Object[] {event.getCode(), event.getType(), event.getSourceId()} );
                 }
             }
         } else {
@@ -330,5 +339,9 @@ public class Osd implements IEventDispatcher {
             }
         }
         return null;
+    }
+    
+    public void quit() throws IOException, OsdException {
+        conn.send("QUIT");
     }
 }

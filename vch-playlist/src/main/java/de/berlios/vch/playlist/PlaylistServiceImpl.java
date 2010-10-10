@@ -25,7 +25,7 @@ import de.berlios.vch.playlist.io.svdrp.CheckXineliboutputSvdrpInterface;
 @Provides
 public class PlaylistServiceImpl implements PlaylistService {
 
-    private Playlist playlist;
+    private Playlist playlist = new Playlist();
     
     public static enum MediaPlayer {MPLAYER, XINELIBOUTPUT};
     

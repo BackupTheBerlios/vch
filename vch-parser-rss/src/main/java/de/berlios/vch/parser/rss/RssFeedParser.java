@@ -169,7 +169,8 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
             http.registerServlet(ConfigServlet.PATH, servlet, null, null);
             
             // register web interface menu
-            IWebMenuEntry menu = new WebMenuEntry(i18n.translate("I18N_BROWSE"));
+            IWebMenuEntry menu = new WebMenuEntry(getResourceBundle().getString("I18N_BROWSE"));
+            menu.setPreferredPosition(Integer.MIN_VALUE);
             menu.setLinkUri("#");
             SortedSet<IWebMenuEntry> childs = new TreeSet<IWebMenuEntry>();
             IWebMenuEntry entry = new WebMenuEntry();
