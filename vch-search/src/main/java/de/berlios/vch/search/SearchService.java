@@ -46,7 +46,7 @@ public class SearchService implements ISearchService {
                 public void run() {
                     try {
                         IOverviewPage r = searchProvider.search(query);
-                        r.setTitle("Youtube");
+                        r.setTitle(searchProvider.getName());
                         result.getPages().add(r);
                     } catch (Exception e) {
                         logger.log(LogService.LOG_ERROR, "Error occured while searching with " + 
@@ -70,7 +70,7 @@ public class SearchService implements ISearchService {
     
 // ############ ipojo stuff #########################################    
     
-    // validate and invalidate method seem to be necessary for the bind methods to work
+    // validate and invalidate methods seem to be necessary for the bind methods to work
     @Validate
     public void start() {}
     

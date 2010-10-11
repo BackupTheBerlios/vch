@@ -54,7 +54,7 @@ import de.berlios.vch.web.menu.WebMenuEntry;
 
 @Component
 @Provides(specifications= {IWebParser.class})
-public class YoutubeParser implements IWebParser, /*ISearchProvider,*/ ResourceBundleProvider {
+public class YoutubeParser implements IWebParser, ResourceBundleProvider {
 
     @Requires
     private ConfigService cs;
@@ -122,7 +122,7 @@ public class YoutubeParser implements IWebParser, /*ISearchProvider,*/ ResourceB
         }
     }
     
-    private IOverviewPage parseFeed(URI feedURI) throws IOException, ParserException, IllegalArgumentException, FeedException, URISyntaxException {
+    public IOverviewPage parseFeed(URI feedURI) throws IOException, ParserException, IllegalArgumentException, FeedException, URISyntaxException {
         // RSS in das SyndFeed Object Parsen
         XmlReader xmlReader = new XmlReader(feedURI.toURL());
         SyndFeedInput input = new SyndFeedInput();
