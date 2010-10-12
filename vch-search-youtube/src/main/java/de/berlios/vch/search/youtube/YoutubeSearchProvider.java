@@ -39,5 +39,10 @@ public class YoutubeSearchProvider implements ISearchProvider {
 	@Override
 	public IWebPage parse(IWebPage page) throws Exception {
 		return youtubeParser.parse(page);
+	}
+
+	@Override
+	public String getId() {
+		return YoutubeSearchProvider.class.getName();
 	} 
 }

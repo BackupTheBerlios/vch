@@ -16,6 +16,7 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.service.log.LogService;
 
 import de.berlios.vch.parser.IOverviewPage;
+import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.parser.OverviewPage;
 
 @Component
@@ -68,6 +69,12 @@ public class SearchService implements ISearchService {
         return result;
     }
     
+    @Override
+    public IWebPage parse(IWebPage page) throws Exception {
+    	// TODO Auto-generated method stub
+    	return null;
+    }
+    
 // ############ ipojo stuff #########################################    
     
     // validate and invalidate methods seem to be necessary for the bind methods to work
@@ -90,4 +97,5 @@ public class SearchService implements ISearchService {
         searchProviders.remove(provider);
         logger.log(LogService.LOG_INFO, searchProviders.size() + " search providers available");
     }
+
 }
