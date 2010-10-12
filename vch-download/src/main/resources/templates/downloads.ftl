@@ -82,8 +82,9 @@
                     </#if>
                 </td>
                 <td>
-                    <#if (download.speed >= 0)>
-                    ${download.speed} KiB/s
+                    <#assign speed=download.speed>
+                    <#if (speed >= 0)>
+                    ${speed} KiB/s
                     <#else>
                     ${I18N_DL_N_A}
                     </#if>
