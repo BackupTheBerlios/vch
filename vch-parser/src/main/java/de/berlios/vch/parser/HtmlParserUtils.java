@@ -34,6 +34,14 @@ public class HtmlParserUtils {
         return desired;
     }
 
+    /**
+     * Returns the tag selected by the given selector or null
+     * @param html
+     * @param charset
+     * @param cssSelector
+     * @return the tag selected by the given selector or null
+     * @throws ParserException
+     */
     public static Tag getTag(String html, String charset, String cssSelector) throws ParserException {
         NodeList list = getTags(html, charset, cssSelector);
         if (list.size() > 0) {
