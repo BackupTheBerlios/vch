@@ -46,7 +46,7 @@ public class StreamBridge extends BundleContextServlet {
         
         co.setWriterToSave(writer);
         logger.log(LogService.LOG_INFO, "Starting streaming: " + host + " " + appName + " " + streamName);
-        final ClientBootstrap bootstrap = RtmpDownload.getBootstrap(Executors.newCachedThreadPool(), co);
+        final ClientBootstrap bootstrap = RtmpDownload.getBootstrap(Executors.newCachedThreadPool(), new BandwidthMeterHandler(), co);
         final ChannelFuture future = bootstrap.connect(new InetSocketAddress(co.getHost(), co.getPort()));
         future.awaitUninterruptibly();
         if(!future.isSuccess()) {

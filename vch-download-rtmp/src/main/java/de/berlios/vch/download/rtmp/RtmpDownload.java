@@ -23,7 +23,6 @@ import org.osgi.service.log.LogService;
 
 import com.flazr.rtmp.RtmpHandshake;
 import com.flazr.rtmp.client.ClientOptions;
-import com.flazr.rtmp.client.ClientPipelineFactory;
 import com.flazr.util.Utils;
 
 import de.berlios.vch.download.AbstractDownload;
@@ -42,6 +41,8 @@ public class RtmpDownload extends AbstractDownload  {
     
     private int progress;
     private Channel channel;
+    
+    private BandwidthMeterHandler bandwidthMeterHandler;
     
     public RtmpDownload(IVideoPage video, LogService logger) {
         super(video);
@@ -68,6 +69,8 @@ public class RtmpDownload extends AbstractDownload  {
         
         // swf verification
         swfUri = (URI) video.getUserData().get("swfUri");
+        
+        bandwidthMeterHandler = new BandwidthMeterHandler();
     }
     
     @Override
@@ -80,14 +83,20 @@ public class RtmpDownload extends AbstractDownload  {
         return false;
     }
 
+    private long lastPoll = System.currentTimeMillis();
     @Override
     public float getSpeed() {
-//        if(getStatus() == Status.DOWNLOADING) {
-//            return (float)client.getSpeed();
-//        } else {
-//            return -1;
-//        }
-        return -1;
+        if(getStatus() == Status.DOWNLOADING) {
+            // calculate throughput
+            float diffInSeconds = (System.currentTimeMillis() - lastPoll) / 1000f;
+            lastPoll = System.currentTimeMillis();
+            long bytes = bandwidthMeterHandler.getBytesReceived();
+            bandwidthMeterHandler.reset();
+            float kbytes = bytes / 1024f;
+            return (float)(kbytes / diffInSeconds);
+        } else {
+            return -1;
+        }
     }
 
     @Override
@@ -170,7 +179,7 @@ public class RtmpDownload extends AbstractDownload  {
             }
             options.setWriterToSave(writer);
             logger.log(LogService.LOG_INFO, "Starting download: " + host + " " + app + " " + streamName);
-            final ClientBootstrap bootstrap = getBootstrap(Executors.newCachedThreadPool(), options);
+            final ClientBootstrap bootstrap = getBootstrap(Executors.newCachedThreadPool(), bandwidthMeterHandler, options);
             final ChannelFuture future = bootstrap.connect(new InetSocketAddress(options.getHost(), options.getPort()));
             future.awaitUninterruptibly();
             if(!future.isSuccess()) {
@@ -186,7 +195,7 @@ public class RtmpDownload extends AbstractDownload  {
                 setStatus(Status.STOPPED);
             }
             bootstrap.getFactory().releaseExternalResources();
-            
+
         } catch (FileNotFoundException e) {
             logger.log(LogService.LOG_ERROR, "Couldn't start download to file " + getLocalFile(), e);
         }
@@ -202,10 +211,10 @@ public class RtmpDownload extends AbstractDownload  {
         options.setSwfSize(data.length);
     }
 
-    public static ClientBootstrap getBootstrap(final Executor executor, final ClientOptions options) {
+    public static ClientBootstrap getBootstrap(final Executor executor, final BandwidthMeterHandler bandwidthMeterHandler, final ClientOptions options) {
         final ChannelFactory factory = new NioClientSocketChannelFactory(executor, executor);
         final ClientBootstrap bootstrap = new ClientBootstrap(factory);
-        bootstrap.setPipelineFactory(new ClientPipelineFactory(options));
+        bootstrap.setPipelineFactory(new RtmpPipelineFactory(bandwidthMeterHandler, options));
         bootstrap.setOption("tcpNoDelay" , true);
         bootstrap.setOption("keepAlive", true);
         return bootstrap;
