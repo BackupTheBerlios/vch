@@ -59,6 +59,9 @@ public class RTMP implements INetworkProtocol {
                 + (videoUri.getFragment() != null ? "#" + videoUri.getFragment() : "");
         app = app.substring(1); // cut off the leading /
         int pos = app.indexOf(streamName);
+        if(streamName.startsWith("mp4:")) {
+            pos = app.indexOf(streamName.substring(4));
+        }
         app = app.substring(0, pos);
 
 

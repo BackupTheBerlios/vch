@@ -65,6 +65,9 @@ public class RtmpDownload extends AbstractDownload  {
                 + (uri.getFragment() != null ? "#" + uri.getFragment() : "");
         app = app.substring(1); // cut off the leading /
         int pos = app.indexOf(streamName);
+        if(streamName.startsWith("mp4:")) {
+            pos = app.indexOf(streamName.substring(4));
+        }
         app = app.substring(0, pos);
         
         // swf verification
