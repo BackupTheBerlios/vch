@@ -2,12 +2,18 @@ package de.berlios.vch.parser.lindenstr;
 
 import java.net.URI;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
+import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Unbind;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.htmlparser.Tag;
 import org.htmlparser.Text;
 import org.htmlparser.tags.LinkTag;
@@ -16,6 +22,7 @@ import org.htmlparser.util.Translate;
 import org.osgi.service.log.LogService;
 
 import de.berlios.vch.http.client.HttpUtils;
+import de.berlios.vch.net.INetworkProtocol;
 import de.berlios.vch.parser.HtmlParserUtils;
 import de.berlios.vch.parser.IOverviewPage;
 import de.berlios.vch.parser.IVideoPage;
@@ -23,6 +30,7 @@ import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
 import de.berlios.vch.parser.VideoPage;
+import de.berlios.vch.parser.exceptions.NoSupportedVideoFoundException;
 
 @Component
 @Provides
@@ -39,6 +47,8 @@ public class LindenStrParser implements IWebParser {
     
     @Requires
     private LogService logger;
+    
+    private List<String> supportedProtocols = new ArrayList<String>();
     
     @Override
     public String getId() {
@@ -100,11 +110,35 @@ public class LindenStrParser implements IWebParser {
             String flashvars = param.getAttribute("value");
             int start = flashvars.indexOf("dslSrc=") + 7;
             int stop = flashvars.indexOf('&', start);
-            String videoUri = flashvars.substring(start, stop);
-            String playPath = "mp4:" + videoUri.substring(STREAM_BASE.length(), videoUri.length()-4);
-            vpage.setVideoUri(new URI(videoUri));
-            vpage.getUserData().put("streamName", playPath);
+            String _videoUri = flashvars.substring(start, stop);
+            String playPath = "mp4:" + _videoUri.substring(STREAM_BASE.length(), _videoUri.length()-4);
+            URI videoUri = new URI(_videoUri);
+            if(supportedProtocols.contains(videoUri.getScheme())) {
+                vpage.setVideoUri(videoUri);
+                vpage.getUserData().put("streamName", playPath);
+            } else {
+                throw new NoSupportedVideoFoundException(videoUri.toString(), supportedProtocols);
+            }
         }
         return page;
+    }
+    
+// ############ ipojo stuff #########################################    
+    
+    // validate and invalidate method seem to be necessary for the bind methods to work
+    @Validate
+    public void start() {}
+    
+    @Invalidate
+    public void stop() {}
+
+    @Bind(id = "supportedProtocols", aggregate = true)
+    public synchronized void addProtocol(INetworkProtocol protocol) {
+        supportedProtocols.addAll(protocol.getSchemes());
+    }
+    
+    @Unbind(id="supportedProtocols", aggregate = true)
+    public synchronized void removeProtocol(INetworkProtocol protocol) {
+        supportedProtocols.removeAll(protocol.getSchemes());
     }
 }

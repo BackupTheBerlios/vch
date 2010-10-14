@@ -6,22 +6,30 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Unbind;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.service.log.LogService;
 
+import de.berlios.vch.net.INetworkProtocol;
 import de.berlios.vch.parser.IOverviewPage;
+import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
 import de.berlios.vch.parser.VideoPage;
+import de.berlios.vch.parser.exceptions.NoSupportedVideoFoundException;
 import de.berlios.vch.parser.n24.tvnext.ArrayOfN24Ressort;
 import de.berlios.vch.parser.n24.tvnext.N24Ressort;
 import de.berlios.vch.parser.n24.tvnext.TvNextClip;
@@ -38,6 +46,8 @@ public class N24Parser implements IWebParser {
 
     @Requires
     private LogService logger;
+    
+    private List<String> supportedProtocols = new ArrayList<String>();
     
     @Override
     public String getId() {
@@ -128,6 +138,31 @@ public class N24Parser implements IWebParser {
 
     @Override
     public IWebPage parse(IWebPage page) throws Exception {
+        if(page instanceof IVideoPage) {
+            IVideoPage vpage = (IVideoPage) page;
+            if(!supportedProtocols.contains(vpage.getVideoUri().getScheme())) {
+                throw new NoSupportedVideoFoundException(vpage.getVideoUri().toString(), supportedProtocols);
+            }
+        }
         return page;
+    }
+    
+// ############ ipojo stuff #########################################    
+    
+    // validate and invalidate method seem to be necessary for the bind methods to work
+    @Validate
+    public void start() {}
+    
+    @Invalidate
+    public void stop() {}
+
+    @Bind(id = "supportedProtocols", aggregate = true)
+    public synchronized void addProtocol(INetworkProtocol protocol) {
+        supportedProtocols.addAll(protocol.getSchemes());
+    }
+    
+    @Unbind(id="supportedProtocols", aggregate = true)
+    public synchronized void removeProtocol(INetworkProtocol protocol) {
+        supportedProtocols.removeAll(protocol.getSchemes());
     }
 }

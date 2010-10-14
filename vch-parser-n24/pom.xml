@@ -66,6 +66,12 @@
 			<type>jar</type>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>de.berlios.vch</groupId>
+			<artifactId>net</artifactId>
+			<type>bundle</type>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
     
     <!-- 
