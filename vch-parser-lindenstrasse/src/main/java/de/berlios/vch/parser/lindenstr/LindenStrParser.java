@@ -14,8 +14,8 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.htmlparser.Node;
 import org.htmlparser.Tag;
-import org.htmlparser.Text;
 import org.htmlparser.tags.LinkTag;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.Translate;
@@ -75,12 +75,20 @@ public class LindenStrParser implements IWebParser {
                 video.setUri(new URI(BASE_URI + link.extractLink()));
                 
                 try {
-                    Text date = (Text) link.getNextSibling().getNextSibling().getNextSibling().getNextSibling();
-                    String tagContent = date.toPlainTextString();
-                    Date pubDate = sdf.parse(tagContent);
-                    Calendar cal = Calendar.getInstance();
-                    cal.setTime(pubDate);
-                    video.setPublishDate(cal);
+                    Node sibling = link;
+                    while( (sibling = sibling.getNextSibling()) != null) {
+                        String tagContent = sibling.toPlainTextString();
+                        if(tagContent.startsWith("(Sendedatum")) {
+                            Date pubDate = sdf.parse(tagContent);
+                            Calendar cal = Calendar.getInstance();
+                            cal.setTime(pubDate);
+                            video.setPublishDate(cal);
+                            break;
+                        } else if(sibling instanceof LinkTag) {
+                            // we arrived at the next link, so we didn't find a date for this link
+                            break;
+                        }
+                    }
                 } catch(Exception e) {
                     logger.log(LogService.LOG_WARNING, "Couldn't parse publish date", e);
                 }
