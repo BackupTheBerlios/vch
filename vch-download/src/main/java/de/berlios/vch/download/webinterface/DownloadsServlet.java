@@ -56,6 +56,9 @@ public class DownloadsServlet extends BundleContextServlet {
         } else if("delete".equals(action)) {
             String id = req.getParameter("id");
             dm.cancelDownload(id);
+            resp.setContentType("text/plain");
+            resp.getWriter().println("OK");
+            return;
         } else if("start_all".equals(action)) {
             dm.startDownloads();
         } else if("stop_all".equals(action)) {
@@ -66,6 +69,9 @@ public class DownloadsServlet extends BundleContextServlet {
             String id = req.getParameter("id");
             dm.deleteDownload(id);
             addNotify(req, new NotifyMessage(TYPE.INFO, i18n.translate("I18N_DL_FILE_DELETED")));
+            resp.setContentType("text/plain");
+            resp.getWriter().println("OK");
+            return;
         } else if ("add".equals(action)) {
             String vchuri = req.getParameter("vchuri");
             try {
@@ -97,7 +103,6 @@ public class DownloadsServlet extends BundleContextServlet {
         params.put("STATIC_PATH", STATIC_PATH);
         params.put("DOWNLOADS", dm.getActiveDownloads());
         params.put("FINISHED_DOWNLOADS", dm.getFinishedDownloads());
-        params.put("AJAX_ENABLED", true);
         params.put("NOTIFY_MESSAGES", getNotifyMessages(req));
         
         // additional css

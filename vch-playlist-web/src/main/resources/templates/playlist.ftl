@@ -76,7 +76,14 @@
             if($('#items').children().length <= 1) {
                 $.ajax({
                     url: '${ACTION}?action=clear',
-                    success: function() { $('#playlist_container').empty(); },
+                    success: function() {
+                        $(li).hide(1000, function() {
+                            $(li).remove();
+                            $('#playlist_container').hide(1000, function() {
+                                $('#playlist_container').empty(); 
+                            });
+                        });
+                    },
                     error: function() {
                         $.pnotify( {
                             pnotify_title : '${I18N_ERROR}',
@@ -90,7 +97,9 @@
                 $.ajax({
                     url: '${ACTION}?action=remove&id=' + $(li).attr('vch:id'),
                     success: function() {
-                        $(li).remove(); 
+                        $(li).hide(1000, function() {
+                            $(li).remove();
+                        }); 
                     },
                     error: function() {
                         $.pnotify( {
