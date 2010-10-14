@@ -22,30 +22,9 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.htmlparser</groupId>
-			<artifactId>htmlparser</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.berlios.vch</groupId>
-			<artifactId>web</artifactId>
-			<type>bundle</type>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
 			<groupId>de.berlios.vch</groupId>
 			<artifactId>i18n</artifactId>
 			<type>bundle</type>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.felix</groupId>
-			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.felix</groupId>
-			<artifactId>org.apache.felix.main</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -58,6 +37,21 @@
 			<groupId>de.berlios.vch</groupId>
 			<artifactId>net</artifactId>
 			<type>bundle</type>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.htmlparser</groupId>
+			<artifactId>htmlparser</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.main</artifactId>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
