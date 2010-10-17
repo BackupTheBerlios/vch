@@ -35,7 +35,7 @@
         <li id="pe_${pe_index}" vch:id="${pe.id}" class="ui-state-default ui-corner-all">
             <span class="ui-icon ui-icon-arrowthick-2-n-s handle"></span>
             <span style="margin-left: -0.5em; cursor:pointer" class="ui-icon ui-icon-trash" onclick="remove($(this).parent())"></span>
-            <span style="margin-left: 0.5em; cursor:text">${pe.title}</span>
+            <span style="margin-left: 0.5em; cursor:text">${pe.video.title}</span>
         </li>
     </#list>    
     </ul>

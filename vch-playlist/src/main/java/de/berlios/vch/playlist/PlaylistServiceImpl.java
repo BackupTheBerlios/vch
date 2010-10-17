@@ -4,13 +4,19 @@ package de.berlios.vch.playlist;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.prefs.Preferences;
 
+import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.hampelratte.svdrp.Command;
 import org.hampelratte.svdrp.Response;
@@ -18,6 +24,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.log.LogService;
 
 import de.berlios.vch.config.ConfigService;
+import de.berlios.vch.net.INetworkProtocol;
 import de.berlios.vch.playlist.io.svdrp.CheckMplayerSvdrpInterface;
 import de.berlios.vch.playlist.io.svdrp.CheckXineliboutputSvdrpInterface;
 
@@ -41,6 +48,8 @@ public class PlaylistServiceImpl implements PlaylistService {
     
     private Preferences prefs;
     
+    private Set<INetworkProtocol> protocols = new HashSet<INetworkProtocol>();
+    
     public PlaylistServiceImpl(BundleContext ctx) {
         this.ctx = ctx;
     }
@@ -51,7 +60,7 @@ public class PlaylistServiceImpl implements PlaylistService {
     }
 
     @Override
-    public void play(Playlist playlist) throws UnknownHostException, IOException {
+    public void play(Playlist playlist) throws UnknownHostException, IOException, URISyntaxException  {
         String svdrpHost = prefs.get("svdrp.host", "localhost");
         int svdrpPort = prefs.getInt("svdrp.port", 2001);
         logger.log(LogService.LOG_INFO, "Starting media player plugin with SVDRP on "+svdrpHost+":"+svdrpPort);
@@ -61,14 +70,23 @@ public class PlaylistServiceImpl implements PlaylistService {
             svdrp = new org.hampelratte.svdrp.Connection(svdrpHost, svdrpPort);
             Command playCmd = getPlayCommand(svdrp);
             fw = new FileWriter(new File("/tmp/vch.pls"));
+            
             if(player == MediaPlayer.MPLAYER) {
                 for (PlaylistEntry playlistEntry : playlist) {
-                    fw.write(playlistEntry.getUrl() + '\n');
+                    // check, if we have to use a stream bridge for this format
+                    String uri = bridgeIfNecessary(playlistEntry);
+                    
+                    // write URI to playlist file
+                    fw.write(uri + '\n');
                 }
             } else if(player == MediaPlayer.XINELIBOUTPUT) {
                 for (int i = 0; i < playlist.size(); i++) {
-                    fw.write("File"+(i+1)+"="+URLDecoder.decode(playlist.get(i).getUrl(), "utf-8")+"\n");
-                    fw.write("Title"+(i+1)+"="+playlist.get(i).getTitle()+'\n');
+                    // check, if we have to use a stream bridge for this format
+                    PlaylistEntry entry = playlist.get(i);
+                    String uri = bridgeIfNecessary(entry);
+                    
+                    fw.write("File"+(i+1)+"="+URLDecoder.decode(uri, "utf-8")+"\n");
+                    fw.write("Title"+(i+1)+"="+entry.getVideo().getTitle()+'\n');
                 }
             }
             fw.close();
@@ -90,6 +108,19 @@ public class PlaylistServiceImpl implements PlaylistService {
         }
     }
     
+    private String bridgeIfNecessary(PlaylistEntry playlistEntry) throws URISyntaxException {
+        URI videoUri = playlistEntry.getVideo().getVideoUri();
+        for (INetworkProtocol proto : protocols) {
+            String scheme = videoUri.getScheme();
+            if(proto.getSchemes().contains(scheme)) {
+                if(proto.isBridgeNeeded()) {
+                    return proto.toBridgeUri(videoUri, playlistEntry.getVideo().getUserData()).toString();
+                }
+            }
+        }
+        return videoUri.toString();
+    }
+
     private Command getPlayCommand(org.hampelratte.svdrp.Connection svdrp) throws IOException {
         Response res = svdrp.send(new CheckMplayerSvdrpInterface());
         if(res.getCode() == 214) {
@@ -135,5 +166,14 @@ public class PlaylistServiceImpl implements PlaylistService {
     public void start() {
         prefs = config.getUserPreferences(ctx.getBundle().getSymbolicName());
     }
-
+    
+    @Bind(id = "protocols", aggregate = true)
+    public synchronized void addProtocol(INetworkProtocol protocol) {
+        protocols.add(protocol);
+    }
+    
+    @Unbind(id="protocols", aggregate = true)
+    public synchronized void removeProtocol(INetworkProtocol protocol) {
+        protocols.remove(protocol);
+    }
 }

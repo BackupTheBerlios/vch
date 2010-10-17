@@ -59,7 +59,7 @@ public class AddToPlaylistAction implements ItemDetailsAction {
         OsdItem item = menu.getItems().get(0);
         if(item.getUserData() instanceof IVideoPage) {
             IVideoPage page = (IVideoPage) item.getUserData();
-            pl.add(new PlaylistEntry(page.getTitle(), page.getVideoUri().toString()));
+            pl.add(new PlaylistEntry(page));
             osd.showMessageSilent(new OsdMessage(i18n.translate("I18N_VIDEO_ENQUEUED"), OsdMessage.INFO));
         } else {
             logger.log(LogService.LOG_WARNING, "Nothing to add");

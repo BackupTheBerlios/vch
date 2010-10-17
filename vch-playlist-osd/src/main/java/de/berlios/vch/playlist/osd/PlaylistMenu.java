@@ -29,7 +29,7 @@ public class PlaylistMenu extends Menu {
     
     private void addItems() {
         for (PlaylistEntry entry : pls.getPlaylist()) {
-            OsdItem item = new OsdItem(ID.randomId(), StringUtils.escape(entry.getTitle()));
+            OsdItem item = new OsdItem(ID.randomId(), StringUtils.escape(entry.getVideo().getTitle()));
             item.setUserData(entry);
             addOsdItem(item);
         }

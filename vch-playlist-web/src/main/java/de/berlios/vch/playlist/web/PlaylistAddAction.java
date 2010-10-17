@@ -22,9 +22,8 @@ public class PlaylistAddAction implements IWebAction {
     @Override
     public String getUri(IWebPage page) throws UnsupportedEncodingException {
         IVideoPage video = (IVideoPage) page;
-        String title = URLEncoder.encode(video.getTitle(), "UTF-8");
-        String uri = URLEncoder.encode(video.getVideoUri().toString(), "UTF-8");
-        return PlaylistServlet.PATH + "?action=add&title=" + title + "&uri=" + uri;
+        String uri = URLEncoder.encode(video.getVchUri().toString(), "UTF-8");
+        return PlaylistServlet.PATH + "?action=add&uri=" + uri;
     }
 
     @Override
