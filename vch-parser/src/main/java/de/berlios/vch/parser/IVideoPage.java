@@ -1,5 +1,6 @@
 package de.berlios.vch.parser;
 
+import java.io.Serializable;
 import java.net.URI;
 import java.util.Calendar;
 
@@ -10,7 +11,7 @@ import java.util.Calendar;
  * @author henni
  *
  */
-public interface IVideoPage extends IWebPage {
+public interface IVideoPage extends IWebPage, Cloneable, Serializable {
 	public String getDescription();
 	
 	public void setDescription(String description);
@@ -23,10 +24,18 @@ public interface IVideoPage extends IWebPage {
 	
 	public void setThumbnail(URI uri);
 	
-	public URI getVideoUri();
-	
-	public void setVideoUri(URI uri);
-	
+    /**
+     * URI of the video file
+     * 
+     * @return the URI of the video file
+     */
+    public URI getVideoUri();
+
+    /**
+     * Sets the URI of the video file
+     */
+    public void setVideoUri(URI uri);
+
 	/**
 	 * Duration of the video
 	 * @return duration of the video in seconds
@@ -38,4 +47,6 @@ public interface IVideoPage extends IWebPage {
      * @param duration in secods
      */
 	public void setDuration(long duration);
+	
+	public Object clone() throws CloneNotSupportedException;
 }

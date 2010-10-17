@@ -65,4 +65,8 @@ public class VideoPage extends WebPage implements IVideoPage {
     public void setVideoUri(URI videoUri) {
         this.videoUri = videoUri;
     }
+    
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
 }
