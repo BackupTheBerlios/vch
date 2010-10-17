@@ -34,7 +34,9 @@ public class PlayActiveAction implements ItemDetailsAction {
         IVideoPage page = download.getVideoPage();
         File videoFile = new File(download.getLocalFile());
         Playlist pl = new Playlist();
-        pl.add(new PlaylistEntry(page.getTitle(), videoFile.getAbsolutePath()));
+        IVideoPage clone = (IVideoPage) page.clone();
+        clone.setVideoUri(videoFile.getAbsoluteFile().toURI());
+        pl.add(new PlaylistEntry(clone));
         playlistService.play(pl);
     }
 
