@@ -200,7 +200,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>web</artifactId>
-            	<version>1.0.3</version>
+            	<version>1.0.4</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
@@ -221,7 +221,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>parser</artifactId>
-            	<version>1.0.0</version>
+            	<version>1.0.1</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
@@ -235,7 +235,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>download</artifactId>
-            	<version>1.0.8</version>
+            	<version>1.0.9</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
