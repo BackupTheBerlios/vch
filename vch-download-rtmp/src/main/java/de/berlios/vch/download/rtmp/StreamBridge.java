@@ -23,8 +23,6 @@ public class StreamBridge extends BundleContextServlet {
     
     @Override
     protected void get(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("video");
-        
         //String uri = req.getParameter("uri");
         String host = req.getParameter("host");
         String appName = req.getParameter("app");
@@ -32,6 +30,13 @@ public class StreamBridge extends BundleContextServlet {
         String scheme = req.getParameter("scheme");
         String swfUri = req.getParameter("swfUri");
         logger.log(LogService.LOG_INFO, "StreamBridge params: " + req.getParameterMap());
+
+        resp.setContentType("video");
+        
+        // add a filename 
+        int lastSlash = streamName.lastIndexOf('/');
+        String filename = lastSlash > 0 ? streamName.substring(lastSlash+1) : streamName;
+        resp.addHeader("Content-disposition", "attachment; filename=\"" + filename + ".flv\"");
         
         ClientOptions co;
         if("rtmpe".equals(scheme)) {
