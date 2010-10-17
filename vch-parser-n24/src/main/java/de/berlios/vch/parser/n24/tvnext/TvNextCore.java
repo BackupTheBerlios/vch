@@ -4,6 +4,8 @@ package de.berlios.vch.parser.n24.tvnext;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Logger;
+
+import javax.jws.soap.SOAPBinding;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
 import javax.xml.ws.WebEndpoint;
@@ -18,6 +20,7 @@ import javax.xml.ws.WebServiceFeature;
  * 
  */
 @WebServiceClient(name = "TvNextCore", targetNamespace = "http://schemas.exozet.com/tvnext/services/core/", wsdlLocation = "file:/mnt/dachboden/devel/svdrp/VCH/src/wsdl/TvNextCore.wsdl")
+@SOAPBinding(parameterStyle=SOAPBinding.ParameterStyle.BARE)
 public class TvNextCore
     extends Service
 {
