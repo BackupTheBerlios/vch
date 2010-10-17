@@ -28,7 +28,8 @@ public class RtmpDownloadFactory implements DownloadFactory {
     public boolean accept(IVideoPage video) {
         if(valid && video.getVideoUri() != null) {
             return "rtmp".equals(video.getVideoUri().getScheme())
-                || "rtmpt".equals(video.getVideoUri().getScheme());
+                || "rtmpt".equals(video.getVideoUri().getScheme())
+                || "rtmpe".equals(video.getVideoUri().getScheme());
         }
         return false;
     }

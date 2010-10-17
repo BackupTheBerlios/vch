@@ -23,14 +23,16 @@
  */
 package de.berlios.vch.download.rtmp;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.ChannelEvent;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelPipelineCoverage;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
 
-import java.util.concurrent.atomic.AtomicLong;
-
+@ChannelPipelineCoverage("one")
 public class BandwidthMeterHandler extends SimpleChannelHandler {
     private AtomicLong bytesSent = new AtomicLong();
     private AtomicLong bytesReceived = new AtomicLong();

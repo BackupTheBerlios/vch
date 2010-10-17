@@ -2,6 +2,7 @@ package de.berlios.vch.download.rtmp;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.util.concurrent.Executors;
 
 import javax.servlet.ServletException;
@@ -28,8 +29,26 @@ public class StreamBridge extends BundleContextServlet {
         String host = req.getParameter("host");
         String appName = req.getParameter("app");
         String streamName = req.getParameter("stream");
+        String scheme = req.getParameter("scheme");
+        String swfUri = req.getParameter("swfUri");
+        logger.log(LogService.LOG_INFO, "StreamBridge params: " + req.getParameterMap());
         
-        ClientOptions co = new ClientOptions(host, appName, streamName, "/tmp/dummy");
+        ClientOptions co;
+        if("rtmpe".equals(scheme)) {
+            logger.log(LogService.LOG_INFO, "Trying to establish encrypted connection over rtmpe");
+            co = new ClientOptions(host, 1935, appName, streamName, "/tmp/dummy", true, null);
+        } else {
+            co = new ClientOptions(host, appName, streamName,"/tmp/dummy");
+        }
+        if(swfUri != null) {
+            try {
+                RTMP.initSwfVerification(co, new URI(swfUri));
+                logger.log(LogService.LOG_INFO, "SWF verification initialized");
+            } catch (Exception e) {
+                logger.log(LogService.LOG_ERROR, "Couldn't initialize SWF verification", e);
+            }
+        }
+        
         OutputStreamFlvWriter writer = new OutputStreamFlvWriter(0, resp.getOutputStream(), new DownloadListener() {
             @Override
             public void setProgress(int percent) {}
@@ -45,7 +64,7 @@ public class StreamBridge extends BundleContextServlet {
         });
         
         co.setWriterToSave(writer);
-        logger.log(LogService.LOG_INFO, "Starting streaming: " + host + " " + appName + " " + streamName);
+        logger.log(LogService.LOG_INFO, "Starting streaming: " +scheme + " " + host + " " + appName + " " + streamName);
         final ClientBootstrap bootstrap = RtmpDownload.getBootstrap(Executors.newCachedThreadPool(), new BandwidthMeterHandler(), co);
         final ChannelFuture future = bootstrap.connect(new InetSocketAddress(co.getHost(), co.getPort()));
         future.awaitUninterruptibly();

@@ -1,16 +1,10 @@
 package de.berlios.vch.download.rtmp;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -21,9 +15,7 @@ import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.osgi.service.log.LogService;
 
-import com.flazr.rtmp.RtmpHandshake;
 import com.flazr.rtmp.client.ClientOptions;
-import com.flazr.util.Utils;
 
 import de.berlios.vch.download.AbstractDownload;
 import de.berlios.vch.parser.IVideoPage;
@@ -33,6 +25,7 @@ public class RtmpDownload extends AbstractDownload  {
 
     private LogService logger;
     
+    private String scheme;
     private String host;
     private String app;
     private String streamName;
@@ -47,6 +40,9 @@ public class RtmpDownload extends AbstractDownload  {
     public RtmpDownload(IVideoPage video, LogService logger) {
         super(video);
         this.logger = logger;
+        
+        // scheme
+        this.scheme = video.getVideoUri().getScheme();
         
         // file
         URI uri = video.getVideoUri();
@@ -66,7 +62,9 @@ public class RtmpDownload extends AbstractDownload  {
         app = app.substring(1); // cut off the leading /
         int pos = app.indexOf(streamName);
         if(streamName.startsWith("mp4:")) {
-            pos = app.indexOf(streamName.substring(4));
+            if(!app.contains("mp4:")) {
+                pos = app.indexOf(streamName.substring(4));
+            }
         }
         app = app.substring(0, pos);
         
@@ -172,10 +170,16 @@ public class RtmpDownload extends AbstractDownload  {
                 }
             });
             
-            ClientOptions options = new ClientOptions(host, app, streamName, getLocalFile());
+            ClientOptions options;
+            if("rtmpe".equals(scheme)) {
+                logger.log(LogService.LOG_INFO, "Trying to establish encrypted connection over rtmpe");
+                options = new ClientOptions(host, 1935, app, streamName, getLocalFile(), true, null);
+            } else {
+                options = new ClientOptions(host, app, streamName, getLocalFile());
+            }
             if(swfUri != null) {
                 try {
-                    initSwfVerification(options, swfUri);
+                    RTMP.initSwfVerification(options, swfUri);
                 } catch (Exception e) {
                     logger.log(LogService.LOG_ERROR, "Couldn't initialize SWF verification", e);
                 }
@@ -204,16 +208,6 @@ public class RtmpDownload extends AbstractDownload  {
         }
     }
     
-    private void initSwfVerification(ClientOptions options, URI swfUri) throws MalformedURLException, IOException, InvalidKeyException, NoSuchAlgorithmException {
-        InputStream in = swfUri.toURL().openStream();
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        SwfFile.decompressSwf(in, bos);
-        byte[] data = bos.toByteArray();
-        byte[] hmacSha256 = Utils.sha256(data, RtmpHandshake.CLIENT_CONST);
-        options.setSwfHash(hmacSha256);
-        options.setSwfSize(data.length);
-    }
-
     public static ClientBootstrap getBootstrap(final Executor executor, final BandwidthMeterHandler bandwidthMeterHandler, final ClientOptions options) {
         final ChannelFactory factory = new NioClientSocketChannelFactory(executor, executor);
         final ClientBootstrap bootstrap = new ClientBootstrap(factory);
