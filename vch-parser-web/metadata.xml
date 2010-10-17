@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <iPOJO>
 	<instance component="de.berlios.vch.parser.web.Activator" name="ParserWebFrontend" />
+    <instance component="de.berlios.vch.parser.web.WatchWebAction" name="Watch Web Action" />
+    <instance component="de.berlios.vch.parser.web.OpenWebAction" name="Open Web Action" />
 </iPOJO>

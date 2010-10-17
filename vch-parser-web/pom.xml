@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>parser.web</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.0.3</version>
+	<version>1.0.4</version>
 	<name>VCH Parser Web Frontend</name>
 	<description>Web frontend for the parsers. Use your favorite browser to browse through the VCH index</description>
     
@@ -53,6 +53,12 @@
 		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.main</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.berlios.vch</groupId>
+			<artifactId>net</artifactId>
+			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>

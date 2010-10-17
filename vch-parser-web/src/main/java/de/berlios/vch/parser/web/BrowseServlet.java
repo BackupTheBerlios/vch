@@ -3,7 +3,10 @@ package de.berlios.vch.parser.web;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -64,12 +67,19 @@ public class BrowseServlet extends BundleContextServlet {
                             response = toJSON(overview.getPages());
                         } else {
                             response = toJSON(parsedPage);
-                            String actions = actionsToJSON(getWebActions(), parsedPage);
+                            List<IWebAction> webActions = getWebActions();
+                            Collections.sort(webActions, new Comparator<IWebAction>() {
+                                @Override
+                                public int compare(IWebAction o1, IWebAction o2) {
+                                    return o1.getTitle().compareTo(o2.getTitle());
+                                }
+                            });
+                            String actions = actionsToJSON(webActions, parsedPage);
                             
                             response = "{\"video\":" + response + "," 
                                 + "\"actions\":" + actions + "}";
 
-                            logger.log(LogService.LOG_INFO, getWebActions().size() + " web actions available");
+                            logger.log(LogService.LOG_INFO, webActions.size() + " web actions available");
                             logger.log(LogService.LOG_DEBUG, actions);
                         }
                         resp.setContentType("application/json; charset=utf-8");
@@ -180,7 +190,7 @@ public class BrowseServlet extends BundleContextServlet {
         }
     }
 
-    private String actionsToJSON(List<IWebAction> webActions, IWebPage page) throws UnsupportedEncodingException {
+    private String actionsToJSON(List<IWebAction> webActions, IWebPage page) throws UnsupportedEncodingException, URISyntaxException {
         if (!webActions.isEmpty()) {
             String json = "[";
             for (Iterator<IWebAction> iterator = webActions.iterator(); iterator.hasNext();) {
@@ -196,7 +206,7 @@ public class BrowseServlet extends BundleContextServlet {
         }
     }
     
-    private String toJSON(IWebAction action, IWebPage page) throws UnsupportedEncodingException {
+    private String toJSON(IWebAction action, IWebPage page) throws UnsupportedEncodingException, URISyntaxException {
         Map<String, Object> object = new HashMap<String, Object>();
         object.put("title", action.getTitle());
         object.put("uri", action.getUri(page));
