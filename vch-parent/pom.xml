@@ -214,7 +214,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>osdserver</artifactId>
-            	<version>1.0.5</version>
+            	<version>1.0.6</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
@@ -235,7 +235,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>download</artifactId>
-            	<version>1.0.7</version>
+            	<version>1.0.8</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
@@ -265,7 +265,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>playlist</artifactId>
-            	<version>1.0.3</version>
+            	<version>1.0.4</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
