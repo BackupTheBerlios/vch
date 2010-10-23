@@ -160,7 +160,7 @@ public class YoutubeParser implements IWebParser, /*ISearchProvider,*/ ResourceB
             pubCal.setTime(entry.getPublishedDate());
             video.setPublishDate(pubCal);
             
-            // parse video uri
+            // parse uri
             video.setUri(new URI(entry.getLink()));
             
             feedPage.getPages().add(video);
@@ -243,6 +243,7 @@ public class YoutubeParser implements IWebParser, /*ISearchProvider,*/ ResourceB
         } catch (BackingStoreException e) {
             logger.log(LogService.LOG_ERROR, "Couldn't load preferences", e);
         }
+        
         Collections.sort(feeds);
         return feeds;
     }
