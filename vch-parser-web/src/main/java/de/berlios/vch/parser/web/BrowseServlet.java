@@ -66,7 +66,7 @@ public class BrowseServlet extends BundleContextServlet {
                             IOverviewPage overview = (IOverviewPage) parsedPage;
                             response = toJSON(overview.getPages());
                         } else {
-                            response = toJSON(parsedPage);
+                            response = toJSON(parsedPage, false);
                             List<IWebAction> webActions = getWebActions();
                             Collections.sort(webActions, new Comparator<IWebAction>() {
                                 @Override
@@ -143,7 +143,7 @@ public class BrowseServlet extends BundleContextServlet {
         get(req, resp);
     }
 
-    private String toJSON(IWebPage page) throws JSONException {
+    private String toJSON(IWebPage page, boolean isOverview) throws JSONException {
         // create the data object
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("title", page.getTitle());
@@ -162,14 +162,13 @@ public class BrowseServlet extends BundleContextServlet {
         
         if (page instanceof IVideoPage) {
             IVideoPage vpage = (IVideoPage) page;
-            if(vpage.getVideoUri() != null) attributes.put("vchvideo", vpage.getVideoUri().toString());
+            if(!isOverview && vpage.getVideoUri() != null) attributes.put("vchvideo", vpage.getVideoUri().toString());
             if(vpage.getUri() != null) attributes.put("vchlink", vpage.getUri().toString());
             if(vpage.getDescription() != null) attributes.put("vchdesc", vpage.getDescription());
             if(vpage.getThumbnail() != null) attributes.put("vchthumb", vpage.getThumbnail().toString());
             if(vpage.getPublishDate() != null) attributes.put("vchpubDate", vpage.getPublishDate().getTimeInMillis());
             if(vpage.getDuration() > 0) attributes.put("vchduration", vpage.getDuration());
             attributes.put("vchisLeaf", true);
-            
         }
         return new JSONObject(object).toString();
     }
@@ -179,7 +178,7 @@ public class BrowseServlet extends BundleContextServlet {
             String json = "[";
             for (Iterator<IWebPage> iterator = pages.iterator(); iterator.hasNext();) {
                 IWebPage page = iterator.next();
-                json += toJSON(page);
+                json += toJSON(page, true);
                 if (iterator.hasNext()) {
                     json += ", ";
                 }
