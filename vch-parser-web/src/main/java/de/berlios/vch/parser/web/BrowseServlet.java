@@ -33,6 +33,7 @@ import de.berlios.vch.parser.exceptions.NoSupportedVideoFoundException;
 import de.berlios.vch.web.IWebAction;
 import de.berlios.vch.web.servlets.BundleContextServlet;
 
+// TODO neuere Version vom jquery tree mit besserem ajax error handling probieren. Im moment wird immer nur undefined error ausgegeben
 public class BrowseServlet extends BundleContextServlet {
 
     public static final String PATH = "/parser";
