@@ -68,8 +68,9 @@ public class PlaylistServiceImpl implements PlaylistService {
         FileWriter fw = null;
         try {
             svdrp = new org.hampelratte.svdrp.Connection(svdrpHost, svdrpPort);
-            Command playCmd = getPlayCommand(svdrp);
-            fw = new FileWriter(new File("/tmp/vch.pls"));
+            File pls = File.createTempFile("vch_playlist_", ".pls");
+            Command playCmd = getPlayCommand(svdrp, pls);
+            fw = new FileWriter(pls);
             
             if(player == MediaPlayer.MPLAYER) {
                 for (PlaylistEntry playlistEntry : playlist) {
@@ -121,7 +122,7 @@ public class PlaylistServiceImpl implements PlaylistService {
         return videoUri.toString();
     }
 
-    private Command getPlayCommand(org.hampelratte.svdrp.Connection svdrp) throws IOException {
+    private Command getPlayCommand(org.hampelratte.svdrp.Connection svdrp, final File playlistFile) throws IOException {
         Response res = svdrp.send(new CheckMplayerSvdrpInterface());
         if(res.getCode() == 214) {
             logger.log(LogService.LOG_DEBUG, "Using MPlayer to play the file");
@@ -129,7 +130,7 @@ public class PlaylistServiceImpl implements PlaylistService {
             return new Command() {
                 @Override
                 public String getCommand() {
-                    return "plug mplayer play /tmp/vch.pls";
+                    return "plug mplayer play " + playlistFile.getAbsolutePath();
                 }
                 @Override
                 public String toString() {
@@ -144,7 +145,7 @@ public class PlaylistServiceImpl implements PlaylistService {
                 return new Command() {
                     @Override
                     public String getCommand() {
-                        return "plug xineliboutput pmda /tmp/vch.pls";
+                        return "plug xineliboutput pmda " + playlistFile.getAbsolutePath();
                     }
                     @Override
                     public String toString() {
