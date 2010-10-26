@@ -63,7 +63,7 @@ public class LindenStrParser implements IWebParser {
         page.setUri(new URI("vchpage://localhost/" + getId()));
         
         String content = HttpUtils.get(START_PAGE, null, CHARSET);
-        NodeList links = HtmlParserUtils.getTags(content, CHARSET, "td[width=\"340\"] a");
+        NodeList links = HtmlParserUtils.getTags(content, CHARSET, "td[width=\"332\"] a");
 
         SimpleDateFormat sdf = new SimpleDateFormat("'(Sendedatum: 'dd. MMMM yyyy')'");
         for (int i = 0; i < links.size(); i++) {
