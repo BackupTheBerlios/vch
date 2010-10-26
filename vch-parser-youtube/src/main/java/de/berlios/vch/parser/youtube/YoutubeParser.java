@@ -1,16 +1,22 @@
 package de.berlios.vch.parser.youtube;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.SortedSet;
+import java.util.StringTokenizer;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.prefs.BackingStoreException;
@@ -23,6 +29,7 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.htmlparser.util.ParserException;
 import org.htmlparser.util.Translate;
+import org.jdom.Element;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.http.HttpService;
@@ -34,8 +41,6 @@ import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.feed.synd.SyndImage;
 import com.sun.syndication.feed.synd.SyndImageImpl;
 import com.sun.syndication.io.FeedException;
-import com.sun.syndication.io.SyndFeedInput;
-import com.sun.syndication.io.XmlReader;
 
 import de.berlios.vch.config.ConfigService;
 import de.berlios.vch.i18n.Messages;
@@ -48,13 +53,14 @@ import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
 import de.berlios.vch.parser.VideoPage;
+import de.berlios.vch.rss.RssParser;
 import de.berlios.vch.web.TemplateLoader;
 import de.berlios.vch.web.menu.IWebMenuEntry;
 import de.berlios.vch.web.menu.WebMenuEntry;
 
 @Component
 @Provides(specifications= {IWebParser.class})
-public class YoutubeParser implements IWebParser, /*ISearchProvider,*/ ResourceBundleProvider {
+public class YoutubeParser implements IWebParser, ResourceBundleProvider {
 
     @Requires
     private ConfigService cs;
@@ -101,7 +107,49 @@ public class YoutubeParser implements IWebParser, /*ISearchProvider,*/ ResourceB
             page.setUri(new URI(feed.getUri()));
             root.getPages().add(page);
         }
+        addUserFeeds(root);
         return root;
+    }
+
+    private void addUserFeeds(IOverviewPage root) throws Exception {
+        String user = prefs.get("user", "");
+        if(user.length() > 0) {
+            IOverviewPage userPage = new OverviewPage();
+            userPage.setTitle(getResourceBundle().getString("I18N_USER") + " " + user);
+            userPage.setParser(getId());
+            String urlEncodedUser = URLEncoder.encode(user, "UTF-8");
+            userPage.setUri(new URI("youtube://user/" + urlEncodedUser));
+            
+            // add favorites
+            IOverviewPage favorites = new OverviewPage();
+            favorites.setParser(getId());
+            favorites.setTitle(getResourceBundle().getString("I18N_FAVORITES"));
+            favorites.setUri(new URI("http://gdata.youtube.com/feeds/base/users/"+urlEncodedUser+"/favorites?alt=rss"));
+            userPage.getPages().add(favorites);
+            
+            // add playlists
+            IOverviewPage playlists = new OverviewPage();
+            playlists.setParser(getId());
+            playlists.setTitle(getResourceBundle().getString("I18N_PLAYLISTS"));
+            playlists.setUri(new URI("http://gdata.youtube.com/feeds/base/users/"+urlEncodedUser+"/playlists?alt=rss"));
+            userPage.getPages().add(playlists);
+            
+            // add subscriptions
+            IOverviewPage subscriptions = new OverviewPage();
+            subscriptions.setParser(getId());
+            subscriptions.setTitle(getResourceBundle().getString("I18N_SUBSCRIPTIONS"));
+            userPage.getPages().add(subscriptions);
+            subscriptions.setUri(new URI("http://gdata.youtube.com/feeds/api/users/"+urlEncodedUser+"/subscriptions?alt=rss"));
+
+            // add uploads
+            IOverviewPage uploads = new OverviewPage();
+            uploads.setParser(getId());
+            uploads.setTitle(getResourceBundle().getString("I18N_UPLOADS"));
+            uploads.setUri(new URI("http://gdata.youtube.com/feeds/base/users/"+urlEncodedUser+"/uploads?alt=rss"));
+            userPage.getPages().add(uploads);
+            
+            root.getPages().add(userPage);
+        }
     }
 
     @Override
@@ -113,21 +161,59 @@ public class YoutubeParser implements IWebParser, /*ISearchProvider,*/ ResourceB
     public IWebPage parse(IWebPage page) throws Exception {
         if(page instanceof IVideoPage) {
             return page;
-        } else {
+        } else if (page instanceof IOverviewPage) {
+            if(page.getUri().toString().startsWith("youtube://user/")) {
+                return page;
+            } else if(page.getUri().getPath().endsWith("playlists") || page.getUri().getPath().endsWith("subscriptions")) {
+                /* We first parse the page as a normal feed, but we will get
+                 * an IOverviewPage with IVideoPage childs. But the playlists / subscriptions
+                 * have children, too, so we have to transform the IVideoPages
+                 * to IOverviewPages */
+                IOverviewPage feedPage = parseFeed(page.getUri());
+                feedPage.setTitle(page.getTitle());
+                feedPage.setUri(page.getUri());
+                videoToOverview(feedPage);
+                return feedPage;
+            } else if(page.getUri().toString().contains("view_play_list")) {
+                // the playlists feed contains URIs to the playlist web pages and not to another rss feed,
+                // so we have to transform the web link to a rss link
+                String query = page.getUri().getQuery();
+                if(query != null) {
+                    // replace the URI with the rss URI
+                    Map<String, Object> params = parseQuery(query);
+                    String playlistId = (String) params.get("p");
+                    String uri = "http://gdata.youtube.com/feeds/api/playlists/" + playlistId;
+                    page.setUri(new URI(uri));
+                }
+            } 
+            
             logger.log(LogService.LOG_INFO, "Parsing youtube rss feed " + page.getUri());
             IOverviewPage feedPage = parseFeed(page.getUri());
             feedPage.setTitle(page.getTitle());
             feedPage.setUri(page.getUri());
             return feedPage;
         }
+        
+        return page;
+    }
+    
+    private void videoToOverview(IOverviewPage feedPage) throws Exception {
+        List<IWebPage> newPages = new ArrayList<IWebPage>(feedPage.getPages().size());
+        for (Iterator<IWebPage> iterator = feedPage.getPages().iterator(); iterator.hasNext();) {
+            IVideoPage _playlist = (IVideoPage) iterator.next();
+            IOverviewPage playlist = new OverviewPage();
+            playlist.setParser(getId());
+            playlist.setTitle(_playlist.getTitle());
+            playlist.setUri(_playlist.getUri());
+            newPages.add(playlist);
+        }
+        feedPage.getPages().clear();
+        feedPage.getPages().addAll(newPages);
     }
     
     private IOverviewPage parseFeed(URI feedURI) throws IOException, ParserException, IllegalArgumentException, FeedException, URISyntaxException {
         // RSS in das SyndFeed Object Parsen
-        XmlReader xmlReader = new XmlReader(feedURI.toURL());
-        SyndFeedInput input = new SyndFeedInput();
-        SyndFeed feed = input.build(xmlReader);
-        feed.setEncoding(xmlReader.getEncoding());
+        SyndFeed feed = RssParser.parseUri(feedURI.toString());
         String title = feed.getTitle();
         feed.setTitle("Youtube - " + title);
         feed.setDescription(title);
@@ -150,18 +236,56 @@ public class YoutubeParser implements IWebParser, /*ISearchProvider,*/ ResourceB
             } else if(entry.getContents().size() > 0) {
                 rawDescription = ((SyndContent)entry.getContents().get(0)).getValue(); 
             }
-            if(rawDescription != null) {
-                String desc = HtmlParserUtils.getText(rawDescription, "UTF-8", "div span");
-                video.setDescription(Translate.decode(desc));
+            if (rawDescription != null) {
+                if (rawDescription.startsWith("&lt;")) {
+                    String desc = HtmlParserUtils.getText(rawDescription, "UTF-8", "div span");
+                    video.setDescription(Translate.decode(desc));
+                } else if (rawDescription.startsWith("<div")) {
+                    String desc = HtmlParserUtils.getText(rawDescription, "UTF-8", "div span");
+                    video.setDescription(desc);
+                } else {
+                    String desc = HtmlParserUtils.getText("<div>"+rawDescription+"</div>", "UTF-8", "div");
+                    video.setDescription(desc);
+                }
             }
             
             // parse publish date
-            Calendar pubCal = Calendar.getInstance();
-            pubCal.setTime(entry.getPublishedDate());
-            video.setPublishDate(pubCal);
+            if(entry.getPublishedDate() != null) {
+                Calendar pubCal = Calendar.getInstance();
+                pubCal.setTime(entry.getPublishedDate());
+                video.setPublishDate(pubCal);
+            } else if(entry.getUpdatedDate() != null) {
+                Calendar pubCal = Calendar.getInstance();
+                pubCal.setTime(entry.getUpdatedDate());
+                video.setPublishDate(pubCal);
+            }
+            
+            // parse the thumbnail
+            @SuppressWarnings("unchecked")
+            List<Element> elements = (List<Element>) entry.getForeignMarkup();
+            for (Element element : elements) {
+                if("thumbnail".equals(element.getName())) {
+                    video.setThumbnail(new URI(element.getText()));
+                }
+            }
             
             // parse uri
             video.setUri(new URI(entry.getLink()));
+            
+            // if we parse a subscription feed, we have to adjust the uri to point 
+            // to the uploads page of yt:username
+            if(entry.getTitle().startsWith("Activity of : ")) {
+                @SuppressWarnings("unchecked")
+                List<Element> fm = (List<Element>) entry.getForeignMarkup();
+                for (Element element : fm) {
+                    if("username".equals(element.getName()) && "yt".equals(element.getNamespacePrefix())) {
+                        String username = element.getTextTrim().toLowerCase();
+                        String urlEncodedUser = URLEncoder.encode(username, "UTF-8");
+                        URI uri = new URI("http://gdata.youtube.com/feeds/base/users/"+urlEncodedUser+"/uploads?alt=rss");
+                        video.setUri(uri);
+                    }
+                }
+            }
             
             feedPage.getPages().add(video);
         }
@@ -279,14 +403,44 @@ public class YoutubeParser implements IWebParser, /*ISearchProvider,*/ ResourceB
         return resourceBundle;
     }
 
-//    @Override
-//    public IOverviewPage search(String query) throws Exception {
-//        String _uri = "http://gdata.youtube.com/feeds/base/videos?client=ytapi-youtube-search&alt=rss&v=2&q="
-//            + URLEncoder.encode(query, "UTF-8");
-//        URI uri = new URI(_uri);
-//        IOverviewPage result = parseFeed(uri);
-//        result.setUri(uri);
-//        result.setTitle("Search results for \""+query+"\"");
-//        return result;
-//    }
+    public Map<String, Object> parseQuery(String query) throws UnsupportedEncodingException {
+        Map<String, Object> parameters = new HashMap<String, Object>();
+        if(query != null) {
+            StringTokenizer st = new StringTokenizer(query, "&");
+            while (st.hasMoreTokens()) {
+                String keyValue = st.nextToken();
+                StringTokenizer st2 = new StringTokenizer(keyValue, "=");
+                String key = null;
+                String value = "";
+                if (st2.hasMoreTokens()) {
+                    key = st2.nextToken();
+                    key = URLDecoder.decode(key, "UTF-8");
+                }
+
+                if (st2.hasMoreTokens()) {
+                    value = st2.nextToken();
+                    value = URLDecoder.decode(value, "UTF-8");
+                }
+
+                logger.log(LogService.LOG_DEBUG, "Found key value pair: " + key + "," + value);
+                if(parameters.containsKey(key)) {
+                    logger.log(LogService.LOG_DEBUG, "Key already exists. Assuming array of values. Will bes tored in a list");
+                    Object o = parameters.get(key);
+                    if(o instanceof List) {
+                        @SuppressWarnings("unchecked")
+                        List<String> values = (List<String>) o;
+                        values.add(value);
+                    } else if(o instanceof String) {
+                        List<String> values = new ArrayList<String>();
+                        values.add((String)o);
+                        values.add(value);
+                        parameters.put(key, values);
+                    }
+                } else {
+                    parameters.put(key, value);
+                }
+            }
+        }
+        return parameters;
+    }
 }

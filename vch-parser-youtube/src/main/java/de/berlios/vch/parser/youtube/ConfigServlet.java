@@ -54,6 +54,7 @@ public class ConfigServlet extends BundleContextServlet {
             }
         } else if(req.getParameter("save_config") != null) {
             prefs.put("video.quality", req.getParameter("quality"));
+            prefs.put("user", req.getParameter("own_account"));
         }
         
         params.put("TITLE", i18n.translate("I18N_YOUTUBE_CONFIG"));
@@ -62,6 +63,7 @@ public class ConfigServlet extends BundleContextServlet {
         params.put("FEEDS", parser.getFeeds());
         params.put("ACTION", PATH);
         params.put("QUALITY", prefs.getInt("video.quality", 34));
+        params.put("OWN_ACCOUNT", prefs.get("user", ""));
         params.put("NOTIFY_MESSAGES", getNotifyMessages(req));
         
         String page = templateLoader.loadTemplate("configYoutube.ftl", params);

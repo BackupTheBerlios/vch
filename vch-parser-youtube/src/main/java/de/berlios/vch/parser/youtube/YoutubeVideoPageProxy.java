@@ -39,9 +39,9 @@ public class YoutubeVideoPageProxy extends VideoPage {
         try {
             Map<String, String> params = new HashMap<String, String>();
             params.put("Accept-Encoding", "gzip");
-            String pageConent = HttpUtils.get(videoLink, params, "UTF-8");
+            String pageContent = HttpUtils.get(videoLink, params, "UTF-8");
             
-            StringTokenizer st = new StringTokenizer(pageConent, "\n");
+            StringTokenizer st = new StringTokenizer(pageContent, "\n");
             while(st.hasMoreTokens()) {
                 String line = st.nextToken();
                 if (line.contains("var swfConfig")) {

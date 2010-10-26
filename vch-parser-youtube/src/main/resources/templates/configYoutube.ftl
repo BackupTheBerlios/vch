@@ -63,6 +63,13 @@
   <td>
 </tr>
 <tr>
+  <td>
+    ${I18N_OWN_USERNAME}
+  </td><td>
+    <input type="text" name="own_account" value="${OWN_ACCOUNT}" />
+  <td>
+</tr>
+<tr>
   <td>&nbsp;</td>
   <td>
     <input type="submit" name="save_config" value="${I18N_SAVE}" class="ui-button" />
