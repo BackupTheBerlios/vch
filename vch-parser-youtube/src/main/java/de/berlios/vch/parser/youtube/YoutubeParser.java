@@ -162,7 +162,7 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider {
         if(page instanceof IVideoPage) {
             return page;
         } else if (page instanceof IOverviewPage) {
-            if(page.getUri().toString().startsWith("youtube://user/")) {
+            if("youtube".equals(page.getUri().getScheme())) {
                 return page;
             } else if(page.getUri().getPath().endsWith("playlists") || page.getUri().getPath().endsWith("subscriptions")) {
                 /* We first parse the page as a normal feed, but we will get
@@ -191,12 +191,45 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider {
             IOverviewPage feedPage = parseFeed(page.getUri());
             feedPage.setTitle(page.getTitle());
             feedPage.setUri(page.getUri());
+            addRelatedVideosPage(feedPage);
             return feedPage;
         }
         
         return page;
     }
     
+    private void addRelatedVideosPage(IOverviewPage feedPage) throws Exception {
+        List<IWebPage> newPages = new ArrayList<IWebPage>();
+        for (IWebPage page : feedPage.getPages()) {
+            if(page instanceof IVideoPage) {
+                // determine the video id
+                Map<String, Object> params = parseQuery(page.getUri().getQuery());
+                String v = (String) params.get("v");
+                
+                // create the overview page for the video and related videos
+                IOverviewPage opage = new OverviewPage();
+                opage.setParser(getId());
+                opage.setTitle(page.getTitle());
+                opage.setUri(new URI("youtube://video/"+v));
+                newPages.add(opage);
+                
+                // add the video page
+                opage.getPages().add(page);
+                
+                // add the related videos
+                IOverviewPage related = new OverviewPage();
+                related.setParser(getId());
+                related.setTitle(getResourceBundle().getString("I18N_RELATED"));
+                related.setUri(new URI("http://gdata.youtube.com/feeds/api/videos/"+v+"/related?alt=rss"));
+                opage.getPages().add(related);
+            } else {
+                newPages.add(page);
+            }
+        }
+        feedPage.getPages().clear();
+        feedPage.getPages().addAll(newPages);
+    }
+
     private void videoToOverview(IOverviewPage feedPage) throws Exception {
         List<IWebPage> newPages = new ArrayList<IWebPage>(feedPage.getPages().size());
         for (Iterator<IWebPage> iterator = feedPage.getPages().iterator(); iterator.hasNext();) {
