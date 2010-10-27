@@ -68,17 +68,7 @@
                         html += '<p>' + attributes.vchdesc + '</p>';
                     } 
                     
-                    // add the video link, if available
-                    if(attributes.vchvideo) {
-                        html += '<a id="watch" style="margin-right: 1em;" href="'+attributes.vchvideo+'">${I18N_WATCH}</a>';
-                    }
-                    
-                    // add the page link, if available
-                    if(attributes.vchlink && attributes.vchlink.indexOf("http") == 0) {
-                        html += '<a target="_blank" style="margin-right: 1em;" id="open" href="'+attributes.vchlink+'">${I18N_OPEN}</a>';
-                    }
-                    
-                    // show all dynamic web actions
+                    // add web actions
                     if(attributes.vchvideo && actions) {
                         for(var i=0; i<actions.length; i++) {
                             html += '<a style="margin-right: 1em;" id="action'+i+'" href="'+actions[i].uri+'">'+actions[i].title+'</a>';

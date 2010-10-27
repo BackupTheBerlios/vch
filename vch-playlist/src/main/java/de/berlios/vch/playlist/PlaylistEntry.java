@@ -3,34 +3,22 @@ package de.berlios.vch.playlist;
 import java.io.Serializable;
 import java.util.UUID;
 
+import de.berlios.vch.parser.IVideoPage;
+
 public class PlaylistEntry implements Serializable {
     
     private static final long serialVersionUID = 1L;
-    private String title;
-    private String url;
     private String id;
+    private IVideoPage video;
 
-    public PlaylistEntry(String title, String url) {
+    public PlaylistEntry(IVideoPage video) {
         super();
         this.id = UUID.randomUUID().toString();
-        this.title = title;
-        this.url = url;
+        this.video = video;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
+    public IVideoPage getVideo() {
+        return video;
     }
     
     public String getId() {

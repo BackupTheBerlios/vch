@@ -30,10 +30,12 @@
         <module>../vch-parser</module>
         <module>../vch-parser-3sat</module>
         <module>../vch-parser-ard</module>
+	<module>../vch-parser-arte</module>
         <module>../vch-parser-brainblog</module>
         <module>../vch-parser-console</module>
         <module>../vch-parser-dmax</module>
         <module>../vch-parser-golem</module>
+        <module>../vch-parser-orf</module>
         <module>../vch-parser-rss</module>
         <module>../vch-parser-web</module>
         <module>../vch-parser-youporn</module>

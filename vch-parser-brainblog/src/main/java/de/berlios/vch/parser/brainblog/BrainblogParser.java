@@ -24,8 +24,6 @@ import org.htmlparser.tags.ImageTag;
 import org.htmlparser.util.Translate;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.log.LogService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.sun.syndication.feed.synd.SyndCategory;
 import com.sun.syndication.feed.synd.SyndEnclosure;
@@ -50,8 +48,6 @@ import de.berlios.vch.parser.VideoPage;
 @Component
 @Provides(specifications= {IWebParser.class})
 public class BrainblogParser implements IWebParser, ResourceBundleProvider {
-private static transient Logger logger = LoggerFactory.getLogger(BrainblogParser.class);
-    
     public static final String CHARSET = "UTF-8";
     
     public static final String ID = BrainblogParser.class.getName();
@@ -74,7 +70,7 @@ private static transient Logger logger = LoggerFactory.getLogger(BrainblogParser
     private Messages i18n;
     
     @Requires
-    private LogService log;
+    private LogService logger;
     
     @Validate
     public void start() {
@@ -177,12 +173,12 @@ private static transient Logger logger = LoggerFactory.getLogger(BrainblogParser
             if(m.find()) {
                 Map<String, List<String>> params = HttpUtils.parseQuery(m.group(1));
                 medialink = params.get("file").get(0);
-                logger.info("Found video: {}", medialink);
+                logger.log(LogService.LOG_INFO, "Found video: " + medialink);
             } else {
-                logger.debug("No video found on page {}", itempage);
+                logger.log(LogService.LOG_DEBUG, "No video found on page " + itempage);
             }
         } catch (Exception e) {
-            logger.error("Couldn't parse enclosure link", e);
+            logger.log(LogService.LOG_ERROR, "Couldn't parse enclosure link", e);
         }
         return medialink;
     }
@@ -213,10 +209,10 @@ private static transient Logger logger = LoggerFactory.getLogger(BrainblogParser
     public ResourceBundle getResourceBundle() {
         if(resourceBundle == null) {
             try {
-                log.log(LogService.LOG_DEBUG, "Loading resource bundle for " + getClass().getSimpleName());
+                logger.log(LogService.LOG_DEBUG, "Loading resource bundle for " + getClass().getSimpleName());
                 resourceBundle = ResourceBundleLoader.load(ctx, Locale.getDefault());
             } catch (IOException e) {
-                log.log(LogService.LOG_ERROR, "Couldn't load resource bundle", e);
+                logger.log(LogService.LOG_ERROR, "Couldn't load resource bundle", e);
             }
         }
         return resourceBundle;

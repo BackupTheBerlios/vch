@@ -1,6 +1,8 @@
 package de.berlios.vch.playlist.web;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -10,6 +12,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.osgi.service.log.LogService;
+
+import de.berlios.vch.parser.IVideoPage;
+import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.playlist.Playlist;
 import de.berlios.vch.playlist.PlaylistEntry;
 import de.berlios.vch.web.NotifyMessage;
@@ -35,15 +41,31 @@ public class PlaylistServlet extends BundleContextServlet {
         
         String action = req.getParameter("action");
         if("add".equalsIgnoreCase(action)) {
-            String title = req.getParameter("title");
             String uri = req.getParameter("uri");
-            PlaylistEntry entry = new PlaylistEntry(title, uri);
-            pl.add(entry);
+            try {
+                IWebPage page = activator.getParserService().parse(new URI(uri));
+                if(page instanceof IVideoPage) {
+                    PlaylistEntry entry = new PlaylistEntry((IVideoPage) page);
+                    pl.add(entry);
+                } else {
+                    addNotify(req, new NotifyMessage(TYPE.ERROR, i18n.translate("not_a_video")));
+                    logger.log(LogService.LOG_ERROR, i18n.translate("not_a_video"));
+                }
+            } catch (Exception e) {
+                addNotify(req, new NotifyMessage(TYPE.ERROR, e.getLocalizedMessage()));
+                logger.log(LogService.LOG_ERROR, e.getLocalizedMessage(), e);
+            }
         } else if("play".equals(action)) {
             if(activator.getPlaylistService() != null) {
-                activator.getPlaylistService().play(pl);
+                try {
+                    activator.getPlaylistService().play(pl);
+                } catch (URISyntaxException e) {
+                    addNotify(req, new NotifyMessage(TYPE.ERROR, e.getLocalizedMessage()));
+                    logger.log(LogService.LOG_ERROR, e.getLocalizedMessage(), e);
+                }
             } else {
                 addNotify(req, new NotifyMessage(TYPE.ERROR, i18n.translate("playlist_service_missing")));
+                logger.log(LogService.LOG_ERROR, i18n.translate("playlist_service_missing"));
             }
         } else if("reorder".equals(action)) {
             String[] order = req.getParameterValues("pe[]");
@@ -72,7 +94,7 @@ public class PlaylistServlet extends BundleContextServlet {
                     return;
                 }
             }
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Playlist entry not found");
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Playlist entry not found"); // TODO i18n, response ass notification
         }
         
         // now display the playlist
@@ -84,6 +106,7 @@ public class PlaylistServlet extends BundleContextServlet {
         params.put("TITLE", i18n.translate("I18N_PLAYLIST"));
         params.put("ACTION", PATH);
         params.put("PLAYLIST", pl);
+        params.put("NOTIFY_MESSAGES", getNotifyMessages(req));
 
         String page = templateLoader.loadTemplate("playlist.ftl", params);
         resp.getWriter().print(page);

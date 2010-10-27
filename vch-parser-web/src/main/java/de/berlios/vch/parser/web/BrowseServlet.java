@@ -3,7 +3,10 @@ package de.berlios.vch.parser.web;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -30,6 +33,7 @@ import de.berlios.vch.parser.exceptions.NoSupportedVideoFoundException;
 import de.berlios.vch.web.IWebAction;
 import de.berlios.vch.web.servlets.BundleContextServlet;
 
+// TODO neuere Version vom jquery tree mit besserem ajax error handling probieren. Im moment wird immer nur undefined error ausgegeben
 public class BrowseServlet extends BundleContextServlet {
 
     public static final String PATH = "/parser";
@@ -63,13 +67,20 @@ public class BrowseServlet extends BundleContextServlet {
                             IOverviewPage overview = (IOverviewPage) parsedPage;
                             response = toJSON(overview.getPages());
                         } else {
-                            response = toJSON(parsedPage);
-                            String actions = actionsToJSON(getWebActions(), parsedPage);
+                            response = toJSON(parsedPage, false);
+                            List<IWebAction> webActions = getWebActions();
+                            Collections.sort(webActions, new Comparator<IWebAction>() {
+                                @Override
+                                public int compare(IWebAction o1, IWebAction o2) {
+                                    return o1.getTitle().compareTo(o2.getTitle());
+                                }
+                            });
+                            String actions = actionsToJSON(webActions, parsedPage);
                             
                             response = "{\"video\":" + response + "," 
                                 + "\"actions\":" + actions + "}";
 
-                            logger.log(LogService.LOG_INFO, getWebActions().size() + " web actions available");
+                            logger.log(LogService.LOG_INFO, webActions.size() + " web actions available");
                             logger.log(LogService.LOG_DEBUG, actions);
                         }
                         resp.setContentType("application/json; charset=utf-8");
@@ -133,7 +144,7 @@ public class BrowseServlet extends BundleContextServlet {
         get(req, resp);
     }
 
-    private String toJSON(IWebPage page) throws JSONException {
+    private String toJSON(IWebPage page, boolean isOverview) throws JSONException {
         // create the data object
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("title", page.getTitle());
@@ -152,14 +163,13 @@ public class BrowseServlet extends BundleContextServlet {
         
         if (page instanceof IVideoPage) {
             IVideoPage vpage = (IVideoPage) page;
-            if(vpage.getVideoUri() != null) attributes.put("vchvideo", vpage.getVideoUri().toString());
+            if(!isOverview && vpage.getVideoUri() != null) attributes.put("vchvideo", vpage.getVideoUri().toString());
             if(vpage.getUri() != null) attributes.put("vchlink", vpage.getUri().toString());
             if(vpage.getDescription() != null) attributes.put("vchdesc", vpage.getDescription());
             if(vpage.getThumbnail() != null) attributes.put("vchthumb", vpage.getThumbnail().toString());
             if(vpage.getPublishDate() != null) attributes.put("vchpubDate", vpage.getPublishDate().getTimeInMillis());
             if(vpage.getDuration() > 0) attributes.put("vchduration", vpage.getDuration());
             attributes.put("vchisLeaf", true);
-            
         }
         return new JSONObject(object).toString();
     }
@@ -169,7 +179,7 @@ public class BrowseServlet extends BundleContextServlet {
             String json = "[";
             for (Iterator<IWebPage> iterator = pages.iterator(); iterator.hasNext();) {
                 IWebPage page = iterator.next();
-                json += toJSON(page);
+                json += toJSON(page, true);
                 if (iterator.hasNext()) {
                     json += ", ";
                 }
@@ -180,7 +190,7 @@ public class BrowseServlet extends BundleContextServlet {
         }
     }
 
-    private String actionsToJSON(List<IWebAction> webActions, IWebPage page) throws UnsupportedEncodingException {
+    private String actionsToJSON(List<IWebAction> webActions, IWebPage page) throws UnsupportedEncodingException, URISyntaxException {
         if (!webActions.isEmpty()) {
             String json = "[";
             for (Iterator<IWebAction> iterator = webActions.iterator(); iterator.hasNext();) {
@@ -196,7 +206,7 @@ public class BrowseServlet extends BundleContextServlet {
         }
     }
     
-    private String toJSON(IWebAction action, IWebPage page) throws UnsupportedEncodingException {
+    private String toJSON(IWebAction action, IWebPage page) throws UnsupportedEncodingException, URISyntaxException {
         Map<String, Object> object = new HashMap<String, Object>();
         object.put("title", action.getTitle());
         object.put("uri", action.getUri(page));

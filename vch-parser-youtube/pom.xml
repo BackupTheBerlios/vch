@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>parser.youtube</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.0.5</version>
+	<version>1.2.0</version>
 	<name>VCH Youtube Parser</name>
 	<description>Parser for Youtube RSS feeds. Select the desired youtube page, click on the RSS icon and add the feed to VCH.</description>
     

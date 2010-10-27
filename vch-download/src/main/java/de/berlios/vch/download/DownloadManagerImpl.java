@@ -257,7 +257,7 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
     }
     
     @Override
-    public List<DownloadDTO> getFinishedDownloads() {
+    public synchronized List<DownloadDTO> getFinishedDownloads() {
         File[] descriptors = dataDir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {

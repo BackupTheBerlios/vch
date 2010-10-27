@@ -7,6 +7,8 @@ import de.berlios.vch.osdserver.osd.Osd;
 import de.berlios.vch.osdserver.osd.OsdItem;
 import de.berlios.vch.osdserver.osd.OsdObject;
 import de.berlios.vch.osdserver.osd.menu.actions.ItemDetailsAction;
+import de.berlios.vch.parser.IVideoPage;
+import de.berlios.vch.parser.VideoPage;
 import de.berlios.vch.playlist.Playlist;
 import de.berlios.vch.playlist.PlaylistEntry;
 import de.berlios.vch.playlist.PlaylistService;
@@ -29,7 +31,10 @@ public class PlayFinishedAction implements ItemDetailsAction {
         OsdItem item = osd.getCurrentItem();
         DownloadDTO dto = (DownloadDTO)item.getUserData();
         Playlist pl = new Playlist();
-        pl.add(new PlaylistEntry(dto.getTitle(), dto.getVideoFile().getAbsolutePath()));
+        IVideoPage page = new VideoPage();
+        page.setTitle(dto.getTitle());
+        page.setVideoUri(dto.getVideoFile().toURI());
+        pl.add(new PlaylistEntry(page));
         playlistService.play(pl);
     }
 

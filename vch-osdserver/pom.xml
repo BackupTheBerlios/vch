@@ -4,7 +4,7 @@
 	<artifactId>osdserver</artifactId>
 	<packaging>bundle</packaging>
 	<name>VCH osdserver</name>
-	<version>1.0.5</version>
+	<version>1.0.6</version>
 	<description>This bundle provides an VDR osd menu with the help of the VDR osdserver-Plugin</description>
     
     <parent>
@@ -41,12 +41,6 @@
 		<dependency>
 			<groupId>de.berlios.vch</groupId>
 			<artifactId>web</artifactId>
-			<type>bundle</type>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.berlios.vch</groupId>
-			<artifactId>net</artifactId>
 			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>

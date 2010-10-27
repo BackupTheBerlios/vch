@@ -35,7 +35,7 @@
         <li id="pe_${pe_index}" vch:id="${pe.id}" class="ui-state-default ui-corner-all">
             <span class="ui-icon ui-icon-arrowthick-2-n-s handle"></span>
             <span style="margin-left: -0.5em; cursor:pointer" class="ui-icon ui-icon-trash" onclick="remove($(this).parent())"></span>
-            <span style="margin-left: 0.5em; cursor:text">${pe.title}</span>
+            <span style="margin-left: 0.5em; cursor:text">${pe.video.title}</span>
         </li>
     </#list>    
     </ul>
@@ -76,7 +76,14 @@
             if($('#items').children().length <= 1) {
                 $.ajax({
                     url: '${ACTION}?action=clear',
-                    success: function() { $('#playlist_container').empty(); },
+                    success: function() {
+                        $(li).hide(1000, function() {
+                            $(li).remove();
+                            $('#playlist_container').hide(1000, function() {
+                                $('#playlist_container').empty(); 
+                            });
+                        });
+                    },
                     error: function() {
                         $.pnotify( {
                             pnotify_title : '${I18N_ERROR}',
@@ -90,7 +97,9 @@
                 $.ajax({
                     url: '${ACTION}?action=remove&id=' + $(li).attr('vch:id'),
                     success: function() {
-                        $(li).remove(); 
+                        $(li).hide(1000, function() {
+                            $(li).remove();
+                        }); 
                     },
                     error: function() {
                         $.pnotify( {

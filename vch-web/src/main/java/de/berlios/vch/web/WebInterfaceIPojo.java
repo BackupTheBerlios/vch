@@ -1,6 +1,8 @@
 package de.berlios.vch.web;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -38,7 +40,7 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
 
     private BundleContext ctx;
     
-    private ServiceRegistration menuReg;
+    private List<ServiceRegistration> menuRegs = new ArrayList<ServiceRegistration>();
     
     public WebInterfaceIPojo(final BundleContext ctx) throws IOException {
         this.ctx = ctx;
@@ -58,16 +60,25 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
         help.setTitle(getResourceBundle().getString("I18N_HELP"));
         help.setPreferredPosition(Integer.MAX_VALUE);
         help.setLinkUri("#");
+        
         WebMenuEntry content = new WebMenuEntry(getResourceBundle().getString("I18N_CONTENT"));
         content.setLinkUri("http://vdr-wiki.de/wiki/index.php/Vodcatcher_Helper");
         help.getChilds().add(content);
-        menuReg = ctx.registerService(IWebMenuEntry.class.getName(), help, null);        
+        
+        WebMenuEntry developer = new WebMenuEntry(getResourceBundle().getString("I18N_DEVELOPER"));
+        developer.setLinkUri("http://vdr-wiki.de/wiki/index.php/Vodcatcher_Helper/Entwickler");
+        developer.setPreferredPosition(Integer.MAX_VALUE);
+        help.getChilds().add(developer);
+        
+        menuRegs.add(ctx.registerService(IWebMenuEntry.class.getName(), help, null));   
     }
 
     @Invalidate
     public void invalidate() throws Exception {
         unregisterHttpContext(httpService);
-        unregisterService(menuReg);
+        for (ServiceRegistration reg : menuRegs) {
+            unregisterService(reg);
+        }
         i18n.removeProvider(this);
     }
     
