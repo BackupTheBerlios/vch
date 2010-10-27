@@ -173,6 +173,19 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider {
                 feedPage.setTitle(page.getTitle());
                 feedPage.setUri(page.getUri());
                 videoToOverview(feedPage);
+                
+                // add new subscription videos, if it is the subscriptiosn page
+                if(page.getUri().getPath().endsWith("subscriptions")) {
+                    // add new subscriptions
+                    IOverviewPage newSubscriptions = new OverviewPage();
+                    newSubscriptions.setParser(getId());
+                    newSubscriptions.setTitle(getResourceBundle().getString("I18N_NEW_SUBSCRIPTIONS"));
+                    String user = prefs.get("user", "");
+                    String urlEncodedUser = URLEncoder.encode(user, "UTF-8");
+                    newSubscriptions.setUri(new URI("http://gdata.youtube.com/feeds/base/users/"+urlEncodedUser+"/newsubscriptionvideos?alt=rss"));
+                    feedPage.getPages().add(0, newSubscriptions);
+                }
+                
                 return feedPage;
             } else if(page.getUri().toString().contains("view_play_list")) {
                 // the playlists feed contains URIs to the playlist web pages and not to another rss feed,
