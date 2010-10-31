@@ -74,7 +74,7 @@ public class Activator implements ResourceBundleProvider {
         
         // register web interface menu
         IWebMenuEntry menu = new WebMenuEntry(i18n.translate("I18N_PLAYLIST"));
-        menu.setPreferredPosition(Integer.MIN_VALUE + 1);
+        menu.setPreferredPosition(Integer.MIN_VALUE + 10);
         menu.setLinkUri("#");
         SortedSet<IWebMenuEntry> childs = new TreeSet<IWebMenuEntry>();
         IWebMenuEntry entry = new WebMenuEntry();
