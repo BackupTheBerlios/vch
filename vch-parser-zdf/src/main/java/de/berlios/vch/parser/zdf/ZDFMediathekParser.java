@@ -173,7 +173,7 @@ public class ZDFMediathekParser implements IWebParser, BundleActivator {
             
             // detect page type
             LinkTag typeLink = (LinkTag) links.elementAt(2);
-            boolean isVideo = Translate.decode(typeLink.getLinkText()).trim().toLowerCase().contains("video");
+            boolean isVideo = Translate.decode(typeLink.getParent().toPlainTextString()).trim().toLowerCase().contains("video");
             
             // create an OverviewPage or a VideoPage
             IWebPage subPage = null;
