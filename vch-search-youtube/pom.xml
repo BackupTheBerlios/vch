@@ -35,7 +35,7 @@
         <dependency>
         	<groupId>de.berlios.vch</groupId>
         	<artifactId>parser.youtube</artifactId>
-        	<version>1.0.4</version>
+        	<version>1.2.0</version>
         	<type>bundle</type>
         	<scope>provided</scope>
         </dependency>
@@ -43,24 +43,6 @@
         	<groupId>de.berlios.vch</groupId>
         	<artifactId>httpclient</artifactId>
         	<type>bundle</type>
-        	<scope>provided</scope>
-        </dependency>
-        <dependency>
-        	<groupId>de.berlios.vch</groupId>
-        	<artifactId>feedsupport</artifactId>
-        	<type>bundle</type>
-        	<scope>provided</scope>
-        </dependency>
-        <dependency>
-        	<groupId>org.htmlparser</groupId>
-        	<artifactId>htmlparser</artifactId>
-        	<type>jar</type>
-        	<scope>provided</scope>
-        </dependency>
-        <dependency>
-        	<groupId>rome</groupId>
-        	<artifactId>rome</artifactId>
-        	<type>jar</type>
         	<scope>provided</scope>
         </dependency>
         <dependency>
