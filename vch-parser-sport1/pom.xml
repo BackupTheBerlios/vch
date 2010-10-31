@@ -22,31 +22,14 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
+			<groupId>de.berlios.vch</groupId>
+			<artifactId>httpclient</artifactId>
+			<type>bundle</type>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.htmlparser</groupId>
 			<artifactId>htmlparser</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.berlios.vch</groupId>
-			<artifactId>feedsupport</artifactId>
-			<type>bundle</type>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.berlios.vch</groupId>
-			<artifactId>web</artifactId>
-			<type>bundle</type>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>rome</groupId>
-			<artifactId>rome</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.berlios.vch</groupId>
-			<artifactId>i18n</artifactId>
-			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -57,12 +40,6 @@
 		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.main</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.berlios.vch</groupId>
-			<artifactId>httpclient</artifactId>
-			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
