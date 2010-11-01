@@ -3,12 +3,10 @@ package de.berlios.vch.parser.dreisat;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 
 import org.osgi.service.log.LogService;
 
-import com.sun.syndication.feed.synd.SyndEnclosure;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.io.FeedException;
@@ -19,8 +17,6 @@ import de.berlios.vch.rss.RssParser;
 
 public class DreisatFeedParser {
     private transient LogService logger;
-
-    private Comparator<SyndEnclosure> comparator = new SyndEnclosureComparator();
 
     public DreisatFeedParser(LogService logger) {
         this.logger = logger;
@@ -39,7 +35,7 @@ public class DreisatFeedParser {
         for (Iterator<?> iterator = feed.getEntries().iterator(); iterator.hasNext();) {
             SyndEntry entry = (SyndEntry) iterator.next();
             // sort enclosures, so that the best quality is enclosure[0],
-            Collections.sort(entry.getEnclosures(), comparator);
+            Collections.sort(entry.getEnclosures(), new SyndEnclosureComparator());
             Collections.reverse(entry.getEnclosures());
         }
         

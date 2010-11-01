@@ -34,8 +34,8 @@ public class SyndEnclosureComparator implements Comparator<SyndEnclosure> {
     
     @Override
     public int compare(SyndEnclosure enc1, SyndEnclosure enc2) {
-        String type1 = enc1.getType();
-        String type2 = enc2.getType();
+        String type1 = enc1.getType().toLowerCase();
+        String type2 = enc2.getType().toLowerCase();
         String quali1 = getQuality(enc1);
         String quali2 = getQuality(enc2);
         
