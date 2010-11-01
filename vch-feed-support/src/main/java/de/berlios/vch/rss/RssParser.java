@@ -57,9 +57,7 @@ public class RssParser {
             @SuppressWarnings("unchecked")
             List<Element> fms = (List<Element>) entry.getForeignMarkup();
             
-            //MediaEntryModule module = (MediaEntryModule) entry.getModule( MediaEntryModule.URI );
             MediaEntryModule module = null;
-            
             for (Element element : fms) {
                 if(MediaEntryModule.URI.equals(element.getNamespaceURI())) {
                     MediaModuleParser parser = new MediaModuleParser();
@@ -69,10 +67,21 @@ public class RssParser {
             }
             
             if(module == null) {
-                continue;
+                module = (MediaEntryModule) entry.getModule( MediaEntryModule.URI );
+                
+                if(module == null) {
+                    continue;
+                }
             }
             
-            convertYahooMediaToEnclosure(entry, module.getMediaContents());
+            MediaContent[] contents = module.getMediaContents();
+            if(contents.length == 0) {
+                if(module.getMediaGroups().length > 0) {
+                    contents = module.getMediaGroups()[0].getContents();
+                }
+            }
+            
+            convertYahooMediaToEnclosure(entry, contents);
             convertYahooMediaThumbnails(entry, module.getMetadata());
             if(entry.getDescription() == null || entry.getDescription().getValue() == null || entry.getDescription().getValue().isEmpty()) {
                 convertYahooMediaDescription(entry, module.getMetadata());
