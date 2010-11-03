@@ -92,6 +92,7 @@ public class PlaylistServiceImpl implements PlaylistService {
             }
             fw.close();
             
+            logger.log(LogService.LOG_DEBUG, "Trying to start playback with command: "+ playCmd.getCommand());
             org.hampelratte.svdrp.Response resp = svdrp.send(playCmd);
             if(resp != null) {
                 logger.log(LogService.LOG_DEBUG, "SVDRP response: " + resp.getCode() + " " + resp.getMessage());
@@ -111,6 +112,10 @@ public class PlaylistServiceImpl implements PlaylistService {
     
     private String bridgeIfNecessary(PlaylistEntry playlistEntry) throws URISyntaxException {
         URI videoUri = playlistEntry.getVideo().getVideoUri();
+        if("file".equals(videoUri.getScheme())) {
+            return videoUri.getPath();
+        }
+        
         for (INetworkProtocol proto : protocols) {
             String scheme = videoUri.getScheme();
             if(proto.getSchemes().contains(scheme)) {
