@@ -8,6 +8,7 @@ import de.berlios.vch.download.DownloadManager;
 import de.berlios.vch.download.DownloadManagerImpl;
 import de.berlios.vch.download.sorting.SortStrategy;
 import de.berlios.vch.i18n.Messages;
+import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.io.response.Event;
 import de.berlios.vch.osdserver.osd.Osd;
 import de.berlios.vch.osdserver.osd.OsdItem;
@@ -41,9 +42,9 @@ public class ChangeOrderMenu extends Menu {
                 }
                 
                 @Override
-                public void execute(OsdObject oo) throws Exception {
+                public void execute(OsdSession session, OsdObject oo) throws Exception {
                     prefs.put("sort.strategy", strategy.getClass().getName());
-                    Osd osd = Osd.getInstance();
+                    Osd osd = session.getOsd();
                     osd.closeMenu(); // close the sort menu
                     osd.closeMenu(); // close the downloads menu
                     // recreate the downloads menu with new sort strategy

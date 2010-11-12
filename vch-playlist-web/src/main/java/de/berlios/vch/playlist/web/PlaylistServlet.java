@@ -58,7 +58,7 @@ public class PlaylistServlet extends BundleContextServlet {
         } else if("play".equals(action)) {
             if(activator.getPlaylistService() != null) {
                 try {
-                    activator.getPlaylistService().play(pl);
+                    activator.getPlaylistService().play(pl, null);
                 } catch (URISyntaxException e) {
                     addNotify(req, new NotifyMessage(TYPE.ERROR, e.getLocalizedMessage()));
                     logger.log(LogService.LOG_ERROR, e.getLocalizedMessage(), e);

@@ -1,6 +1,7 @@
 package de.berlios.vch.playlist.osd;
 
 import de.berlios.vch.i18n.Messages;
+import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.io.command.OsdMessage;
 import de.berlios.vch.osdserver.io.response.Event;
 import de.berlios.vch.osdserver.osd.Osd;
@@ -21,11 +22,11 @@ public class PlaybackAction implements ItemDetailsAction {
     }
 
     @Override
-    public void execute(OsdObject oo) throws Exception {
-        Osd osd = Osd.getInstance();
+    public void execute(OsdSession session, OsdObject oo) throws Exception {
+        Osd osd = session.getOsd();
         if(pls.getPlaylist().size() > 0) {
             osd.showMessageSilent(new OsdMessage(i18n.translate("I18N_STARTING_PLAYBACK"), OsdMessage.INFO));
-            pls.play(pls.getPlaylist());
+            session.play(pls.getPlaylist());
         } else {
             osd.showMessageSilent(new OsdMessage(i18n.translate("I18N_PLAYLIST_EMPTY"), OsdMessage.WARN));
         }

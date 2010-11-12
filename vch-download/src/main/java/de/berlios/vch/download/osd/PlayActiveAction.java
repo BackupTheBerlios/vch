@@ -4,6 +4,7 @@ import java.io.File;
 
 import de.berlios.vch.download.AbstractDownload;
 import de.berlios.vch.i18n.Messages;
+import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.io.response.Event;
 import de.berlios.vch.osdserver.osd.Osd;
 import de.berlios.vch.osdserver.osd.OsdItem;
@@ -27,8 +28,8 @@ public class PlayActiveAction implements ItemDetailsAction {
     }
 
     @Override
-    public void execute(OsdObject oo) throws Exception {
-        Osd osd = Osd.getInstance();
+    public void execute(OsdSession session, OsdObject oo) throws Exception {
+        Osd osd = session.getOsd();
         OsdItem item = osd.getCurrentItem();
         AbstractDownload download = (AbstractDownload)item.getUserData();
         IVideoPage page = download.getVideoPage();
@@ -37,7 +38,7 @@ public class PlayActiveAction implements ItemDetailsAction {
         IVideoPage clone = (IVideoPage) page.clone();
         clone.setVideoUri(videoFile.getAbsoluteFile().toURI());
         pl.add(new PlaylistEntry(clone));
-        playlistService.play(pl);
+        session.play(pl);
     }
 
     @Override

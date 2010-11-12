@@ -7,6 +7,7 @@ import org.osgi.service.log.LogService;
 
 import de.berlios.vch.download.DownloadManager;
 import de.berlios.vch.i18n.Messages;
+import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.io.command.OsdMessage;
 import de.berlios.vch.osdserver.io.response.Event;
 import de.berlios.vch.osdserver.osd.Osd;
@@ -21,8 +22,6 @@ public class OpenDownloadsAction implements OverviewAction {
     private Messages i18n;
     
     private DownloadManager dm;
-    
-    private Osd osd = Osd.getInstance();
     
     private LogService logger;
     
@@ -40,7 +39,8 @@ public class OpenDownloadsAction implements OverviewAction {
     }
 
     @Override
-    public void execute(OsdObject oo) throws IOException, OsdException {
+    public void execute(OsdSession session, OsdObject oo) throws IOException, OsdException {
+    	Osd osd = session.getOsd();
         osd.showMessage(new OsdMessage(i18n.translate("loading"), OsdMessage.STATUS));
         Menu downloadsMenu = new DownloadsMenu(dm, logger, i18n, prefs, pls);
         osd.createMenu(downloadsMenu);

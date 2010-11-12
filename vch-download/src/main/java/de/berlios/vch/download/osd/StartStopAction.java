@@ -3,6 +3,7 @@ package de.berlios.vch.download.osd;
 import de.berlios.vch.download.AbstractDownload;
 import de.berlios.vch.download.DownloadManager;
 import de.berlios.vch.i18n.Messages;
+import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.io.command.OsdMessage;
 import de.berlios.vch.osdserver.io.response.Event;
 import de.berlios.vch.osdserver.osd.Osd;
@@ -26,8 +27,8 @@ public class StartStopAction implements ItemDetailsAction {
     }
 
     @Override
-    public void execute(OsdObject oo) throws Exception {
-        Osd osd = Osd.getInstance();
+    public void execute(OsdSession session, OsdObject oo) throws Exception {
+        Osd osd = session.getOsd();
         OsdItem item = osd.getCurrentItem();
         AbstractDownload download = (AbstractDownload) item.getUserData();
         if(download.isRunning()) {

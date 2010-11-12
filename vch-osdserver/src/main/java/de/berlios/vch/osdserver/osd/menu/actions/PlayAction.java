@@ -3,9 +3,6 @@ package de.berlios.vch.osdserver.osd.menu.actions;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import org.osgi.framework.BundleContext;
-
-import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.io.command.OsdMessage;
 import de.berlios.vch.osdserver.io.response.Event;
@@ -16,31 +13,26 @@ import de.berlios.vch.osdserver.osd.OsdObject;
 import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.playlist.Playlist;
 import de.berlios.vch.playlist.PlaylistEntry;
-import de.berlios.vch.playlist.PlaylistService;
 
 public class PlayAction implements IOsdAction {
 
-    private Messages i18n;
+    private OsdSession session;
     
-    private Osd osd = Osd.getInstance();
-    
-    private PlaylistService playlistService;
-    
-    public PlayAction(BundleContext ctx, Messages i18n, PlaylistService playlistService) {
-        this.i18n = i18n;
-        this.playlistService = playlistService;
+    public PlayAction(OsdSession session) {
+        this.session = session;
     }
 
     @Override
-    public void execute(OsdObject oo) throws IOException, OsdException, URISyntaxException {
+    public void execute(OsdSession sess, OsdObject oo) throws IOException, OsdException, URISyntaxException {
+    	Osd osd = session.getOsd();
         OsdItem osditem = osd.getCurrentItem();
         IVideoPage page = (IVideoPage) osditem.getUserData();
-        Osd.getInstance().showMessageSilent(new OsdMessage(i18n.translate("starting_playback"), OsdMessage.STATUS));
+        osd.showMessageSilent(new OsdMessage(session.getI18N().translate("starting_playback"), OsdMessage.STATUS));
         Playlist pl = new Playlist();
         pl.add(new PlaylistEntry(page));
-        playlistService.play(pl);
-        OsdSession.stop();
-        Osd.getInstance().closeMenu();
+        session.play(pl);
+        session.stop();
+        osd.closeMenu();
     }
 
     @Override
@@ -55,7 +47,7 @@ public class PlayAction implements IOsdAction {
 
     @Override
     public String getName() {
-        return i18n.translate("play");
+        return session.getI18N().translate("play");
     }
 
 }

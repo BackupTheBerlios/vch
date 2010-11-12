@@ -17,6 +17,7 @@ import de.berlios.vch.osdserver.io.StringUtils;
 import de.berlios.vch.osdserver.io.command.OsdMessage;
 import de.berlios.vch.osdserver.io.response.Event;
 import de.berlios.vch.osdserver.io.response.Response;
+import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.osd.menu.Menu;
 import de.berlios.vch.osdserver.osd.menu.actions.IOsdAction;
 
@@ -25,24 +26,19 @@ public class Osd implements IEventDispatcher {
     private static transient Logger logger = LoggerFactory.getLogger(Osd.class);
     
     private Connection conn;
-    
-    private static Osd instance;
-    
+ 
     private Stack<Map<String, OsdObject>> contextStack = new Stack<Map<String,OsdObject>>();
     
     private Stack<Menu> menuStack = new Stack<Menu>();
     
     private Map<String, OsdObject> context = new HashMap<String, OsdObject>();
 
-    private Osd() {}
-
-    public synchronized static Osd getInstance() {
-        if (instance == null) {
-            instance = new Osd();
-        }
-        return instance;
-    }
+    private OsdSession session;
     
+    public Osd(OsdSession session) {
+    	this.session = session;
+    }
+
     public void connect(String host, int port, int timeout, String encoding) throws UnknownHostException, IOException, OsdException {
         conn = new Connection(host, port, timeout, encoding);
         conn.setEventDispatcher(this);
@@ -73,7 +69,7 @@ public class Osd implements IEventDispatcher {
             }
             
             @Override
-            public void execute(OsdObject oo) {
+            public void execute(OsdSession session, OsdObject oo) {
                 closeMenu();
             }
         });
@@ -219,12 +215,12 @@ public class Osd implements IEventDispatcher {
                 if(actionToExecute != null) {
                     try {
                         logger.debug("Dispatching event {}-{} to action {}", new Object[] {event.getCode(), event.getType(), actionToExecute.getName()} );
-                        actionToExecute.execute(oo);
+                        actionToExecute.execute(session, oo);
                     } catch (Exception e) {
                         String s = "Couldn't execute action [" + actionToExecute.getName() + "] " + e.getLocalizedMessage();
                         logger.error(s, e);
                         OsdMessage msg = new OsdMessage(s, OsdMessage.ERROR);
-                        Osd.getInstance().showMessageSilent(msg);
+                        showMessageSilent(msg);
                     }
                 } else {
                     logger.warn("Couldn't dispatch event {} {} {}", new Object[] {event.getCode(), event.getType(), event.getSourceId()} );

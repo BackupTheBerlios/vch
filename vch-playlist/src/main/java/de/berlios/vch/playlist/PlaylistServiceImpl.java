@@ -9,6 +9,7 @@ import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.prefs.Preferences;
 
@@ -60,9 +61,17 @@ public class PlaylistServiceImpl implements PlaylistService {
     }
 
     @Override
-    public void play(Playlist playlist) throws UnknownHostException, IOException, URISyntaxException  {
+    public void play(Playlist playlist, Map<String, String> requestPrefs) throws UnknownHostException, IOException, URISyntaxException  {
         String svdrpHost = prefs.get("svdrp.host", "localhost");
         int svdrpPort = prefs.getInt("svdrp.port", 2001);
+
+        if (requestPrefs != null) {
+            if (requestPrefs.containsKey("svdrphost"))
+            	svdrpHost = requestPrefs.get("svdrphost");
+            if (requestPrefs.containsKey("svdrpport"))
+            	svdrpPort = Integer.parseInt(requestPrefs.get("svdrpport"));
+        }
+        
         logger.log(LogService.LOG_INFO, "Starting media player plugin with SVDRP on "+svdrpHost+":"+svdrpPort);
         org.hampelratte.svdrp.Connection svdrp = null;
         FileWriter fw = null;

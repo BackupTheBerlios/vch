@@ -1,5 +1,9 @@
 package de.berlios.vch.osdserver;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
+import java.util.Map;
 import java.util.prefs.Preferences;
 
 import org.osgi.framework.BundleContext;
@@ -15,6 +19,7 @@ import de.berlios.vch.osdserver.osd.menu.Menu;
 import de.berlios.vch.osdserver.osd.menu.OverviewMenu;
 import de.berlios.vch.parser.IOverviewPage;
 import de.berlios.vch.parser.IParserService;
+import de.berlios.vch.playlist.Playlist;
 import de.berlios.vch.playlist.PlaylistService;
 
 /**
@@ -31,7 +36,7 @@ public class OsdSession implements Runnable {
     
     private Osd osd;
     
-    private static boolean running = false;
+    private boolean running = false;
     
     private Messages i18n;
     
@@ -42,14 +47,35 @@ public class OsdSession implements Runnable {
     private int osdserverPort = 2010;
     private String osdserverEncoding = "UTF-8";
     
+    private Map<String, String> requestPrefs;
+    
     private static Preferences prefs;
     
     private PlaylistService playlistService;
+
+    public Osd getOsd() {
+    	return osd;
+    }
     
-    public OsdSession(BundleContext ctx, Messages i18n, PlaylistService playlistService) {
+    public PlaylistService getPlaylistService() {
+    	return playlistService;
+    }
+ 
+    public Messages getI18N() {
+    	return i18n;
+    }
+    
+    public BundleContext getBundleContext() {
+    	return ctx;
+    }
+    
+    public OsdSession(BundleContext ctx, Messages i18n, PlaylistService playlistService, Map<String, String> requestPrefs) {
         this.i18n = i18n;
         this.ctx = ctx;
         this.playlistService = playlistService;
+        this.requestPrefs = requestPrefs;
+
+        this.osd = new Osd(this);
         
         ServiceReference sr = ctx.getServiceReference(ConfigService.class.getName());
         if (sr != null) {
@@ -65,12 +91,20 @@ public class OsdSession implements Runnable {
         } else {
             logger.error("Preferences service not available falling back to defaults ({},{},{})", new Object[] {osdserverHost, osdserverPort, osdserverEncoding});
         }
+
+        if (requestPrefs != null) {
+            if (requestPrefs.containsKey("osdhost"))
+            	osdserverHost = requestPrefs.get("osdhost");
+            if (requestPrefs.containsKey("osdport"))
+            	osdserverPort = Integer.parseInt(requestPrefs.get("osdport"));
+            if (requestPrefs.containsKey("encoding"))
+            	osdserverEncoding = requestPrefs.get("encoding");
+        }
     }
 
     @Override
     public void run() {
         running = true;
-        osd = Osd.getInstance();
 
         // open the connection
         try {
@@ -87,7 +121,7 @@ public class OsdSession implements Runnable {
 //                logger.debug("Found previous menu");
 //                menu = osd.getCurrentMenu();
 //            } else {
-                menu = new OverviewMenu(ctx, getParsers(), i18n, playlistService);
+                menu = new OverviewMenu(this, getParsers());
 //            }
             osd.createMenu(menu);
             osd.show(menu);
@@ -113,9 +147,13 @@ public class OsdSession implements Runnable {
         logger.info("osdserver session ended");
     }
     
-    public static void stop() {
+    public void stop() {
         logger.trace("Stopping osd session");
         running = false;
+    }
+
+    public void play(Playlist list) throws UnknownHostException, IOException, URISyntaxException {
+    	playlistService.play(list, requestPrefs);
     }
     
     private IOverviewPage getParsers() throws Exception {
