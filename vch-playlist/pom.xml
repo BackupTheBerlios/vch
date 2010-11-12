@@ -4,7 +4,7 @@
 	<artifactId>playlist</artifactId>
 	<packaging>bundle</packaging>
 	<name>VCH Playlist</name>
-	<version>1.0.6</version>
+	<version>1.1.0</version>
     
     <parent>
         <artifactId>parent</artifactId>
