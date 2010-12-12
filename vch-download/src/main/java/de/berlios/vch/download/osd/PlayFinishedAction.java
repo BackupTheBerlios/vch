@@ -12,18 +12,14 @@ import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.VideoPage;
 import de.berlios.vch.playlist.Playlist;
 import de.berlios.vch.playlist.PlaylistEntry;
-import de.berlios.vch.playlist.PlaylistService;
 
 public class PlayFinishedAction implements ItemDetailsAction {
 
     private Messages i18n;
-    
-    private PlaylistService playlistService;
      
-    public PlayFinishedAction(PlaylistService playlistService, Messages i18n) {
+    public PlayFinishedAction(Messages i18n) {
         super();
         this.i18n = i18n;
-        this.playlistService = playlistService;
     }
 
     @Override

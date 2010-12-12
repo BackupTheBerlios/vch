@@ -13,18 +13,14 @@ import de.berlios.vch.osdserver.osd.menu.actions.ItemDetailsAction;
 import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.playlist.Playlist;
 import de.berlios.vch.playlist.PlaylistEntry;
-import de.berlios.vch.playlist.PlaylistService;
 
 public class PlayActiveAction implements ItemDetailsAction {
 
     private Messages i18n;
-    
-    private PlaylistService playlistService;
      
-    public PlayActiveAction(PlaylistService playlistService, Messages i18n) {
+    public PlayActiveAction(Messages i18n) {
         super();
         this.i18n = i18n;
-        this.playlistService = playlistService;
     }
 
     @Override
