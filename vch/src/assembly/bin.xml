@@ -1,82 +1,86 @@
 <assembly>
-	<id>bin</id>
-	<formats>
-		<format>tar.gz</format>
-	</formats>
-	<includeBaseDirectory>true</includeBaseDirectory>
-	<fileSets>
-		<fileSet>
-			<directory>src/main/resources</directory>
-			<includes>
-				<include>**/*</include>
-			</includes>
-			<outputDirectory>/</outputDirectory>
-			<filtered>true</filtered>
-		</fileSet>
-	</fileSets>
-	<dependencySets>
-		<dependencySet>
-			<unpack>false</unpack>
-			<useTransitiveDependencies>false</useTransitiveDependencies>
-			<scope>provided</scope>
-			<outputDirectory>bundles</outputDirectory>
-			<excludes>
-				<exclude>org.apache.felix:org.apache.felix.main</exclude>
-			</excludes>
-		</dependencySet>
-		<dependencySet>
-			<unpack>false</unpack>
-			<useTransitiveDependencies>false</useTransitiveDependencies>
-			<scope>provided</scope>
-			<outputDirectory>bin</outputDirectory>
-			<includes>
-				<include>org.apache.felix:org.apache.felix.main</include>
-			</includes>
-		</dependencySet>
-	</dependencySets>
-	<moduleSets>
-		<moduleSet>
-			<includes>
+    <id>bin</id>
+    <formats>
+        <format>tar.gz</format>
+    </formats>
+    <includeBaseDirectory>true</includeBaseDirectory>
+    <fileSets>
+        <fileSet>
+            <directory>src/main/resources</directory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+            <outputDirectory>/</outputDirectory>
+            <filtered>true</filtered>
+        </fileSet>
+    </fileSets>
+    <dependencySets>
+        <dependencySet>
+            <unpack>false</unpack>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <scope>provided</scope>
+            <outputDirectory>bundles</outputDirectory>
+            <excludes>
+                <exclude>org.apache.felix:org.apache.felix.main
+                </exclude>
+            </excludes>
+        </dependencySet>
+        <dependencySet>
+            <unpack>false</unpack>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <scope>provided</scope>
+            <outputDirectory>bin</outputDirectory>
+            <includes>
+                <include>org.apache.felix:org.apache.felix.main
+                </include>
+            </includes>
+        </dependencySet>
+    </dependencySets>
+    <moduleSets>
+        <moduleSet>
+            <includes>
                 <include>de.berlios.vch:config</include>
                 <include>de.berlios.vch:config.playlist</include>
                 <include>de.berlios.vch:download</include>
                 <include>de.berlios.vch:download.http</include>
                 <include>de.berlios.vch:download.mms</include>
-				<include>de.berlios.vch:feedsupport</include>
-				<include>de.berlios.vch:httpclient</include>
-				<include>de.berlios.vch:i18n</include>
-				<include>de.berlios.vch:net</include>
+                <include>de.berlios.vch:feedsupport</include>
+                <include>de.berlios.vch:httpclient</include>
+                <include>de.berlios.vch:i18n</include>
+                <include>de.berlios.vch:json.support</include>
+                <include>de.berlios.vch:net</include>
                 <include>de.berlios.vch:osdserver</include>
-				<include>de.berlios.vch:parser</include>
-				<include>de.berlios.vch:parser.ard</include>
-				<include>de.berlios.vch:parser.console</include>
-				<include>de.berlios.vch:parser.dmax</include>
+                <include>de.berlios.vch:parser</include>
+                <include>de.berlios.vch:parser.ard</include>
+                <include>de.berlios.vch:parser.console</include>
+                <include>de.berlios.vch:parser.dmax</include>
                 <include>de.berlios.vch:parser.dreisat</include>
                 <include>de.berlios.vch:parser.rss</include>
                 <include>de.berlios.vch:parser.web</include>
                 <include>de.berlios.vch:parser.youtube</include>
-				<include>de.berlios.vch:parser.zdf</include>
+                <include>de.berlios.vch:parser.zdf</include>
                 <include>de.berlios.vch:playlist</include>
                 <include>de.berlios.vch:update</include>
-				<include>de.berlios.vch:web</include>
-			</includes>
-			<binaries>
-				<outputDirectory>plugins</outputDirectory>
-				<unpack>false</unpack>
-				<includeDependencies>false</includeDependencies>
-			</binaries>
-		</moduleSet>
-		<moduleSet>
-			<includes>
-			    <include>de.berlios.vch:slf4j-logger</include>
-				<include>de.berlios.vch:bundle-loader</include>
-			</includes>
-			<binaries>
-				<outputDirectory>bundles</outputDirectory>
-                <outputFileNameMapping>${module.artifactId}.${module.extension}</outputFileNameMapping>
-				<unpack>false</unpack>
-				<includeDependencies>false</includeDependencies>
-			</binaries>
-		</moduleSet>
-	</moduleSets>
+                <include>de.berlios.vch:web</include>
+            </includes>
+            <binaries>
+                <outputDirectory>plugins</outputDirectory>
+                <unpack>false</unpack>
+                <includeDependencies>false</includeDependencies>
+            </binaries>
+        </moduleSet>
+        <moduleSet>
+            <includes>
+                <include>de.berlios.vch:slf4j-logger</include>
+                <include>de.berlios.vch:bundle-loader</include>
+            </includes>
+            <binaries>
+                <outputDirectory>bundles</outputDirectory>
+                <outputFileNameMapping>${module.artifactId}.${module.extension}
+                </outputFileNameMapping>
+                <unpack>false</unpack>
+                <includeDependencies>false</includeDependencies>
+            </binaries>
+        </moduleSet>
+    </moduleSets>
 </assembly>
