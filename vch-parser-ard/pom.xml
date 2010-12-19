@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>parser.ard</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 	<name>VCH ARD Parser</name>
     <description>Parser for the ARD Mediathek at http://www.ardmediathek.de</description>
 
@@ -52,13 +52,17 @@
 		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
-			<version>20090211</version>
-			<type>jar</type>
-			<scope>compile</scope>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>de.berlios.vch</groupId>
 			<artifactId>net</artifactId>
+			<type>bundle</type>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.berlios.vch</groupId>
+			<artifactId>json.support</artifactId>
 			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>

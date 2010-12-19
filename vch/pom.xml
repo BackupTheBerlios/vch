@@ -25,6 +25,7 @@
         <module>../vch-feed-support</module>
         <module>../vch-httpclient</module>
         <module>../vch-i18n</module>
+        <module>../vch-json-support</module>
         <module>../vch-logger</module>
         <module>../vch-osdserver</module>
         <module>../vch-net</module>

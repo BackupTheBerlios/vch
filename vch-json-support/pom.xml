@@ -1,11 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>feedsupport</artifactId>
+    <artifactId>json.support</artifactId>
     <packaging>bundle</packaging>
-    <version>1.2.0</version>
-    <name>VCH Feed Support</name>
-    <description>Adds syndication support to VCH like rss and atom.</description>
+    <version>1.0.0</version>
+    <name>VCH JSON Support</name>
+    <description>Adds JSON support to VCH.</description>
 
     <parent>
         <artifactId>parent</artifactId>
@@ -15,19 +15,12 @@
     </parent>
 
     <dependencies>
-        <dependency>
-            <groupId>rome</groupId>
-            <artifactId>rome</artifactId>
-            <type>jar</type>
+    	<dependency>
+    		<groupId>org.json</groupId>
+    		<artifactId>json</artifactId>
+    		<version>20090211</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>rome</groupId>
-            <artifactId>rome-mediarss</artifactId>
-            <version>0.2.2</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
+    	</dependency>
     </dependencies>
 
     <build>
@@ -40,8 +33,8 @@
                     <instructions>
                         <Embed-Transitive>true</Embed-Transitive>
                         <Embed-Dependency>*;scope=compile|runtime;inline=true</Embed-Dependency>
-                        <Import-Package>!oracle.*,!org.jaxen.*,!org.apache.xerces.*,*</Import-Package>
-                        <Export-Package>com.sun.syndication.*,de.berlios.vch.rss.*,org.jdom.*</Export-Package>
+                        <Import-Package>*</Import-Package>
+                        <Export-Package>org.json.*</Export-Package>
                     </instructions>
                 </configuration>
             </plugin>

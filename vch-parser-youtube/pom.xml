@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>parser.youtube</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.2.0</version>
+	<version>1.2.1</version>
 	<name>VCH Youtube Parser</name>
 	<description>Parser for Youtube RSS feeds. Select the desired youtube page, click on the RSS icon and add the feed to VCH.</description>
     
@@ -74,9 +74,7 @@
 		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
-			<version>20090211</version>
-			<type>jar</type>
-			<scope>compile</scope>
+			<scope>provided</scope>
 		</dependency>
         <!--
 		<dependency>
@@ -86,5 +84,11 @@
 			<scope>provided</scope>
 		</dependency>
         -->
+		<dependency>
+			<groupId>de.berlios.vch</groupId>
+			<artifactId>json.support</artifactId>
+			<type>bundle</type>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 </project>

@@ -5,7 +5,7 @@
 	<artifactId>update</artifactId>
 	<name>VCH Update Manager</name>
 	<packaging>bundle</packaging>
-	<version>1.0.4</version>
+	<version>1.0.5</version>
 	<description>Manage and update VCH extensions</description>
     
 	<parent>
@@ -16,11 +16,6 @@
     </parent>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.apache.felix</groupId>
-			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
-			<scope>provided</scope>
-		</dependency>
 		<dependency>
             <groupId>de.berlios.vch</groupId>
             <artifactId>web</artifactId>
@@ -40,11 +35,10 @@
         	<scope>provided</scope>
         </dependency>
         <dependency>
-        	<groupId>org.json</groupId>
-        	<artifactId>json</artifactId>
-        	<version>20090211</version>
-        	<type>jar</type>
-        	<scope>compile</scope>
+        	<groupId>de.berlios.vch</groupId>
+        	<artifactId>json.support</artifactId>
+        	<type>bundle</type>
+        	<scope>provided</scope>
         </dependency>
         <dependency>
         	<groupId>org.apache.felix</groupId>
@@ -52,5 +46,15 @@
         	<type>bundle</type>
         	<scope>provided</scope>
         </dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 </project>
