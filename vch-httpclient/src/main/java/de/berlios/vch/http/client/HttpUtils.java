@@ -33,7 +33,37 @@ public class HttpUtils {
     private static Cache<String, HttpResponse> responseCache = new Cache<String, HttpResponse>(1000, period, tu);
     //private static Cache<String, Map<String, List<String>>> headerCache = new Cache<String, Map<String, List<String>>>(1000, period, tu);
     
+    /**
+     * Downloads a web page.
+     * 
+     * @param url
+     *            the webpage to download
+     * @param headers
+     *            the HTTP headers to send
+     * @param charset
+     *            the charset used to decode the webpage
+     * 
+     */
     public static String get(String url, Map<String, String> headers, String charset) throws IOException {
+        return get(url, headers, charset, null, null);
+    }
+
+    /**
+     * Performs a HTTP basic auth and downloads a web page.
+     * 
+     * @param url
+     *            the webpage to download
+     * @param headers
+     *            the HTTP headers to send
+     * @param charset
+     *            the charset used to decode the webpage
+     * @param user
+     *            the user name for the login
+     * @param pass
+     *            the password for the login
+     * 
+     */
+    public static String get(String url, Map<String, String> headers, String charset, String user, String pass) throws IOException {
         String cachedPage = (String) stringCache.get(url);
         if(cachedPage != null) {
             logger.trace("Page found in cache");
@@ -49,6 +79,11 @@ public class HttpUtils {
                 }
             }
             con.setRequestProperty("Accept-Encoding", "gzip");
+            
+            // set up basic athentication
+            if (user != null && pass != null) {
+                con.setRequestProperty("Authorization", userNamePasswordBase64(user, pass));
+            }
             
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             int length = -1;
@@ -66,6 +101,13 @@ public class HttpUtils {
             return pageContent;
         }
     }
+    
+    private static String userNamePasswordBase64(String username, String password) {
+        String s = username + ":" + password;
+        String encs = Base64.encodeBytes(s.getBytes());
+        return "Basic " + encs;
+    }
+
     
     public static HttpResponse getResponse(String url, Map<String, String> headers, String charset) throws IOException {
         HttpResponse response = (HttpResponse) responseCache.get(url);
@@ -105,8 +147,10 @@ public class HttpUtils {
      * 
      * @param url
      * @param headers
-     * @param content the post body
-     * @param responseCharset the expected charset of the response
+     * @param content
+     *            the post body
+     * @param responseCharset
+     *            the expected charset of the response
      * @return
      * @throws IOException
      */
