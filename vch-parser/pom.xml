@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>parser</artifactId>
     <packaging>bundle</packaging>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <name>VCH Parser Interface</name>
     <description>The parser interface for all web parsers.</description>
 
