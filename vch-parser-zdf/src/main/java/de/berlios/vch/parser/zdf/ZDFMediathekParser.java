@@ -8,11 +8,13 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Provides;
 import org.htmlparser.tags.Div;
 import org.htmlparser.tags.ImageTag;
 import org.htmlparser.tags.LinkTag;
@@ -20,8 +22,6 @@ import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 import org.htmlparser.util.Translate;
-import org.osgi.framework.BundleActivator;
-import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,9 @@ import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
 import de.berlios.vch.parser.VideoPage;
 
-public class ZDFMediathekParser implements IWebParser, BundleActivator {
+@Component
+@Provides
+public class ZDFMediathekParser implements IWebParser {
     public static final String ID = ZDFMediathekParser.class.getName();
     private static final String BASE_URI = "http://www.zdf.de";
     private static final String OVERVIEW_RUBRIKEN = BASE_URI + "/ZDFmediathek/hauptnavigation/rubriken?flash=off";
@@ -214,15 +216,6 @@ public class ZDFMediathekParser implements IWebParser, BundleActivator {
     
     private boolean isOverviewPage(URI uri) {
         return uri != null && uri.getPath() != null && uri.getPath().matches(".*/\\d+");
-    }
-
-    @Override
-    public void start(BundleContext ctx) throws Exception {
-        ctx.registerService(IWebParser.class.getName(), this, null);
-    }
-
-    @Override
-    public void stop(BundleContext ctx) throws Exception {
     }
     
     @Override
