@@ -344,7 +344,7 @@
                     <remoteOBR>scp://shell.berlios.de/home/groups/vch/htdocs/repo/releases</remoteOBR>
                     <instructions>
                         <Embed-Transitive>true</Embed-Transitive>
-                        <Embed-Dependency>*;scope=compile|runtime;inline=false</Embed-Dependency>
+                        <Embed-Dependency>*;scope=compile|runtime;inline=true</Embed-Dependency>
                         <VCH-Bundle>true</VCH-Bundle>
                     </instructions>
                 </configuration>
