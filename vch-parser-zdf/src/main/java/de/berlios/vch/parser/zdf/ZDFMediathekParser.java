@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
 import org.htmlparser.tags.Div;
 import org.htmlparser.tags.ImageTag;
 import org.htmlparser.tags.LinkTag;
@@ -22,8 +23,7 @@ import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 import org.htmlparser.util.Translate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.osgi.service.log.LogService;
 
 import de.berlios.vch.http.client.HttpUtils;
 import de.berlios.vch.parser.AsxParser;
@@ -47,7 +47,8 @@ public class ZDFMediathekParser implements IWebParser {
     
     private Map<String, String> aBisZ = new TreeMap<String, String>();
     
-    private static transient Logger logger = LoggerFactory.getLogger(ZDFMediathekParser.class); // TODO switch to ipojo and LogService
+    @Requires
+    private LogService logger;
     
     public ZDFMediathekParser() {
         aBisZ.put("0-9", "http://www.zdf.de/ZDFmediathek/hauptnavigation/sendung-a-bis-z/saz8?flash=off&teaserListIndex=1000");
@@ -193,7 +194,7 @@ public class ZDFMediathekParser implements IWebParser {
                     cal.setTime(pubDate);
                     tmp.setPublishDate(cal);
                 } catch (Throwable t) {
-                    logger.warn("Couldn't parse date {} for page {}", datum, title);
+                    logger.log(LogService.LOG_WARNING, "Couldn't parse date "+datum+" for page " + title);
                     tmp.setPublishDate(Calendar.getInstance());
                 }
                 subPage = tmp;
