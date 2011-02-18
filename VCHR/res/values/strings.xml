@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>   
+<string name="active_downloads">Aktive Downloads</string>
+<string name="add_to_playlist">Zur Playlist</string>
+<string name="app_name">VCHR</string>
+<string name="communication_error">Konnte nicht mit VCH kommunizieren: %s</string>
+<string name="delete">Löschen</string>
+<string name="dialog_title_vch_host">VCH Rechner</string>
+<string name="dialog_title_vch_port">VCH Port</string>
+<string name="do_download">Herunterladen</string>
+<string name="download">Download</string>
+<string name="downloads">Downloads</string>
+<string name="edit">Bearbeiten</string>
+<string name="entry">Eintrag</string>
+<string name="error_loading">Ladevorgang fehlgeschlagen: %s</string>
+<string name="executing">Führe Aktion aus...</string>
+<string name="finished_downloads">Fertige Downloads</string>
+<string name="loading">Laden Daten...</string>
+<string name="minutes">Minuten</string>
+<string name="next">Nächster</string>
+<string name="open">Öffnen</string>
+<string name="play">Wiedergeben</string>
+<string name="playback_failed">Wiedergabe fehlgeschlagen: %s</string>
+<string name="playback_started">Wiedergabe wurde gestartet</string>
+<string name="playlist">Wiedergabeliste</string>
+<string name="previous">Vorheriger</string>
+<string name="remove">Entfernen</string>
+<string name="remove_failed">Entfernen fehlgeschlagen: %s</string>
+<string name="reorder_failed">Umsortieren fehlgeschlagen: %s</string>
+<string name="resync">Aktualisieren</string>
+<string name="seconds">Sekunden</string>
+<string name="settings">Einstellungen</string>
+<string name="start">Starten</string>
+<string name="start_all">Alle starten</string>
+<string name="start_failed">Starten fehlgeschlagen: %s</string>
+<string name="stop">Stoppen</string>
+<string name="stop_all">Alle stoppen</string>
+<string name="stop_failed">Stoppen fehlgeschlagen: %s</string>
+<string name="summary_vch_host">Rechner, auf dem VCH läuft</string>
+<string name="summary_vch_port">Port, auf dem VCH lauscht</string>
+<string name="title_vch_host">Rechner / IP-Adresse</string>
+<string name="title_vch_port">Port</string>
+<string name="vch">VCH</string>
+<string name="video_details">Videodetails</string>
+</resources>

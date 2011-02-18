@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent" android:layout_height="fill_parent"
+    android:orientation="vertical">
+
+    <TextView android:id="@+id/title" 
+        android:text="Title"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_marginBottom="3dp" android:layout_marginLeft="3dp"
+        android:layout_marginRight="3dp" android:layout_marginTop="3dp"></TextView>
+
+    <TextView android:id="@+id/duration" 
+        android:text="Duration"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_marginBottom="3dp" android:layout_marginLeft="3dp"
+        android:layout_marginRight="3dp" android:layout_marginTop="3dp"></TextView>
+
+    <ImageView android:id="@+id/thumb" 
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:adjustViewBounds="true" android:maxWidth="240dp" android:maxHeight="240dp"
+        android:layout_marginBottom="3dp" android:layout_marginLeft="3dp"
+        android:layout_marginRight="3dp" android:layout_marginTop="3dp" />
+
+    <ScrollView android:id="@+id/ScrollView01"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_marginBottom="3dp" android:layout_marginLeft="3dp"
+        android:layout_marginRight="3dp" android:layout_marginTop="3dp">
+        
+        <TextView android:id="@+id/desc" android:text="Description"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
+    </ScrollView>
+</LinearLayout>
