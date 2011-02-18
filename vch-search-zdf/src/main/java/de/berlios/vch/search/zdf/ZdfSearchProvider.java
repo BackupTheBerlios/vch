@@ -5,17 +5,19 @@ import java.net.URLEncoder;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
 
 import de.berlios.vch.parser.IOverviewPage;
+import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
-import de.berlios.vch.parser.zdf.ZDFMediathekParser;
 import de.berlios.vch.search.ISearchProvider;
 
 @Component
 @Provides
 public class ZdfSearchProvider implements ISearchProvider {
-	// TODO retrieve from bundle context
-	private ZDFMediathekParser parser = new ZDFMediathekParser();
+
+	@Requires(filter="(instance.name=VCH ZDFMediathek Parser)")
+	private IWebParser parser;
 	
 	@Override
 	public String getName() {
