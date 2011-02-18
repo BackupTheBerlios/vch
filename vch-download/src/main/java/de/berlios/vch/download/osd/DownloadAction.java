@@ -4,6 +4,7 @@ import org.osgi.service.log.LogService;
 
 import de.berlios.vch.download.DownloadManager;
 import de.berlios.vch.i18n.Messages;
+import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.io.command.OsdMessage;
 import de.berlios.vch.osdserver.io.response.Event;
 import de.berlios.vch.osdserver.osd.Osd;
@@ -29,8 +30,8 @@ public class DownloadAction implements ItemDetailsAction {
     }
 
     @Override
-    public void execute(OsdObject oo) throws Exception {
-        Osd osd = Osd.getInstance();
+    public void execute(OsdSession session, OsdObject oo) throws Exception {
+        Osd osd = session.getOsd();
         ItemDetailsMenu menu = (ItemDetailsMenu) oo;
         OsdItem item = menu.getItems().get(0);
         if(item.getUserData() instanceof IVideoPage) {

@@ -1,14 +1,13 @@
 package de.berlios.vch.osdserver.osd.menu.actions;
 
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.osdserver.Activator;
 import de.berlios.vch.osdserver.io.command.OsdMessage;
 import de.berlios.vch.osdserver.io.response.Event;
+import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.osd.Osd;
 import de.berlios.vch.osdserver.osd.OsdItem;
 import de.berlios.vch.osdserver.osd.OsdObject;
@@ -16,39 +15,31 @@ import de.berlios.vch.osdserver.osd.menu.Menu;
 import de.berlios.vch.osdserver.osd.menu.OverviewMenu;
 import de.berlios.vch.parser.IOverviewPage;
 import de.berlios.vch.parser.IParserService;
-import de.berlios.vch.playlist.PlaylistService;
 
 public class OpenMenuAction implements IOsdAction {
 
     private static transient Logger logger = LoggerFactory.getLogger(OpenMenuAction.class);
 
-    private Messages i18n;
-    
-    private Osd osd = Osd.getInstance();
-    
-    private BundleContext ctx;
-    
-    private PlaylistService playlistService;
-
-    public OpenMenuAction(BundleContext ctx, Messages i18n, PlaylistService playlistService) {
-        this.i18n = i18n;
-        this.ctx = ctx;
-        this.playlistService = playlistService;
+    private OsdSession session;
+   
+    public OpenMenuAction(OsdSession session) {
+        this.session = session;
     }
     
     @Override
-    public void execute(OsdObject oo) {
+    public void execute(OsdSession sess, OsdObject oo) {
         OsdItem item = (OsdItem) oo;
         IOverviewPage page = (IOverviewPage) item.getUserData();
         try {
-            osd.showMessage(new OsdMessage(i18n.translate("loading"), OsdMessage.STATUS));
+            Osd osd = session.getOsd();
+            osd.showMessage(new OsdMessage(session.getI18N().translate("loading"), OsdMessage.STATUS));
             IParserService parserService = (IParserService) Activator.parserServiceTracker.getService();
             if(parserService == null) {
                 throw new ServiceException("ParserService not available");
             }
             page = (IOverviewPage) parserService.parse(page.getVchUri());
             
-            Menu siteMenu = new OverviewMenu(ctx, (IOverviewPage) page, i18n, playlistService);
+            Menu siteMenu = new OverviewMenu(session, (IOverviewPage) page);
             osd.createMenu(siteMenu);
             osd.appendToFocus(siteMenu);
             osd.showMessage(new OsdMessage("", OsdMessage.STATUSCLEAR));
@@ -60,7 +51,7 @@ public class OpenMenuAction implements IOsdAction {
 
     @Override
     public String getName() {
-        return i18n.translate("open_menu");
+        return session.getI18N().translate("open_menu");
     }
 
     @Override

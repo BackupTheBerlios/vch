@@ -9,6 +9,7 @@ import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.prefs.Preferences;
 
@@ -60,9 +61,17 @@ public class PlaylistServiceImpl implements PlaylistService {
     }
 
     @Override
-    public void play(Playlist playlist) throws UnknownHostException, IOException, URISyntaxException  {
+    public void play(Playlist playlist, Map<String, String> requestPrefs) throws UnknownHostException, IOException, URISyntaxException  {
         String svdrpHost = prefs.get("svdrp.host", "localhost");
         int svdrpPort = prefs.getInt("svdrp.port", 2001);
+
+        if (requestPrefs != null) {
+            if (requestPrefs.containsKey("svdrphost"))
+            	svdrpHost = requestPrefs.get("svdrphost");
+            if (requestPrefs.containsKey("svdrpport"))
+            	svdrpPort = Integer.parseInt(requestPrefs.get("svdrpport"));
+        }
+        
         logger.log(LogService.LOG_INFO, "Starting media player plugin with SVDRP on "+svdrpHost+":"+svdrpPort);
         org.hampelratte.svdrp.Connection svdrp = null;
         FileWriter fw = null;
@@ -92,6 +101,7 @@ public class PlaylistServiceImpl implements PlaylistService {
             }
             fw.close();
             
+            logger.log(LogService.LOG_DEBUG, "Trying to start playback with command: "+ playCmd.getCommand());
             org.hampelratte.svdrp.Response resp = svdrp.send(playCmd);
             if(resp != null) {
                 logger.log(LogService.LOG_DEBUG, "SVDRP response: " + resp.getCode() + " " + resp.getMessage());
@@ -111,6 +121,10 @@ public class PlaylistServiceImpl implements PlaylistService {
     
     private String bridgeIfNecessary(PlaylistEntry playlistEntry) throws URISyntaxException {
         URI videoUri = playlistEntry.getVideo().getVideoUri();
+        if("file".equals(videoUri.getScheme())) {
+            return videoUri.getPath();
+        }
+        
         for (INetworkProtocol proto : protocols) {
             String scheme = videoUri.getScheme();
             if(proto.getSchemes().contains(scheme)) {

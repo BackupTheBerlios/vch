@@ -23,8 +23,8 @@ public class DownloadsMenu extends Menu {
         DeleteAction deleteAction = new DeleteAction(i18n, dm);
         CancelAction cancelAction = new CancelAction(i18n, dm);
         UpdateColorButtonsAction updateColorButtons = new UpdateColorButtonsAction(logger);
-        PlayFinishedAction playFinished = new PlayFinishedAction(pls, i18n);
-        PlayActiveAction playActive = new PlayActiveAction(pls, i18n);
+        PlayFinishedAction playFinished = new PlayFinishedAction(i18n);
+        PlayActiveAction playActive = new PlayActiveAction(i18n);
         StartStopAction startStop = new StartStopAction(i18n, dm);
         ChangeOrderAction sortAction = new ChangeOrderAction(dm, logger, i18n, prefs, pls); 
         

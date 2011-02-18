@@ -15,10 +15,12 @@ import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.htmlparser.Tag;
+import org.htmlparser.tags.Bullet;
 import org.htmlparser.tags.LinkTag;
 import org.htmlparser.tags.OptionTag;
 import org.htmlparser.tags.ParagraphTag;
 import org.htmlparser.tags.SelectTag;
+import org.htmlparser.tags.Span;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
@@ -95,13 +97,51 @@ public class OrfParser implements IWebParser {
         IOverviewPage opage = (IOverviewPage) page;
         String content = HttpUtils.get(page.getUri().toString(), null, CHARSET);
         
-        // parse the current video
-        String title = HtmlParserUtils.getText(content, CHARSET, "h3.title span");
-        IVideoPage video = new VideoPage();
-        video.setParser(getId());
-        video.setTitle(title);
-        video.setUri(page.getUri());
-        opage.getPages().add(video);
+        // parse segments
+        NodeList segments = HtmlParserUtils.getTags(content, CHARSET, "div#segment-tab ul.vods > li");
+        if(segments.size() > 0) {
+            logger.log(LogService.LOG_INFO, "Segmente: " + segments.size());
+            for (NodeIterator iterator = segments.elements(); iterator.hasMoreNodes();) {
+                Bullet li = (Bullet) iterator.nextNode();
+                LinkTag a = (LinkTag) HtmlParserUtils.findChildByType(li, LinkTag.class);
+                if(a != null) {
+                    IVideoPage video = new VideoPage();
+                    video.setParser(getId());
+                    video.setTitle(a.getAttribute("title"));
+                    video.setUri(new URI(a.getLink()));
+                    logger.log(LogService.LOG_INFO, "Segment page is " + video.getUri());
+                    
+                    // parse the duration
+                    try {
+                        Span span = (Span) HtmlParserUtils.findChildByType(a, Span.class);
+                        if(span != null) {
+                            //(00:35)
+                            String text = span.getStringText();
+                            logger.log(LogService.LOG_INFO, "Duration: " + text);
+                            text = text.substring(1, text.length()-1);
+                            int minutes = Integer.parseInt(text.substring(0, text.indexOf(':')));
+                            int seconds = Integer.parseInt(text.substring(text.indexOf(':')+1, text.length()));
+                            int duration = minutes * 60 + seconds;
+                            video.setDuration(duration);
+                        }
+                    } catch(Exception e) {
+                        logger.log(LogService.LOG_WARNING, "Couldn't parse segment duration", e);
+                    }
+                    
+                    opage.getPages().add(video);
+                }
+                logger.log(LogService.LOG_INFO, "Tag: " + li.getClass().getName());
+            }
+        } else {
+            // no segments, so we can add the current displayed video
+            // parse the current video
+            String title = HtmlParserUtils.getText(content, CHARSET, "h3.title span");
+            IVideoPage video = new VideoPage();
+            video.setParser(getId());
+            video.setTitle(title);
+            video.setUri(page.getUri());
+            opage.getPages().add(video);
+        }
         
         // parse more episodes
         NodeList dayList = HtmlParserUtils.getTags(content, CHARSET, "div#more-episodes div.scrollbox > ul > li");
@@ -109,7 +149,7 @@ public class OrfParser implements IWebParser {
             for (NodeIterator iterator = dayList.elements(); iterator.hasMoreNodes();) {
                 // add the day
                 Tag li = (Tag) iterator.nextNode();
-                title = Translate.decode(li.getFirstChild().toPlainTextString().trim());
+                String title = Translate.decode(li.getFirstChild().toPlainTextString().trim());
                 IOverviewPage day = new OverviewPage();
                 day.setParser(getId());
                 day.setTitle(title);
@@ -121,7 +161,7 @@ public class OrfParser implements IWebParser {
                 for (NodeIterator epIter = episodeList.elements(); epIter.hasMoreNodes();) {
                     Tag epli = (Tag) epIter.nextNode();
                     title = Translate.decode(epli.toPlainTextString().trim());
-                    video = new VideoPage();
+                    IVideoPage video = new VideoPage();
                     video.setParser(getId());
                     video.setTitle(title);
                     LinkTag link = (LinkTag) HtmlParserUtils.getTag(epli.toHtml(), CHARSET, "a");
@@ -148,7 +188,7 @@ public class OrfParser implements IWebParser {
         
         // parse the title
         String title = HtmlParserUtils.getText(content, CHARSET, "h3.title span");
-        vpage.setTitle(title);
+        //vpage.setTitle(title);
         
         // parse description if available
         ParagraphTag desc = (ParagraphTag) HtmlParserUtils.getTag(content, CHARSET, "div#info-tab div.content p");

@@ -54,8 +54,6 @@ public class YoutubeVideoPageProxy extends VideoPage {
 //                        System.out.println(key + " = " + jsonObject.get(key));
 //                    }
                     JSONObject args = (JSONObject) jsonObject.get("args");
-                    String video_id = args.getString("video_id");
-                    String t = args.getString("t");
                     List<Integer> formatList = getFormatList(args);
                     logger.log(LogService.LOG_DEBUG, "The following formats are available " + formatList);
                     int format = prefs.getInt("video.quality", 34);
@@ -64,7 +62,10 @@ public class YoutubeVideoPageProxy extends VideoPage {
                                 + ". Using format " + formatList.get(0));
                         format = formatList.get(0);
                     }
-                    medialink = new URI("http://www.youtube.com/get_video" + "?asv=3&el=detailpage&video_id=" + video_id + "&t=" + t + "&fmt=" + format);
+                    
+                    Map<Integer, String> streamUris = getFormatStreamMap(args);
+                    String streamUri = streamUris.get(format);
+                    medialink = new URI(streamUri);
                     
                     // parse duration
                     try {
@@ -94,5 +95,16 @@ public class YoutubeVideoPageProxy extends VideoPage {
         return result;
     }
     
-    
+    private Map<Integer, String> getFormatStreamMap(JSONObject args ) throws JSONException {
+        Map<Integer, String> result = new HashMap<Integer, String>();
+        String formatStreamMap = args.getString("fmt_stream_map");
+        String[] formats = formatStreamMap.split(",");
+        for (String format : formats) {
+            String[] tokens = format.split("\\|");
+            String formatId = tokens[0];
+            String streamUri = tokens[1];
+            result.put(Integer.parseInt(formatId), streamUri);
+        }
+        return result;
+    }
 }

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>feedsupport</artifactId>
     <packaging>bundle</packaging>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <name>VCH Feed Support</name>
     <description>Adds syndication support to VCH like rss and atom.</description>
 
@@ -38,6 +38,8 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
+                        <Embed-Transitive>true</Embed-Transitive>
+                        <Embed-Dependency>*;scope=compile|runtime;inline=true</Embed-Dependency>
                         <Import-Package>!oracle.*,!org.jaxen.*,!org.apache.xerces.*,*</Import-Package>
                         <Export-Package>com.sun.syndication.*,de.berlios.vch.rss.*,org.jdom.*</Export-Package>
                     </instructions>

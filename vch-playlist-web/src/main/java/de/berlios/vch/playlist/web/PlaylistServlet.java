@@ -58,7 +58,7 @@ public class PlaylistServlet extends BundleContextServlet {
         } else if("play".equals(action)) {
             if(activator.getPlaylistService() != null) {
                 try {
-                    activator.getPlaylistService().play(pl);
+                    activator.getPlaylistService().play(pl, null);
                 } catch (URISyntaxException e) {
                     addNotify(req, new NotifyMessage(TYPE.ERROR, e.getLocalizedMessage()));
                     logger.log(LogService.LOG_ERROR, e.getLocalizedMessage(), e);
@@ -84,6 +84,18 @@ public class PlaylistServlet extends BundleContextServlet {
             return;
         } else if("clear".equals(action)) {
             pl.clear();
+        } else if("list".equals(action)) {
+            resp.setContentType("application/json; charset=utf-8");
+            resp.getWriter().print("[");
+            for (Iterator<PlaylistEntry> iterator = pl.iterator(); iterator.hasNext();) {
+                PlaylistEntry entry = iterator.next();
+                resp.getWriter().print("{\"id\":\"" + entry.getId() + "\",\"title\":\"" + entry.getVideo().getTitle().replaceAll("\"", "\\\\\"")+"\"}");
+                if(iterator.hasNext()) {
+                    resp.getWriter().print(",");
+                }
+            }
+            resp.getWriter().print("]");
+            return;
         } else if("remove".equals(action)) {
             String id = req.getParameter("id");
             for (Iterator<PlaylistEntry> iterator = pl.iterator(); iterator.hasNext();) {
@@ -94,7 +106,7 @@ public class PlaylistServlet extends BundleContextServlet {
                     return;
                 }
             }
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Playlist entry not found"); // TODO i18n, response ass notification
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Playlist entry not found"); // TODO i18n, response as notification
         }
         
         // now display the playlist

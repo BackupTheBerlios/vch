@@ -3,8 +3,8 @@ package de.berlios.vch.osdserver.osd.menu;
 import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
 
-import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.osdserver.ID;
+import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.osd.OsdItem;
 import de.berlios.vch.osdserver.osd.menu.actions.IOsdAction;
 import de.berlios.vch.osdserver.osd.menu.actions.OpenDetailsAction;
@@ -12,11 +12,10 @@ import de.berlios.vch.osdserver.osd.menu.actions.OpenMenuAction;
 import de.berlios.vch.osdserver.osd.menu.actions.OverviewAction;
 import de.berlios.vch.parser.IOverviewPage;
 import de.berlios.vch.parser.IWebPage;
-import de.berlios.vch.playlist.PlaylistService;
 
 public class OverviewMenu extends Menu {
 
-    public OverviewMenu(BundleContext ctx, IOverviewPage overviewPage, Messages i18n, PlaylistService playlistService) throws Exception {
+    public OverviewMenu(OsdSession session, IOverviewPage overviewPage) throws Exception {
         super(ID.randomId(), overviewPage.getTitle());
         
         // create overview menu entries
@@ -26,15 +25,15 @@ public class OverviewMenu extends Menu {
             OsdItem item = new OsdItem(id, page.getTitle());
             item.setUserData(page);
             if(page instanceof IOverviewPage) {
-                item.registerAction(new OpenMenuAction(ctx, i18n, playlistService));
+                item.registerAction(new OpenMenuAction(session));
             } else {
-                item.registerAction(new OpenDetailsAction(ctx, i18n, playlistService));
+                item.registerAction(new OpenDetailsAction(session));
             }
             addOsdItem(item);
         }
         
         // register actions from other osgi bundles
-        Object[] actions = getOsdActions(ctx);
+        Object[] actions = getOsdActions(session.getBundleContext());
         if(actions != null) {
             for (Object a : actions) {
                 IOsdAction action = (IOsdAction) a;

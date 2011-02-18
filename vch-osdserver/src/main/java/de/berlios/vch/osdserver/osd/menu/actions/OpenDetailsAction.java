@@ -1,12 +1,12 @@
 package de.berlios.vch.osdserver.osd.menu.actions;
 
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.osdserver.Activator;
+import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.io.command.OsdMessage;
 import de.berlios.vch.osdserver.io.response.Event;
 import de.berlios.vch.osdserver.osd.Osd;
@@ -17,30 +17,23 @@ import de.berlios.vch.osdserver.osd.menu.Menu;
 import de.berlios.vch.parser.IParserService;
 import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebParser;
-import de.berlios.vch.playlist.PlaylistService;
 
 public class OpenDetailsAction implements IOsdAction {
 
     private static transient Logger logger = LoggerFactory.getLogger(OpenDetailsAction.class);
     
-    private Messages i18n;
-    
-    private Osd osd = Osd.getInstance();
-    
-    private BundleContext ctx;
-    
-    private PlaylistService playlistService;
-    
-    public OpenDetailsAction(BundleContext ctx, Messages i18n, PlaylistService playlistService) {
-        this.i18n = i18n;
-        this.ctx = ctx;
-        this.playlistService = playlistService;
+    private OsdSession session;
+   
+    public OpenDetailsAction(OsdSession session) {
+        this.session = session;
     }
 
     @Override
-    public void execute(OsdObject oo) {
+    public void execute(OsdSession sess, OsdObject oo) {
         OsdItem item = (OsdItem) oo;
         IVideoPage page = (IVideoPage) item.getUserData();
+        Osd osd = session.getOsd();
+        Messages i18n = session.getI18N();
         try {
             IParserService parserService = (IParserService) Activator.parserServiceTracker.getService();
             if(parserService == null) {
@@ -56,7 +49,7 @@ public class OpenDetailsAction implements IOsdAction {
             }
             
             page = (IVideoPage) parserService.parse(page.getVchUri());
-            Menu itemDetailsMenu = new ItemDetailsMenu(ctx, page, i18n, playlistService);
+            Menu itemDetailsMenu = new ItemDetailsMenu(session, page);
             osd.createMenu(itemDetailsMenu);
             osd.appendToFocus(itemDetailsMenu);
             osd.showMessage(new OsdMessage("", OsdMessage.STATUSCLEAR));
@@ -79,6 +72,6 @@ public class OpenDetailsAction implements IOsdAction {
 
     @Override
     public String getName() {
-        return i18n.translate("show_details");
+        return session.getI18N().translate("show_details");
     }
 }

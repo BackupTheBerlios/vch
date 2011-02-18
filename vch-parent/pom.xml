@@ -4,7 +4,7 @@
     <parent>
         <artifactId>master</artifactId>
         <groupId>org.hampelratte</groupId>
-        <version>1.0.0</version>
+        <version>3</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -191,9 +191,16 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
+            	<groupId>org.json</groupId>
+            	<artifactId>json</artifactId>
+            	<version>20090211</version>
+            	<type>jar</type>
+            	<scope>provided</scope>
+            </dependency>
+            <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>httpclient</artifactId>
-            	<version>1.0.2</version>
+            	<version>1.1.0</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
@@ -214,14 +221,14 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>osdserver</artifactId>
-            	<version>1.0.6</version>
+            	<version>1.1.0</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>parser</artifactId>
-            	<version>1.0.1</version>
+            	<version>1.0.3</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
@@ -235,7 +242,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>download</artifactId>
-            	<version>1.0.10</version>
+            	<version>1.1.0</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
@@ -249,7 +256,7 @@
             <dependency>
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>feedsupport</artifactId>
-            	<version>1.1.0</version>
+            	<version>1.2.0</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
@@ -264,6 +271,19 @@
             	<groupId>de.berlios.vch</groupId>
             	<artifactId>search</artifactId>
             	<version>1.0.0-SNAPSHOT</version>
+		<type>bundle</type>
+                <scope>provided</scope>
+            <dependency>
+                <groupId>de.berlios.vch</groupId>
+            	<artifactId>playlist</artifactId>
+            	<version>1.1.0</version>
+            	<type>bundle</type>
+            	<scope>provided</scope>
+            </dependency>
+            <dependency>
+            	<groupId>de.berlios.vch</groupId>
+            	<artifactId>json.support</artifactId>
+            	<version>1.0.0</version>
             	<type>bundle</type>
             	<scope>provided</scope>
             </dependency>
@@ -318,7 +338,7 @@
                     <target>1.6</target>
                     <encoding>UTF-8</encoding>
                 </configuration>
-            </plugin>
+            </plugin> 
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
@@ -328,7 +348,7 @@
                     <remoteOBR>scp://shell.berlios.de/home/groups/vch/htdocs/repo/releases</remoteOBR>
                     <instructions>
                         <Embed-Transitive>true</Embed-Transitive>
-                        <Embed-Dependency>*;scope=compile|runtime;inline=false</Embed-Dependency>
+                        <Embed-Dependency>*;scope=compile|runtime;inline=true</Embed-Dependency>
                         <VCH-Bundle>true</VCH-Bundle>
                     </instructions>
                 </configuration>

@@ -11,32 +11,40 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>vch</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.0</version>
+    <version>1.1.0-SNAPSHOT</version>
     <name>Vodcatcher Helper</name>
     <description>Webcrawler for video discovery and streaming bridge to VDR</description>
 
     <modules>
+        <module>../vch-android-web</module>
         <module>../vch-bundle-loader</module>
         <module>../vch-config</module>
         <module>../vch-download</module>
         <module>../vch-download-http</module>
         <module>../vch-download-mms</module>
+        <module>../vch-download-rtmp</module>
         <module>../vch-feed-support</module>
         <module>../vch-httpclient</module>
         <module>../vch-i18n</module>
+        <module>../vch-json-support</module>
         <module>../vch-logger</module>
         <module>../vch-osdserver</module>
         <module>../vch-net</module>
         <module>../vch-parser</module>
         <module>../vch-parser-3sat</module>
         <module>../vch-parser-ard</module>
-	<module>../vch-parser-arte</module>
+        <module>../vch-parser-arte</module>
         <module>../vch-parser-brainblog</module>
         <module>../vch-parser-console</module>
         <module>../vch-parser-dmax</module>
         <module>../vch-parser-golem</module>
+        <module>../vch-parser-lindenstrasse</module>
+        <module>../vch-parser-n24</module>
         <module>../vch-parser-orf</module>
         <module>../vch-parser-rss</module>
+        <module>../vch-parser-servustv</module>
+        <module>../vch-parser-sport1</module>
+        <module>../vch-parser-tivi</module>
         <module>../vch-parser-web</module>
         <module>../vch-parser-youporn</module>
         <module>../vch-parser-youtube</module>
@@ -72,3 +80,4 @@
         </plugins>
     </build>
 </project> 
+

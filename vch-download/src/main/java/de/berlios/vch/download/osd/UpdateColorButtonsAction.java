@@ -2,6 +2,7 @@ package de.berlios.vch.download.osd;
 
 import org.osgi.service.log.LogService;
 
+import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.io.response.Event;
 import de.berlios.vch.osdserver.osd.Osd;
 import de.berlios.vch.osdserver.osd.OsdItem;
@@ -10,8 +11,6 @@ import de.berlios.vch.osdserver.osd.menu.actions.IOsdAction;
 
 public class UpdateColorButtonsAction implements IOsdAction {
 
-    private Osd osd = Osd.getInstance();
-    
     private LogService logger;
     
     public UpdateColorButtonsAction(LogService logger) {
@@ -19,7 +18,8 @@ public class UpdateColorButtonsAction implements IOsdAction {
     }
     
     @Override
-    public void execute(OsdObject oo) {
+    public void execute(OsdSession session, OsdObject oo) {
+    	Osd osd = session.getOsd();
         OsdItem item = (OsdItem) oo;
         try {
             // clear all color keys

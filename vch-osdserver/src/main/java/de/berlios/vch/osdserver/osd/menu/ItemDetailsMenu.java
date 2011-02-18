@@ -5,28 +5,27 @@ import java.util.StringTokenizer;
 import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
 
-import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.osdserver.ID;
+import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.osd.OsdItem;
 import de.berlios.vch.osdserver.osd.menu.actions.IOsdAction;
 import de.berlios.vch.osdserver.osd.menu.actions.ItemDetailsAction;
 import de.berlios.vch.osdserver.osd.menu.actions.PlayAction;
 import de.berlios.vch.parser.IVideoPage;
-import de.berlios.vch.playlist.PlaylistService;
 
 public class ItemDetailsMenu extends Menu {
 
     private int index = 0;
     
-    public ItemDetailsMenu(BundleContext ctx, IVideoPage page, Messages i18n, PlaylistService playlistService) {
+    public ItemDetailsMenu(OsdSession session, IVideoPage page) {
         super(ID.randomId(), page.getTitle());
         
         if(page.getVideoUri() != null && !page.getVideoUri().toString().isEmpty()) {
             // register play action
-            registerAction(new PlayAction(ctx, i18n, playlistService));
+            registerAction(new PlayAction(session));
             
             // register actions from other osgi bundles
-            Object[] actions = getOsdActions(ctx);
+            Object[] actions = getOsdActions(session.getBundleContext());
             if(actions != null) {
                 for (Object a : actions) {
                     IOsdAction action = (IOsdAction) a;

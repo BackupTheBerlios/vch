@@ -5,6 +5,7 @@ import org.htmlparser.NodeFilter;
 import org.htmlparser.Parser;
 import org.htmlparser.Tag;
 import org.htmlparser.filters.CssSelectorNodeFilter;
+import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 import org.htmlparser.util.Translate;
@@ -74,5 +75,26 @@ public class HtmlParserUtils {
         } else {
             return "";
         }
+    }
+    
+    public static Node findChildByType(Node node, Class<?> type) throws ParserException {
+        NodeList childs = node.getChildren();
+        NodeIterator iter = childs.elements();
+        while(iter.hasMoreNodes()) {
+            Node child = iter.nextNode();
+            if(child.getClass().equals(type)) {
+                return child;
+            }
+            
+            // look up recursive
+            if(child.getChildren() != null && child.getChildren().size() > 0) {
+                Node result = findChildByType(child, type);
+                if(result != null) {
+                    return result;
+                }
+            } 
+        }
+     
+        return null;
     }
 }

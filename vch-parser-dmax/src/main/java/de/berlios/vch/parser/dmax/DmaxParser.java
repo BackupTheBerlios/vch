@@ -103,13 +103,16 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
             String uri = opage.getUri().toString();
             String path = opage.getUri().getPath();
             if(countSlashes(path) == 4 && uri.contains("video/shows")) {
+                opage.getPages().clear();
                 return parseProgramPage(opage);
             } else if(uri.contains("/moreepisodes/?")) {
                 logger.log(LogService.LOG_INFO, "Parsing videos on " + uri);
+                opage.getPages().clear();
                 parseEpisodesOverview(opage);
                 return opage;
             } else if(uri.contains("/morevideo/?")) {
                 logger.log(LogService.LOG_INFO, "Parsing videos on " + uri);
+                opage.getPages().clear();
                 parseVideoOverview(opage);
                 return opage;
             } else if("dummy".equals(page.getUri().getScheme())) {
@@ -212,7 +215,6 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
             clips.setUri(new URI(uri));
             opage.getPages().add(clips);
         }
-
         return opage;
     }
 

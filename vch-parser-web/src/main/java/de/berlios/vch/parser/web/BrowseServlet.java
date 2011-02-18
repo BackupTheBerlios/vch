@@ -55,39 +55,46 @@ public class BrowseServlet extends BundleContextServlet {
     protected void get(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String parserId = req.getParameter("id");
         IWebParser parser = parserService.getParser(parserId);
-        if (parser != null) {
+        if (parser != null || req.getParameter("listparsers") != null) {
             if ("XMLHttpRequest".equals(req.getHeader("X-Requested-With"))) {
                 try {
-                    URI vchpage = new URI(req.getParameter("uri"));
-                    IWebPage parsedPage = parserService.parse(vchpage);
-
-                    if (parsedPage != null) {
-                        String response = "";
-                        if (parsedPage instanceof IOverviewPage) {
-                            IOverviewPage overview = (IOverviewPage) parsedPage;
-                            response = toJSON(overview.getPages());
-                        } else {
-                            response = toJSON(parsedPage, false);
-                            List<IWebAction> webActions = getWebActions();
-                            Collections.sort(webActions, new Comparator<IWebAction>() {
-                                @Override
-                                public int compare(IWebAction o1, IWebAction o2) {
-                                    return o1.getTitle().compareTo(o2.getTitle());
-                                }
-                            });
-                            String actions = actionsToJSON(webActions, parsedPage);
-                            
-                            response = "{\"video\":" + response + "," 
-                                + "\"actions\":" + actions + "}";
-
-                            logger.log(LogService.LOG_INFO, webActions.size() + " web actions available");
-                            logger.log(LogService.LOG_DEBUG, actions);
-                        }
+                    if(req.getParameter("listparsers") != null) {
+                        IOverviewPage parsers = parserService.getParserOverview();
+                        String response = toJSON(parsers.getPages());
                         resp.setContentType("application/json; charset=utf-8");
                         resp.getWriter().println(response);
                     } else {
-                        resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                        resp.getWriter().print("Couldn't load page");
+                        URI vchpage = new URI(req.getParameter("uri"));
+                        IWebPage parsedPage = parserService.parse(vchpage);
+    
+                        if (parsedPage != null) {
+                            String response = "";
+                            if (parsedPage instanceof IOverviewPage) {
+                                IOverviewPage overview = (IOverviewPage) parsedPage;
+                                response = toJSON(overview.getPages());
+                            } else {
+                                response = toJSON(parsedPage, false);
+                                List<IWebAction> webActions = getWebActions();
+                                Collections.sort(webActions, new Comparator<IWebAction>() {
+                                    @Override
+                                    public int compare(IWebAction o1, IWebAction o2) {
+                                        return o1.getTitle().compareTo(o2.getTitle());
+                                    }
+                                });
+                                String actions = actionsToJSON(webActions, parsedPage);
+                                
+                                response = "{\"video\":" + response + "," 
+                                    + "\"actions\":" + actions + "}";
+    
+                                logger.log(LogService.LOG_INFO, webActions.size() + " web actions available");
+                                logger.log(LogService.LOG_DEBUG, actions);
+                            }
+                            resp.setContentType("application/json; charset=utf-8");
+                            resp.getWriter().println(response);
+                        } else {
+                            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                            resp.getWriter().print("Couldn't load page");
+                        }
                     }
                 } catch (NoSupportedVideoFoundException e) {
                     logger.log(LogService.LOG_WARNING, "Couldn't load page: " + e.getLocalizedMessage());
