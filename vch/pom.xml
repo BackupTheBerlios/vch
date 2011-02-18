@@ -16,6 +16,7 @@
     <description>Webcrawler for video discovery and streaming bridge to VDR</description>
 
     <modules>
+        <module>../vch-android-web</module>
         <module>../vch-bundle-loader</module>
         <module>../vch-config</module>
         <module>../vch-download</module>
