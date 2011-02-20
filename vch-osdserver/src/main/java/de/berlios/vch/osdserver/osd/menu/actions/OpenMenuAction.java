@@ -14,7 +14,7 @@ import de.berlios.vch.osdserver.osd.OsdObject;
 import de.berlios.vch.osdserver.osd.menu.Menu;
 import de.berlios.vch.osdserver.osd.menu.OverviewMenu;
 import de.berlios.vch.parser.IOverviewPage;
-import de.berlios.vch.parser.IParserService;
+import de.berlios.vch.parser.service.IParserService;
 
 public class OpenMenuAction implements IOsdAction {
 

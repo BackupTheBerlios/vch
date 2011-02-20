@@ -40,6 +40,12 @@
         	<type>bundle</type>
         	<scope>provided</scope>
         </dependency>
+        <dependency>
+        	<groupId>de.berlios.vch</groupId>
+        	<artifactId>parser.service</artifactId>
+        	<type>bundle</type>
+        	<scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>

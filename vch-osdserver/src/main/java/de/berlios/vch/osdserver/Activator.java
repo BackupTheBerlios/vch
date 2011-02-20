@@ -21,7 +21,7 @@ import de.berlios.vch.config.ConfigService;
 import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
-import de.berlios.vch.parser.IParserService;
+import de.berlios.vch.parser.service.IParserService;
 import de.berlios.vch.playlist.PlaylistService;
 import de.berlios.vch.web.TemplateLoader;
 import de.berlios.vch.web.menu.IWebMenuEntry;

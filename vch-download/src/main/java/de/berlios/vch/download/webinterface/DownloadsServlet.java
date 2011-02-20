@@ -18,9 +18,9 @@ import de.berlios.vch.download.Download;
 import de.berlios.vch.download.DownloadManager;
 import de.berlios.vch.download.PlaylistFileFoundException;
 import de.berlios.vch.download.jaxb.DownloadDTO;
-import de.berlios.vch.parser.IParserService;
 import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebPage;
+import de.berlios.vch.uri.IVchUriResolveService;
 import de.berlios.vch.web.NotifyMessage;
 import de.berlios.vch.web.NotifyMessage.TYPE;
 import de.berlios.vch.web.servlets.BundleContextServlet;
@@ -37,11 +37,11 @@ public class DownloadsServlet extends BundleContextServlet {
     
     private DownloadManager dm;
 
-    private IParserService parserService;
+    private IVchUriResolveService uriResolver;
     
-    public DownloadsServlet(DownloadManager dm, IParserService parserService) {
+    public DownloadsServlet(DownloadManager dm, IVchUriResolveService uriResolver) {
         this.dm = dm;
-        this.parserService = parserService;
+        this.uriResolver = uriResolver;
     }
     
     @Override
@@ -76,10 +76,9 @@ public class DownloadsServlet extends BundleContextServlet {
             resp.getWriter().println("OK");
             return;
         } else if ("add".equals(action)) {
-            String vchuri = req.getParameter("vchuri");
             try {
-                URI uri = new URI(vchuri);
-                IWebPage page = parserService.parse(uri);
+                URI vchuri = new URI(req.getParameter("vchuri"));
+                IWebPage page = uriResolver.resolve(vchuri);
                 // TODO check, if the video is not null and we support the format
                 // fail gracefully otherwise
                 if(page instanceof IVideoPage) {

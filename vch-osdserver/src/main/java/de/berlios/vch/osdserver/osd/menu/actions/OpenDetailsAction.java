@@ -14,9 +14,9 @@ import de.berlios.vch.osdserver.osd.OsdItem;
 import de.berlios.vch.osdserver.osd.OsdObject;
 import de.berlios.vch.osdserver.osd.menu.ItemDetailsMenu;
 import de.berlios.vch.osdserver.osd.menu.Menu;
-import de.berlios.vch.parser.IParserService;
 import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebParser;
+import de.berlios.vch.parser.service.IParserService;
 
 public class OpenDetailsAction implements IOsdAction {
 

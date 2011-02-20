@@ -18,7 +18,7 @@ import de.berlios.vch.osdserver.osd.Osd;
 import de.berlios.vch.osdserver.osd.menu.Menu;
 import de.berlios.vch.osdserver.osd.menu.OverviewMenu;
 import de.berlios.vch.parser.IOverviewPage;
-import de.berlios.vch.parser.IParserService;
+import de.berlios.vch.parser.service.IParserService;
 import de.berlios.vch.playlist.Playlist;
 import de.berlios.vch.playlist.PlaylistService;
 

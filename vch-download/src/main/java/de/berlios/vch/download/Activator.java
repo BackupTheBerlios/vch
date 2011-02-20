@@ -32,8 +32,8 @@ import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.osdserver.osd.menu.actions.ItemDetailsAction;
 import de.berlios.vch.osdserver.osd.menu.actions.OverviewAction;
-import de.berlios.vch.parser.IParserService;
 import de.berlios.vch.playlist.PlaylistService;
+import de.berlios.vch.uri.IVchUriResolveService;
 import de.berlios.vch.web.IWebAction;
 import de.berlios.vch.web.ResourceHttpContext;
 import de.berlios.vch.web.TemplateLoader;
@@ -70,7 +70,7 @@ public class Activator implements ResourceBundleProvider {
     private PlaylistService playlistService;
     
     @Requires
-    private IParserService parserService;
+    private IVchUriResolveService uriResolver;
     
     private List<ServiceRegistration> serviceRegs = new LinkedList<ServiceRegistration>();
     
@@ -164,7 +164,7 @@ public class Activator implements ResourceBundleProvider {
     }
 
     private void registerServlets() throws ServletException, NamespaceException {
-        DownloadsServlet downloads = new DownloadsServlet(dm, parserService);
+        DownloadsServlet downloads = new DownloadsServlet(dm, uriResolver);
         downloads.setBundleContext(ctx);
         downloads.setMessages(messages);
         downloads.setTemplateLoader(templateLoader);
