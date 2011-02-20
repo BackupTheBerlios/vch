@@ -1,4 +1,4 @@
-package de.berlios.vch.parser;
+package de.berlios.vch.parser.service;
 
 import java.net.URI;
 import java.security.MessageDigest;
@@ -20,10 +20,16 @@ import org.osgi.service.log.LogService;
 
 import de.berlios.vch.http.client.cache.Cache;
 import de.berlios.vch.i18n.Messages;
+import de.berlios.vch.parser.IOverviewPage;
+import de.berlios.vch.parser.IWebPage;
+import de.berlios.vch.parser.IWebParser;
+import de.berlios.vch.parser.OverviewPage;
+import de.berlios.vch.parser.WebPageTitleComparator;
+import de.berlios.vch.uri.IVchUriResolver;
 
 @Component
 @Provides
-public class ParserService implements IParserService {
+public class ParserService implements IParserService, IVchUriResolver {
 
     private Cache<String, IWebPage> cache = new Cache<String, IWebPage>(1000, 5, TimeUnit.MINUTES);
 
@@ -246,6 +252,20 @@ public class ParserService implements IParserService {
         digest = hexValue.toString();
 
         return digest;
+    }
+    
+    @Override
+    public boolean accept(URI vchuri) {
+    	return "vchpage".equals(vchuri.getScheme());
+    }
+    
+    @Override
+    public IWebPage resolve(URI vchuri) throws Exception {
+    	if(!"vchpage".equals(vchuri.getScheme())) {
+    		throw new IllegalArgumentException("URI for this resolver has to have the scheme vchpage://");
+    	}
+    	
+    	return parse(vchuri);
     }
     
     

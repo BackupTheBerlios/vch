@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <iPOJO>
     <instance component="de.berlios.vch.parser.Activator" name="ParserActivator" />
-    <instance component="de.berlios.vch.parser.ParserService" name="ParserService" />
     <instance component="de.berlios.vch.parser.HTTP" name="HTTP Support" />
     <instance component="de.berlios.vch.parser.MMS" name="MMS Support" />
 </iPOJO>
