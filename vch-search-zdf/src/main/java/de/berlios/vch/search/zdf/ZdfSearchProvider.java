@@ -12,7 +12,6 @@ import de.berlios.vch.parser.IOverviewPage;
 import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
-import de.berlios.vch.parser.zdf.ZDFMediathekParser;
 import de.berlios.vch.search.ISearchProvider;
 
 @Component
@@ -44,7 +43,7 @@ public class ZdfSearchProvider implements ISearchProvider {
 
 	@Override
 	public String getId() {
-		return ZDFMediathekParser.class.getName();
+		return "de.berlios.vch.parser.zdf.ZDFMediathekParser"; // TODO prüfen: wäre nicht eine eigene ID besser?
 	}
 
 	@Override

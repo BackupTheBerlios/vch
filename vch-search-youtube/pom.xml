@@ -34,13 +34,6 @@
         </dependency>
         <dependency>
         	<groupId>de.berlios.vch</groupId>
-        	<artifactId>parser.youtube</artifactId>
-        	<version>1.2.0</version>
-        	<type>bundle</type>
-        	<scope>provided</scope>
-        </dependency>
-        <dependency>
-        	<groupId>de.berlios.vch</groupId>
         	<artifactId>httpclient</artifactId>
         	<type>bundle</type>
         	<scope>provided</scope>
