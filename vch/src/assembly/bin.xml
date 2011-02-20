@@ -56,11 +56,13 @@
                 <include>de.berlios.vch:parser.dmax</include>
                 <include>de.berlios.vch:parser.dreisat</include>
                 <include>de.berlios.vch:parser.rss</include>
+                <include>de.berlios.vch:parser.service</include>
                 <include>de.berlios.vch:parser.web</include>
                 <include>de.berlios.vch:parser.youtube</include>
                 <include>de.berlios.vch:parser.zdf</include>
                 <include>de.berlios.vch:playlist</include>
                 <include>de.berlios.vch:update</include>
+                <include>de.berlios.vch:uri.resolver</include>
                 <include>de.berlios.vch:web</include>
             </includes>
             <binaries>
