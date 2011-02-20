@@ -25,6 +25,18 @@
         	<type>bundle</type>
         	<scope>provided</scope>
         </dependency>
+        <dependency>
+        	<groupId>de.berlios.vch</groupId>
+        	<artifactId>uri.resolver</artifactId>
+        	<type>bundle</type>
+        	<scope>provided</scope>
+        </dependency>
+        <dependency>
+        	<groupId>de.berlios.vch</groupId>
+        	<artifactId>httpclient</artifactId>
+        	<type>bundle</type>
+        	<scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <description>Provides an interface for search funktionality and a service to start a search with all parsers, which provide search functionality</description>

@@ -21,8 +21,8 @@ import org.osgi.service.log.LogService;
 import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
-import de.berlios.vch.parser.IParserService;
 import de.berlios.vch.playlist.PlaylistService;
+import de.berlios.vch.uri.IVchUriResolveService;
 import de.berlios.vch.web.TemplateLoader;
 import de.berlios.vch.web.menu.IWebMenuEntry;
 import de.berlios.vch.web.menu.WebMenuEntry;
@@ -52,7 +52,7 @@ public class Activator implements ResourceBundleProvider {
     private ServiceRegistration menuReg;
     
     @Requires
-    private IParserService parserService;
+    private IVchUriResolveService uriResolver;
 
     public Activator(BundleContext ctx) {
         this.ctx = ctx;
@@ -103,8 +103,8 @@ public class Activator implements ResourceBundleProvider {
         return playlistService;
     }
     
-    IParserService getParserService() {
-        return parserService;
+    IVchUriResolveService getUriResolverService() {
+        return uriResolver;
     }
 
     @Override

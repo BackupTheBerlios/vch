@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>parser.web</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.1.0</version>
+	<version>1.1.1</version>
 	<name>VCH Parser Web Frontend</name>
 	<description>Web frontend for the parsers. Use your favorite browser to browse through the VCH index</description>
     
@@ -62,6 +62,12 @@
 		<dependency>
 			<groupId>de.berlios.vch</groupId>
 			<artifactId>json.support</artifactId>
+			<type>bundle</type>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.berlios.vch</groupId>
+			<artifactId>parser.service</artifactId>
 			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>

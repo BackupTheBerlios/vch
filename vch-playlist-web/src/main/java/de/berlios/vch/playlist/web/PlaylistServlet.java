@@ -43,7 +43,7 @@ public class PlaylistServlet extends BundleContextServlet {
         if("add".equalsIgnoreCase(action)) {
             String uri = req.getParameter("uri");
             try {
-                IWebPage page = activator.getParserService().parse(new URI(uri));
+                IWebPage page = activator.getUriResolverService().resolve(new URI(uri));
                 if(page instanceof IVideoPage) {
                     PlaylistEntry entry = new PlaylistEntry((IVideoPage) page);
                     pl.add(entry);
