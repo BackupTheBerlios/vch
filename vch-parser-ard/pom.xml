@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>parser.ard</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.0.2</version>
+	<version>1.1.0</version>
 	<name>VCH ARD Parser</name>
     <description>Parser for the ARD Mediathek at http://www.ardmediathek.de</description>
 
@@ -66,20 +66,10 @@
 			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.felix</groupId>
-				<artifactId>maven-bundle-plugin</artifactId>
-				<extensions>true</extensions>
-				<configuration>
-					<instructions>
-						<Bundle-Activator>${pom.groupId}.${pom.artifactId}.ARDMediathekParser</Bundle-Activator>
-					</instructions>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 </project>
