@@ -123,6 +123,9 @@ public class ZDFMediathekParser implements IWebParser {
     private void parseVideoPage(IVideoPage video) throws IOException, ParserException, URISyntaxException, ParseException {
         String content = HttpUtils.get(video.getUri().toString(), null, CHARSET);
         
+        // parse the title
+        video.setTitle(Translate.decode(HtmlParserUtils.getText(content, CHARSET, "h1.beitragHeadline")));
+        
         // parse the description
         video.setDescription(Translate.decode(HtmlParserUtils.getText(content, CHARSET, "div.beitrag p.kurztext")));
         
