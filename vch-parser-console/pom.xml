@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>parser.console</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 	<name>VCH Parser Console</name>
     <description>VCH command for the OSGi console</description>
 
@@ -49,5 +49,11 @@
 			<scope>provided</scope>
 		</dependency>
         -->
+		<dependency>
+			<groupId>de.berlios.vch</groupId>
+			<artifactId>parser.service</artifactId>
+			<type>bundle</type>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 </project>

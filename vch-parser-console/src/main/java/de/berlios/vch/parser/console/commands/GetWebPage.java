@@ -13,10 +13,10 @@ import org.osgi.framework.ServiceException;
 import org.osgi.util.tracker.ServiceTracker;
 
 import de.berlios.vch.parser.IOverviewPage;
-import de.berlios.vch.parser.IParserService;
 import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.parser.IWebParser;
+import de.berlios.vch.parser.service.IParserService;
 
 @Provides
 @Component
