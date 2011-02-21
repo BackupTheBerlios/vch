@@ -6,6 +6,7 @@
 <#include "status_messages.ftl">
 
 <script type="text/javascript">
+<!--
 function showDetails(parser, uri, isVideoPage) {
     $('#details').html('<h1>${I18N_LOADING}</h1><img src="/static/icons/loadingAnimation.gif" alt=""/>');
     $.ajax({
@@ -36,7 +37,7 @@ function showDetails(parser, uri, isVideoPage) {
             
             // add a preview, if available
             if(video.vchthumb) {
-                html += '<p><img src="'+video.vchthumb+'" alt="Preview" class="thumb ui-widget-content ui-corner-all"/></p>';
+                html += '<p><img src="'+video.vchthumb+'" alt="Preview" class="thumb ui-widget-content ui-corner-all" /></p>';
             }
             
             // add the pubdate, if available
@@ -90,6 +91,7 @@ function showDetails(parser, uri, isVideoPage) {
         }
     });
 }
+-->
 </script>
 
 <div id="search_bar">
@@ -109,20 +111,20 @@ function showDetails(parser, uri, isVideoPage) {
         <ul>
         <#list RESULTS.pages as provider>
         <li>
-            <a href="javascript:void()" onclick="$('#results div').hide(0, function() {$('#provider_${provider_index}').show(0);});">${provider.title} (${provider.pages?size})</a>
+            <a href="javascript:void()" onclick="$('#results div.result-page').hide(0, function() {$('#provider_${provider_index}').show(0);});">${provider.title} (${provider.pages?size})</a>
         </li>
         </#list>    
         </ul>
     </div>
     <div id="results">
         <#list RESULTS.pages as provider>
-        <div id="provider_${provider_index}" style="display:none;" >
+        <div id="provider_${provider_index}" class="result-page" style="display:none;" >
             <h2>${provider.title}</h2>
             <ul>
             <#list provider.pages as result>
                 <li>
                     <#if result.thumbnail??>
-                        <img alt="Preview" src="${result.thumbnail}" />
+                        <img alt="Preview" src="${result.thumbnail}" class="search-thumb ui-widget-content ui-corner-all" />
                     </#if>
                     
                     <#if result.duration??>
@@ -150,6 +152,7 @@ function showDetails(parser, uri, isVideoPage) {
                         </#if>
                         </p>
                     </#if>
+                    <div style="clear: both; display: block"></div>
                 </li>
             </#list>
             </ul>

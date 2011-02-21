@@ -40,7 +40,7 @@
 }
 
 #results ul li {
-    padding: 3px 0;
+    padding: 0.7em 0;
 }
 
 #results ul li p {
@@ -53,6 +53,7 @@
 }
 
 #results ul li h4 {
+    margin-top: 0;
     margin-bottom: 0.2em;
 }
 
@@ -60,4 +61,20 @@
     float: left;
     width: 45%;
     padding-left: 2em;
+}
+
+.thumb {
+    float: left;
+    margin-right: 1em;
+    max-height: 200px;
+    max-width: 200px;
+    padding: 2px;
+}
+
+.search-thumb {
+    float: left;
+    margin-right: 1em;
+    max-height: 100px;
+    max-width: 100px;
+    padding: 2px;
 }
