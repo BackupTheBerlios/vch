@@ -6,8 +6,10 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.Calendar;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,9 +39,9 @@ public class SearchService implements ISearchService, IVchUriResolver {
 
     @Requires
     private LogService logger;
-    
+
     private Set<ISearchProvider> searchProviders = new HashSet<ISearchProvider>();
-    
+
     @Override
     public IOverviewPage search(final String query) {
         if(query == null || query.length() < 3) {
@@ -50,7 +52,7 @@ public class SearchService implements ISearchService, IVchUriResolver {
         final IOverviewPage result = new OverviewPage();
         result.setParser("search");
         result.setTitle("Search results"); // TODO i18n
-        
+
         // create a task for each search provider and execute it with the thread pool
         ExecutorService executor = Executors.newFixedThreadPool(10);
         for (final ISearchProvider searchProvider : searchProviders) {
@@ -62,14 +64,14 @@ public class SearchService implements ISearchService, IVchUriResolver {
                         r.setTitle(searchProvider.getName());
                         result.getPages().add(r);
                     } catch (Exception e) {
-                        logger.log(LogService.LOG_ERROR, "Error occured while searching with " + 
+                        logger.log(LogService.LOG_ERROR, "Error occured while searching with " +
                                 searchProvider.getClass().getName() + ". No results will be available from this provider.", e);
-                    }        
+                    }
                 }
             });
         }
-        
-        // wait for all search tasks to finish, but wait at most x seconds 
+
+        // wait for all search tasks to finish, but wait at most x seconds
         executor.shutdown();
         try {
             executor.awaitTermination(60, TimeUnit.SECONDS);
@@ -77,102 +79,127 @@ public class SearchService implements ISearchService, IVchUriResolver {
         } catch (InterruptedException e) {
             logger.log(LogService.LOG_WARNING, "Couldn't stop search thread pool", e);
         }
-        
-//        // set vch uris, so that we can identify each search result
-//		try {
-//			setVchUri(result);
-//		} catch (Exception e) {
-//			logger.log(LogService.LOG_ERROR, "Couldn't set VCH URIs", e);
-//		}
-		
+
+        //        // set vch uris, so that we can identify each search result
+        //		try {
+        //			setVchUri(result);
+        //		} catch (Exception e) {
+        //			logger.log(LogService.LOG_ERROR, "Couldn't set VCH URIs", e);
+        //		}
+
         return result;
     }
-    
+
+    @Override
     public IWebPage parse(IWebPage page) throws Exception {
-    	for (ISearchProvider searchProvider : searchProviders) {
-    		String id = page.getParser();
-    		if(searchProvider.getId().equals(id)) {
-    			IWebPage parsedPage = searchProvider.parse(page);
-    			if(parsedPage instanceof IVideoPage) {
-    				setVchUri(parsedPage);
-    			}
-    			return parsedPage;
-    		}
-    	}
-    	
-    	throw new ServiceException("No SearchProvider found for " + page.getUri());
+        for (ISearchProvider searchProvider : searchProviders) {
+            String id = page.getParser();
+            if(searchProvider.getId().equals(id)) {
+                IWebPage parsedPage = searchProvider.parse(page);
+                if(parsedPage instanceof IVideoPage) {
+                    setVchUri(parsedPage);
+                }
+                return parsedPage;
+            }
+        }
+
+        throw new ServiceException("No SearchProvider found for " + page.getUri());
     }
-    
+
     @Override
     public boolean accept(URI vchuri) {
-    	return "vchsearch".equals(vchuri.getScheme());
+        return "vchsearch".equals(vchuri.getScheme());
     }
-    
+
     @Override
     public IWebPage resolve(URI vchuri) throws Exception {
-    	if(!"vchsearch".equals(vchuri.getScheme())) {
-    		throw new IllegalArgumentException("URI for this resolver has to have the scheme vchsearch://");
-    	}
-    	
-    	String parser = vchuri.getPath().substring(1);
-    	String query = vchuri.getQuery();
-    	Map<String, List<String>> params = HttpUtils.parseQuery(query);
+        if(!"vchsearch".equals(vchuri.getScheme())) {
+            throw new IllegalArgumentException("URI for this resolver has to have the scheme vchsearch://");
+        }
 
-    	IWebPage page = null;
-    	if(params.containsKey("duration")) {
-    		IVideoPage vpage = new VideoPage();
-    		vpage.setDuration(Long.parseLong(params.get("duration").get(0)));
-    		if(params.containsKey("videoUri")) vpage.setVideoUri(new URI(params.get("videoUri").get(0)));
-    		if(params.containsKey("thumbUri")) vpage.setThumbnail(new URI(params.get("thumbUri").get(0)));
-    		if(params.containsKey("desc")) vpage.setDescription(params.get("desc").get(0));
-    		if(params.containsKey("pubdate")) {
-    			Calendar pubDate = Calendar.getInstance();
-    			pubDate.setTimeInMillis(Long.parseLong(params.get("pubdate").get(0)));
-    			vpage.setPublishDate(pubDate);
-    		}
-    		page = vpage;
-    	} else {
-    		page = new OverviewPage();
-    	}
-    	page.setParser(parser);
-    	page.setTitle(params.get("title").get(0));
-    	return page;
+        String parser = vchuri.getPath().substring(1);
+        String query = vchuri.getQuery();
+        Map<String, List<String>> params = HttpUtils.parseQuery(query);
+
+        IWebPage page = null;
+        if(params.containsKey("duration")) {
+            IVideoPage vpage = new VideoPage();
+            vpage.setDuration(Long.parseLong(params.get("duration").get(0)));
+            if(params.containsKey("videoUri")) {
+                vpage.setVideoUri(new URI(params.get("videoUri").get(0)));
+            }
+            if(params.containsKey("thumbUri")) {
+                vpage.setThumbnail(new URI(params.get("thumbUri").get(0)));
+            }
+            if(params.containsKey("desc")) {
+                vpage.setDescription(params.get("desc").get(0));
+            }
+            if(params.containsKey("pubdate")) {
+                Calendar pubDate = Calendar.getInstance();
+                pubDate.setTimeInMillis(Long.parseLong(params.get("pubdate").get(0)));
+                vpage.setPublishDate(pubDate);
+            }
+            page = vpage;
+        } else {
+            page = new OverviewPage();
+        }
+        for (Iterator<Entry<String, List<String>>> iterator = params.entrySet().iterator(); iterator.hasNext();) {
+            Entry<String, List<String>> entry = iterator.next();
+            if(entry.getKey().startsWith("user.")) {
+                page.getUserData().put(entry.getKey().substring(5), entry.getValue().get(0));
+            }
+        }
+        page.setParser(parser);
+        page.setTitle(params.get("title").get(0));
+        return page;
     }
-    
+
     private void setVchUri(IWebPage page) throws Exception {
-    	if(page instanceof IOverviewPage) {
-    		IOverviewPage opage = (IOverviewPage) page;
-    		for (IWebPage wpage : opage.getPages()) {
-				setVchUri(wpage);
-			}
-    	} else if (page instanceof IVideoPage) {
-    		URI vchuri = createVchUri(page);
-    		page.setVchUri(vchuri);
-    	}
+        if(page instanceof IOverviewPage) {
+            IOverviewPage opage = (IOverviewPage) page;
+            for (IWebPage wpage : opage.getPages()) {
+                setVchUri(wpage);
+            }
+        } else if (page instanceof IVideoPage) {
+            URI vchuri = createVchUri(page);
+            page.setVchUri(vchuri);
+        }
     }
-    
+
     private URI createVchUri(IWebPage page) throws UnsupportedEncodingException, URISyntaxException {
-    	String charset = "UTF-8";
-    	String vchuri = "vchsearch://localhost/" + page.getParser();
-    	vchuri += "?title=" + URLEncoder.encode(page.getTitle(), charset); 
-    	vchuri += "&uri=" + URLEncoder.encode(page.getUri().toString(), charset);
-    	if(page instanceof IVideoPage) {
-    		IVideoPage video = (IVideoPage) page;
-    		vchuri += "&duration=" + video.getDuration();
-    		if(video.getVideoUri() != null) vchuri += "&videoUri=" + URLEncoder.encode(video.getVideoUri().toString(), charset);
-    		if(video.getThumbnail() != null) vchuri += "&thumbUri=" + URLEncoder.encode(video.getThumbnail().toString(), charset);
-    		if(video.getDescription() != null) vchuri += "&desc=" + URLEncoder.encode(video.getDescription(), charset);
-    		if(video.getPublishDate() != null) vchuri += "&pubdate=" + video.getPublishDate().getTimeInMillis();
-    	}
-    	return new URI(vchuri);
+        String charset = "UTF-8";
+        String vchuri = "vchsearch://localhost/" + page.getParser();
+        vchuri += "?title=" + URLEncoder.encode(page.getTitle(), charset);
+        vchuri += "&uri=" + URLEncoder.encode(page.getUri().toString(), charset);
+        if(page instanceof IVideoPage) {
+            IVideoPage video = (IVideoPage) page;
+            vchuri += "&duration=" + video.getDuration();
+            if(video.getVideoUri() != null) {
+                vchuri += "&videoUri=" + URLEncoder.encode(video.getVideoUri().toString(), charset);
+            }
+            if(video.getThumbnail() != null) {
+                vchuri += "&thumbUri=" + URLEncoder.encode(video.getThumbnail().toString(), charset);
+            }
+            if(video.getDescription() != null) {
+                vchuri += "&desc=" + URLEncoder.encode(video.getDescription(), charset);
+            }
+            if(video.getPublishDate() != null) {
+                vchuri += "&pubdate=" + video.getPublishDate().getTimeInMillis();
+            }
+        }
+        for (Entry<String, Object> entry : page.getUserData().entrySet()) {
+            vchuri += "&user."+URLEncoder.encode(entry.getKey().toString(), charset)+"="
+            + URLEncoder.encode(entry.getValue().toString(), charset);
+        }
+        return new URI(vchuri);
     }
-    
-// ############ ipojo stuff #########################################    
-    
+
+    // ############ ipojo stuff #########################################
+
     // validate and invalidate methods seem to be necessary for the bind methods to work
     @Validate
     public void start() {}
-    
+
     @Invalidate
     public void stop() {}
 
@@ -182,7 +209,7 @@ public class SearchService implements ISearchService, IVchUriResolver {
         searchProviders.add(provider);
         logger.log(LogService.LOG_INFO, searchProviders.size() + " search providers available");
     }
-    
+
     @Unbind(id="searchProviders", aggregate = true)
     public synchronized void removeProvider(ISearchProvider provider) {
         logger.log(LogService.LOG_INFO, "Removing search provider " + provider.getClass().getName());
