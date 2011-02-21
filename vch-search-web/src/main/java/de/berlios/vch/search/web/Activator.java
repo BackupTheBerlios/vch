@@ -42,16 +42,16 @@ public class Activator implements ResourceBundleProvider {
 
     @Requires
     private HttpService http;
-    
+
     @Requires
     private ISearchService searchService;
 
     private BundleContext ctx;
 
     private ResourceBundle resourceBundle;
-    
+
     private ServiceRegistration menuReg;
-    
+
     @Requires
     private IParserService parserService;
 
@@ -63,8 +63,8 @@ public class Activator implements ResourceBundleProvider {
     public void start() throws ServletException, NamespaceException {
         // register translation
         i18n.addProvider(this);
-        
-        // register playlist servlet
+
+        // register search servlet
         SearchServlet servlet = new SearchServlet(this);
         servlet.setBundleContext(ctx);
         servlet.setLogger(logger);
@@ -72,11 +72,11 @@ public class Activator implements ResourceBundleProvider {
         servlet.setMessages(i18n);
 
         http.registerServlet(SearchServlet.PATH, servlet, null, null);
-        
+
         // register resource context for static files
         ResourceHttpContext resourceHttpContext = new ResourceHttpContext(ctx, logger);
         http.registerResources(SearchServlet.STATIC_PATH, "/htdocs", resourceHttpContext);
-        
+
         // register web interface menu
         IWebMenuEntry menu = new WebMenuEntry(i18n.translate("I18N_SEARCH"));
         menu.setPreferredPosition(Integer.MIN_VALUE + 1);
@@ -95,12 +95,12 @@ public class Activator implements ResourceBundleProvider {
         if (http != null) {
             http.unregister(SearchServlet.PATH);
         }
-        
+
         // unregister the web menu
         if(menuReg != null) {
             menuReg.unregister();
         }
-        
+
         i18n.removeProvider(this);
     }
 
@@ -116,12 +116,12 @@ public class Activator implements ResourceBundleProvider {
         }
         return resourceBundle;
     }
-    
+
     ISearchService getSearchService() {
-		return searchService;
-	}
-    
+        return searchService;
+    }
+
     IParserService getParserService() {
-    	return parserService;
+        return parserService;
     }
 }
