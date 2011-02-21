@@ -62,7 +62,11 @@ public class SearchService implements ISearchService, IVchUriResolver {
                     try {
                         IOverviewPage r = searchProvider.search(query);
                         r.setTitle(searchProvider.getName());
-                        result.getPages().add(r);
+
+                        // add this provider to the result set, if we have at least one hit
+                        if(!r.getPages().isEmpty()) {
+                            result.getPages().add(r);
+                        }
                     } catch (Exception e) {
                         logger.log(LogService.LOG_ERROR, "Error occured while searching with " +
                                 searchProvider.getClass().getName() + ". No results will be available from this provider.", e);
