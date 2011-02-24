@@ -36,21 +36,21 @@ function showDetails(parser, uri, isVideoPage) {
             var html = '<h1>' + video.title + '</h1>';
             
             // add a preview, if available
-            if(video.vchthumb) {
-                html += '<p><img src="'+video.vchthumb+'" alt="Preview" class="thumb ui-widget-content ui-corner-all" /></p>';
+            if(video.thumb) {
+                html += '<p><img src="'+video.thumb+'" alt="Preview" class="thumb ui-widget-content ui-corner-all" /></p>';
             }
             
             // add the pubdate, if available
-            if(video.vchpubDate) {
+            if(video.pubDate) {
                 var date = new Date();
-                date.setTime(video.vchpubDate);
+                date.setTime(video.pubDate);
                 html += '<p><strong>' + date.toLocaleString();
             }
             
             // add the duration, if available
-            if(video.vchduration) {
+            if(video.duration) {
                 html += ' - ';
-                var secs = parseInt(video.vchduration);
+                var secs = parseInt(video.duration);
                 if(secs < 60) {
                     html += secs + ' ${I18N_SECONDS}';                        
                 } else {
@@ -65,12 +65,12 @@ function showDetails(parser, uri, isVideoPage) {
             html += '</strong></p>';
             
             // add the description, if available
-            if(video.vchdesc) {
-                html += '<p>' + video.vchdesc + '</p>';
+            if(video.desc) {
+                html += '<p>' + video.desc + '</p>';
             } 
             
             // add web actions
-            if(video.vchvideo && actions) {
+            if(video.video && actions) {
                 for(var i=0; i<actions.length; i++) {
                     html += '<a style="margin-right: 1em;" id="action'+i+'" href="'+actions[i].uri+'">'+actions[i].title+'</a>';
                 }
@@ -78,7 +78,7 @@ function showDetails(parser, uri, isVideoPage) {
                  
             // display the details
             $('#details').html(html);
-            if(video.vchvideo) {
+            if(video.video) {
                 $('#watch').button( {icons: { primary: 'ui-icon-play'}} );
                 if(actions) {
                     for(var i=0; i<actions.length; i++) {
