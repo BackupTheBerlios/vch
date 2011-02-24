@@ -17,6 +17,7 @@ import org.htmlparser.tags.Div;
 import org.htmlparser.tags.LinkTag;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
+import org.htmlparser.util.Translate;
 import org.osgi.framework.ServiceException;
 import org.osgi.service.log.LogService;
 
@@ -89,7 +90,7 @@ public class ArdSearchProvider implements ISearchProvider {
 
             // parse the title
             LinkTag title = (LinkTag) HtmlParserUtils.getTag(itemContent, CHARSET, "h3.mt-title a");
-            video.setTitle(title.getLinkText());
+            video.setTitle(Translate.decode(title.getLinkText()));
 
             // parse the video page uri
             video.setUri(new URI(BASE_URL + title.getLink()));
