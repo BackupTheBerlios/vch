@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<iPOJO>
+	<instance component="de.berlios.vch.download.webinterface.DownloadsServlet" name="VCH Download Servlet" />
+	<instance component="de.berlios.vch.download.webinterface.ConfigServlet" name="VCH Download Config Servlet" />
+	<instance component="de.berlios.vch.download.webinterface.DownloadWebAction" name="VCH Download Web Action" />
+</iPOJO>
