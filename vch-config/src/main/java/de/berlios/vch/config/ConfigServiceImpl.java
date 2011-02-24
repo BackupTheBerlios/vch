@@ -19,49 +19,25 @@ import de.berlios.vch.i18n.ResourceBundleProvider;
 
 @Component
 @Provides
-public class Activator implements ConfigService, ResourceBundleProvider {
+public class ConfigServiceImpl implements ConfigService, ResourceBundleProvider {
 
     @Requires
     private LogService logger;
-    
+
     private Preferences userPrefs;
-    
+
     private BundleContext ctx;
-    
+
     private ResourceBundle resourceBundle;
-    
-    public Activator(BundleContext ctx) {
+
+    public ConfigServiceImpl(BundleContext ctx) {
         this.ctx = ctx;
     }
-    
+
     @Validate
     public void start() {
         userPrefs = Preferences.userNodeForPackage(ConfigService.class);
-        
-//        try {
-//            registerServlet();
-//        } catch (Exception e) {
-//            logger.log(LogService.LOG_ERROR, "Couldn't register config servlet", e);
-//        }
     }
-    
-//    private void registerServlet() throws ServletException, NamespaceException {
-//        ConfigServlet servlet = new ConfigServlet();
-//        servlet.setBundleContext(ctx);
-//        servlet.setMessages(messages);
-//        servlet.setTemplateLoader(templateLoader);
-//        httpService.registerServlet(ConfigServlet.PATH, servlet, null, null);
-//        
-//        // register web interface menu
-//        WebMenuEntry config = new WebMenuEntry();
-//        config.setTitle(getResourceBundle().getString("I18N_CONFIGURATION"));
-//        config.setPreferredPosition(Integer.MAX_VALUE-1);
-//        config.setLinkUri("#");
-//        WebMenuEntry content = new WebMenuEntry(getResourceBundle().getString("I18N_CONFIGURATION"));
-//        content.setLinkUri(ConfigServlet.PATH);
-//        config.getChilds().add(content);
-//        ctx.registerService(IWebMenuEntry.class.getName(), config, null);
-//    }
 
     @Invalidate
     public void stop() {
@@ -70,15 +46,7 @@ public class Activator implements ConfigService, ResourceBundleProvider {
         } catch (BackingStoreException e) {
             logger.log(LogService.LOG_ERROR, "Couldn't save preferences", e);
         }
-        
-//        unregisterServlet();
     }
-
-//    private void unregisterServlet() {
-//        if(httpService != null) {
-//            httpService.unregister(ConfigServlet.PATH);
-//        }
-//    }
 
     @Override
     public Preferences getUserPreferences(String node) {
