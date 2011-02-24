@@ -27,4 +27,8 @@ public class Config {
     public String getVchDownloadsUri() {
         return getVchBaseUri() + "/downloads";
     }
+    
+    public String getVchSearchUri() {
+        return getVchBaseUri() + "/search";
+    }
 }

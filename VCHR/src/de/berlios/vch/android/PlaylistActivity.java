@@ -34,17 +34,13 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import com.android.music.TouchInterceptor;
 import com.android.music.TouchInterceptor.DropListener;
 
-import de.berlios.vch.android.ExecuteActionAsyncTask.ExceptionHandler;
-import de.berlios.vch.android.actions.Action;
-import de.berlios.vch.android.actions.RemoveFromPlaylist;
 import de.berlios.vch.android.actions.ReorderPlaylist;
-import de.berlios.vch.android.actions.StartPlaylist;
 
 public class PlaylistActivity extends ListActivity {
 
     private static final int MENU_PLAY = 0;
     private static final int MENU_REMOVE = 1;
-    
+
     private PlaylistListAdapter adapter;
 
     @Override
@@ -64,10 +60,10 @@ public class PlaylistActivity extends ListActivity {
         ((TouchInterceptor) listView).setDropListener(new DropListener() {
             @Override
             public void drop(int from, int to) {
-                if(from == to) {
+                if (from == to) {
                     return;
                 }
-                
+
                 Log.d(TAG, "Entry moved from " + from + " to " + to);
 
                 PlaylistEntry draggedEntry = adapter.getEntries().get(from);
@@ -76,7 +72,7 @@ public class PlaylistActivity extends ListActivity {
                 newOrder.remove(from);
                 newOrder.add(to, draggedEntry);
                 adapter.setEntries(newOrder);
-                
+
                 ReorderPlaylist rp = new ReorderPlaylist(playlistUri, oldOrder, newOrder);
                 new ReorderAsyncTask().execute(rp);
             }
@@ -91,44 +87,44 @@ public class PlaylistActivity extends ListActivity {
             Log.e(getClass().getSimpleName(), "Couldn't load page", e);
         }
     }
-    
+
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         menu.setHeaderTitle(R.string.entry);
         menu.add(0, MENU_REMOVE, 0, R.string.remove);
     }
-    
+
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        AdapterContextMenuInfo menuInfo =  (AdapterContextMenuInfo) item.getMenuInfo();
+        AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) item.getMenuInfo();
         PlaylistEntry entry = (PlaylistEntry) adapter.getItem(menuInfo.position);
-        
-        switch(item.getItemId()) {
-            case MENU_REMOVE:
-                removeEntry(entry);
-                return true;
+
+        switch (item.getItemId()) {
+        case MENU_REMOVE:
+            removeEntry(entry);
+            return true;
         }
         return false;
     }
-    
+
     private void removeEntry(PlaylistEntry entry) {
-        ExceptionHandler eh = new ExceptionHandler() {
-            @Override
-            public void handleException(Exception e) {
-                Toast.makeText(PlaylistActivity.this, getString(R.string.remove_failed, e.getLocalizedMessage()), Toast.LENGTH_LONG).show();
-            }
-        };
-        String playlistUri = new Config(this).getVchPlaylistUri();
-        new ExecuteActionAsyncTask(this, eh).execute(new RemoveFromPlaylist(playlistUri, getListView(), entry, adapter));
+        // ExceptionHandler eh = new ExceptionHandler() {
+        // @Override
+        // public void handleException(Exception e) {
+        // Toast.makeText(PlaylistActivity.this, getString(R.string.remove_failed, e.getLocalizedMessage()), Toast.LENGTH_LONG).show();
+        // }
+        // };
+        // String playlistUri = new Config(this).getVchPlaylistUri();
+        // new ExecuteActionAsyncTask(this, eh).execute(new RemoveFromPlaylist(playlistUri, getListView(), entry, adapter));
     }
-    
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         menu.add(0, MENU_PLAY, 0, R.string.play).setIcon(R.drawable.ic_menu_play_clip);
         return true;
     }
-    
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         super.onOptionsItemSelected(item);
@@ -136,14 +132,14 @@ public class PlaylistActivity extends ListActivity {
 
         switch (item.getItemId()) {
         case MENU_PLAY:
-            Action play = new StartPlaylist(playlistUri);
-            ExceptionHandler eh = new ExceptionHandler() {
-                @Override
-                public void handleException(Exception e) {
-                    Toast.makeText(PlaylistActivity.this, getString(R.string.playback_failed, e.getLocalizedMessage()), Toast.LENGTH_LONG).show();
-                }
-            };
-            new ExecuteActionAsyncTask(this, eh).execute(play);
+            // Action play = new StartPlaylist(playlistUri);
+            // ExceptionHandler eh = new ExceptionHandler() {
+            // @Override
+            // public void handleException(Exception e) {
+            // Toast.makeText(PlaylistActivity.this, getString(R.string.playback_failed, e.getLocalizedMessage()), Toast.LENGTH_LONG).show();
+            // }
+            // };
+            // new ExecuteActionAsyncTask(this, eh).execute(play);
             return true;
         }
 
@@ -192,6 +188,7 @@ public class PlaylistActivity extends ListActivity {
             return result;
         }
 
+        @Override
         protected void onPostExecute(List<PlaylistEntry> result) {
             Log.i(TAG, "PlaylistLoader finished");
 
@@ -236,16 +233,16 @@ public class PlaylistActivity extends ListActivity {
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
-            
+
             Log.i(TAG, "Action finished");
-            
-            if(!isCancelled()) {
-                if(dialog.isShowing()) {
+
+            if (!isCancelled()) {
+                if (dialog.isShowing()) {
                     dialog.dismiss();
                 }
             }
-            
-            if(e != null) {
+
+            if (e != null) {
                 List<PlaylistEntry> newOrder = action.getOldOrder();
                 adapter.setEntries(newOrder);
                 handleException(e);

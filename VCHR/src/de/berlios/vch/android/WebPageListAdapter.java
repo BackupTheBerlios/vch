@@ -11,14 +11,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import de.berlios.vch.parser.IWebPage;
 
-public class WebPageListAdapter extends BaseAdapter{
-    
+public class WebPageListAdapter extends BaseAdapter {
+
     private List<IWebPage> pages;
-    
+
     private LayoutInflater inflater;
-    
-    private ListView listView; 
-    
+
+    private ListView listView;
+
     public WebPageListAdapter(Context context, List<IWebPage> pages) {
         super();
         this.pages = pages;
@@ -27,7 +27,7 @@ public class WebPageListAdapter extends BaseAdapter{
 
     @Override
     public int getCount() {
-        return pages.size();
+        return pages != null ? pages.size() : 0;
     }
 
     @Override
@@ -39,7 +39,7 @@ public class WebPageListAdapter extends BaseAdapter{
     public long getItemId(int i) {
         return i;
     }
-    
+
     public void setListView(ListView listView) {
         this.listView = listView;
     }
@@ -47,26 +47,26 @@ public class WebPageListAdapter extends BaseAdapter{
     @Override
     public View getView(int i, View view, ViewGroup viewgroup) {
         IWebPage page = pages.get(i);
-        if(view == null) {
-            view = (View) inflater.inflate(R.layout.list_item, viewgroup, false);
+        if (view == null) {
+            view = inflater.inflate(R.layout.list_item, viewgroup, false);
         }
         // set the title
-        ((TextView)view).setText(page.getTitle());
+        ((TextView) view).setText(page.getTitle());
         return view;
     }
 
     public void setPages(List<IWebPage> pages) {
         this.pages = pages;
-        if(listView != null) { // listView maybe unintialized at this moment (if it has not been opened before)
+        if (listView != null) { // listView maybe unintialized at this moment (if it has not been opened before)
             listView.post(new Runnable() {
                 @Override
                 public void run() {
-                    notifyDataSetChanged();                
+                    notifyDataSetChanged();
                 }
             });
         }
     }
-    
+
     public List<IWebPage> getPages() {
         return pages;
     }

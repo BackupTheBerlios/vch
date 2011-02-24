@@ -42,4 +42,6 @@
 <string name="title_vch_port">Port</string>
 <string name="vch">VCH</string>
 <string name="video_details">Videodetails</string>
+<string name="search">Suche</string>
+<string name="search_hint">Suchbegriff</string>
 </resources>
