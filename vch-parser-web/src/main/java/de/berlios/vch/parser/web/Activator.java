@@ -36,30 +36,30 @@ import de.berlios.vch.web.menu.WebMenuEntry;
 
 @Component
 public class Activator implements ResourceBundleProvider {
-    
+
     private Map<String, ServiceRegistration> registrations = new HashMap<String, ServiceRegistration>();
-    
+
     private ServiceTracker parserTracker;
-    
+
     private BundleContext ctx;
-    
+
     @Requires
     private LogService logger;
-    
+
     @Requires
     private Messages messages;
-    
+
     @Requires
     private TemplateLoader templateLoader;
-    
+
     @Requires
     private HttpService http;
-    
+
     @Requires
     private IParserService parserService;
-    
+
     private ResourceBundle resourceBundle;
-    
+
     public Activator(BundleContext ctx) {
         this.ctx = ctx;
     }
@@ -78,15 +78,16 @@ public class Activator implements ResourceBundleProvider {
         servlet.setTemplateLoader(templateLoader);
         servlet.setLogger(logger);
         http.registerServlet(BrowseServlet.PATH, servlet, null, null);
-        
+
         // register resource context for static files
         ResourceHttpContext resourceHttpContext = new ResourceHttpContext(ctx, logger);
         http.registerResources(BrowseServlet.STATIC_PATH, "/htdocs", resourceHttpContext);
     }
-    
+
     private void unregisterServlet() {
-        if(http != null) {
+        if (http != null) {
             http.unregister(BrowseServlet.PATH);
+            http.unregister(BrowseServlet.STATIC_PATH);
         }
     }
 
@@ -109,10 +110,10 @@ public class Activator implements ResourceBundleProvider {
                 options.put("vch.parser", parser.getClass().getName());
                 ServiceRegistration reg = ctx.registerService(IWebMenuEntry.class.getName(), parserEntry, options);
                 registrations.put(parser.getClass().getName(), reg);
-                
+
                 return super.addingService(reference);
             }
-            
+
             @Override
             public void removedService(ServiceReference reference, Object service) {
                 ServiceRegistration reg = registrations.get(service.getClass().getName());
@@ -132,32 +133,32 @@ public class Activator implements ResourceBundleProvider {
     private StringBuilder createMenuTree(IWebMenuEntry menu, String indent) {
         StringBuilder sb = new StringBuilder();
         sb.append(indent).append(menu.getTitle()).append('\n');
-        if(menu.getChilds() != null) {
+        if (menu.getChilds() != null) {
             for (IWebMenuEntry entry : menu.getChilds()) {
                 sb.append(createMenuTree(entry, indent + "  "));
             }
         }
         return sb;
     }
-    
+
     @Invalidate
     public void stop() throws Exception {
-        if(parserTracker != null) {
+        if (parserTracker != null) {
             parserTracker.close();
         }
-        
+
         for (ServiceRegistration reg : registrations.values()) {
             reg.unregister();
         }
-        
+
         unregisterServlet();
-        
+
         messages.removeProvider(this);
     }
 
     @Override
     public ResourceBundle getResourceBundle() {
-        if(resourceBundle == null) {
+        if (resourceBundle == null) {
             try {
                 logger.log(LogService.LOG_DEBUG, "Loading resource bundle for " + getClass().getSimpleName());
                 resourceBundle = ResourceBundleLoader.load(ctx, Locale.getDefault());
