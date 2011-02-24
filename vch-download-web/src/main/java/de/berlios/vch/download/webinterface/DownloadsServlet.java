@@ -3,6 +3,8 @@ package de.berlios.vch.download.webinterface;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Locale;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.prefs.Preferences;
 
@@ -40,6 +42,8 @@ import de.berlios.vch.download.webinterface.handler.json.JsonStartHandler;
 import de.berlios.vch.download.webinterface.handler.json.JsonStopAllHandler;
 import de.berlios.vch.download.webinterface.handler.json.JsonStopHandler;
 import de.berlios.vch.i18n.Messages;
+import de.berlios.vch.i18n.ResourceBundleLoader;
+import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.uri.IVchUriResolveService;
 import de.berlios.vch.web.ResourceHttpContext;
 import de.berlios.vch.web.TemplateLoader;
@@ -48,7 +52,7 @@ import de.berlios.vch.web.menu.WebMenuEntry;
 import de.berlios.vch.web.servlets.VchHttpServlet;
 
 @Component
-public class DownloadsServlet extends VchHttpServlet {
+public class DownloadsServlet extends VchHttpServlet implements ResourceBundleProvider {
 
     private static final long serialVersionUID = 2L;
 
@@ -82,6 +86,8 @@ public class DownloadsServlet extends VchHttpServlet {
     private Preferences prefs;
 
     private BundleContext ctx;
+
+    private ResourceBundle resourceBundle;
 
     private Set<RequestHandler> handlers = new HashSet<RequestHandler>();
 
@@ -117,6 +123,8 @@ public class DownloadsServlet extends VchHttpServlet {
 
     @Validate
     public void start() {
+        i18n.addProvider(this);
+
         // initialize the preferences
         prefs = cs.getUserPreferences("de.berlios.vch.download");
 
@@ -183,7 +191,14 @@ public class DownloadsServlet extends VchHttpServlet {
     public void stop() {
         handlers.clear();
 
+        i18n.removeProvider(this);
+
+        logger.log(LogService.LOG_DEBUG, "Unregistering servlet " + PATH);
         httpService.unregister(PATH);
+        logger.log(LogService.LOG_DEBUG, "Unregistering servlet " + FILE_PATH);
+        httpService.unregister(FILE_PATH);
+        logger.log(LogService.LOG_DEBUG, "Unregistering servlet " + STATIC_PATH);
+        httpService.unregister(STATIC_PATH);
 
         // unregister all manually made registrations
         for (Iterator<ServiceRegistration> iterator = serviceRegs.iterator(); iterator.hasNext();) {
@@ -191,5 +206,18 @@ public class DownloadsServlet extends VchHttpServlet {
             unregisterService(sr);
             iterator.remove();
         }
+    }
+
+    @Override
+    public ResourceBundle getResourceBundle() {
+        if (resourceBundle == null) {
+            try {
+                logger.log(LogService.LOG_DEBUG, "Loading resource bundle for " + getClass().getSimpleName());
+                resourceBundle = ResourceBundleLoader.load(ctx, Locale.getDefault());
+            } catch (IOException e) {
+                logger.log(LogService.LOG_ERROR, "Couldn't load resource bundle", e);
+            }
+        }
+        return resourceBundle;
     }
 }
