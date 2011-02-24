@@ -9,7 +9,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public class WelcomeServlet extends BundleContextServlet {
-    
+
+    public static final String PATH = "/vch";
+
     @Override
     protected void get(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         Map<String, Object> params = new HashMap<String, Object>();

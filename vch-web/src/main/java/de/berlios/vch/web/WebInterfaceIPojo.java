@@ -40,6 +40,8 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
 
     private BundleContext ctx;
 
+    private static final String STATIC_PATH = "static";
+
     private List<ServiceRegistration> menuRegs = new ArrayList<ServiceRegistration>();
 
     public WebInterfaceIPojo(final BundleContext ctx) throws IOException {
@@ -83,7 +85,7 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
     }
 
     private void unregisterService(ServiceRegistration sr) {
-        if(sr != null) {
+        if (sr != null) {
             sr.unregister();
         }
     }
@@ -92,7 +94,7 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
         try {
             log.log(LogService.LOG_INFO, "Registering resource http context");
             ResourceHttpContext httpCtx = new ResourceHttpContext(ctx, log);
-            httpService.registerResources("/static", "/htdocs", httpCtx);
+            httpService.registerResources(STATIC_PATH, "/htdocs", httpCtx);
             httpService.createDefaultHttpContext();
 
             // register welcome servlet
@@ -100,22 +102,22 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
             welcome.setBundleContext(ctx);
             welcome.setTemplateLoader(templateLoader);
             welcome.setMessages(i18n);
-            httpService.registerServlet("/vch", welcome, null, httpCtx);
+            httpService.registerServlet(WelcomeServlet.PATH, welcome, null, httpCtx);
         } catch (Exception e) {
             log.log(LogService.LOG_ERROR, "Couldn't register servlets", e);
         }
     }
 
     private void unregisterHttpContext(HttpService service) {
-        if(httpService != null) {
-            httpService.unregister("/static");
-            httpService.unregister("/");
+        if (httpService != null) {
+            httpService.unregister(STATIC_PATH);
+            httpService.unregister(WelcomeServlet.PATH);
         }
     }
 
     @Override
     public ResourceBundle getResourceBundle() {
-        if(resourceBundle == null) {
+        if (resourceBundle == null) {
             try {
                 log.log(LogService.LOG_DEBUG, "Loading resource bundle for " + getClass().getSimpleName());
                 resourceBundle = ResourceBundleLoader.load(ctx, Locale.getDefault());
