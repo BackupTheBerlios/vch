@@ -25,23 +25,23 @@ import de.berlios.vch.web.servlets.WelcomeServlet;
 @Component
 public class WebInterfaceIPojo implements ResourceBundleProvider {
     private ResourceBundle resourceBundle;
-    
+
     @Requires
     private LogService log;
 
     @Requires
     TemplateLoader templateLoader;
-    
+
     @Requires
     private HttpService httpService;
-    
+
     @Requires
     private Messages i18n;
 
     private BundleContext ctx;
-    
+
     private List<ServiceRegistration> menuRegs = new ArrayList<ServiceRegistration>();
-    
+
     public WebInterfaceIPojo(final BundleContext ctx) throws IOException {
         this.ctx = ctx;
     }
@@ -60,17 +60,17 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
         help.setTitle(getResourceBundle().getString("I18N_HELP"));
         help.setPreferredPosition(Integer.MAX_VALUE);
         help.setLinkUri("#");
-        
+
         WebMenuEntry content = new WebMenuEntry(getResourceBundle().getString("I18N_CONTENT"));
         content.setLinkUri("http://vdr-wiki.de/wiki/index.php/Vodcatcher_Helper");
         help.getChilds().add(content);
-        
+
         WebMenuEntry developer = new WebMenuEntry(getResourceBundle().getString("I18N_DEVELOPER"));
         developer.setLinkUri("http://vdr-wiki.de/wiki/index.php/Vodcatcher_Helper/Entwickler");
         developer.setPreferredPosition(Integer.MAX_VALUE);
         help.getChilds().add(developer);
-        
-        menuRegs.add(ctx.registerService(IWebMenuEntry.class.getName(), help, null));   
+
+        menuRegs.add(ctx.registerService(IWebMenuEntry.class.getName(), help, null));
     }
 
     @Invalidate
@@ -81,7 +81,7 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
         }
         i18n.removeProvider(this);
     }
-    
+
     private void unregisterService(ServiceRegistration sr) {
         if(sr != null) {
             sr.unregister();
@@ -93,13 +93,14 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
             log.log(LogService.LOG_INFO, "Registering resource http context");
             ResourceHttpContext httpCtx = new ResourceHttpContext(ctx, log);
             httpService.registerResources("/static", "/htdocs", httpCtx);
-            
+            httpService.createDefaultHttpContext();
+
             // register welcome servlet
             WelcomeServlet welcome = new WelcomeServlet();
             welcome.setBundleContext(ctx);
             welcome.setTemplateLoader(templateLoader);
             welcome.setMessages(i18n);
-            httpService.registerServlet("/", welcome, null, httpCtx);
+            httpService.registerServlet("/vch", welcome, null, httpCtx);
         } catch (Exception e) {
             log.log(LogService.LOG_ERROR, "Couldn't register servlets", e);
         }

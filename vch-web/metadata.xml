@@ -2,4 +2,5 @@
 <iPOJO>
 	<instance component="de.berlios.vch.web.WebInterfaceIPojo" name="WebInterface" />
 	<instance component="de.berlios.vch.web.TemplateLoaderImpl" name="TemplateLoader" />
+	<instance component="de.berlios.vch.web.servlets.TestServlet" name="Test Servlet" />
 </iPOJO>
