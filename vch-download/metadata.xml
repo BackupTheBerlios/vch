@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <iPOJO>
 	<instance component="de.berlios.vch.download.Activator" name="VCH Download" />
+	<instance component="de.berlios.vch.download.DownloadManagerImpl" name="VCH Download Manager" />
 </iPOJO>

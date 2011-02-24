@@ -22,10 +22,16 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeFactory;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 
+import de.berlios.vch.config.ConfigService;
 import de.berlios.vch.download.Download.Status;
 import de.berlios.vch.download.jaxb.DownloadDTO;
 import de.berlios.vch.download.jaxb.ObjectFactory;
@@ -35,34 +41,58 @@ import de.berlios.vch.download.sorting.SortStrategy;
 import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.parser.IVideoPage;
 
+@Component
+@Provides(specifications= {DownloadManager.class})
 public class DownloadManagerImpl implements DownloadManager, DownloadStateListener {
-    
+
+    @Requires
     private LogService logger;
 
-    private List<Download> downloads = new ArrayList<Download>();
-    
-    private ExecutorService executor;
-    
-    private Preferences prefs;
-    
-    private File dataDir;
-    
-    private Marshaller marshaller;
-    
-    private Unmarshaller unmarshaller;
-    
-    private ServiceTracker downloadFactoryTracker;
-    
-    private BundleContext ctx;
-    
-    public static List<SortStrategy> sortStrategies = new ArrayList<SortStrategy>();
-    
-    public DownloadManagerImpl(BundleContext ctx, LogService logger, Messages messages) {
-        this.logger = logger;
-        this.ctx = ctx;
+    @Requires
+    private Messages i18n;
 
-        sortStrategies.add(new ByTitle(messages));
-        sortStrategies.add(new ByFinishDate(messages));
+    @Requires
+    private ConfigService cs;
+
+    private Preferences prefs;
+
+    private List<Download> downloads = new ArrayList<Download>();
+
+    private ExecutorService executor;
+
+    private File dataDir;
+
+    private Marshaller marshaller;
+
+    private Unmarshaller unmarshaller;
+
+    private ServiceTracker downloadFactoryTracker;
+
+    private BundleContext ctx;
+
+    public static List<SortStrategy> sortStrategies = new ArrayList<SortStrategy>();
+
+    public DownloadManagerImpl(BundleContext ctx) {
+        this.ctx = ctx;
+    }
+
+    @Validate
+    public void validate() {
+        // add sort strategies
+        sortStrategies.add(new ByTitle(i18n));
+        sortStrategies.add(new ByFinishDate(i18n));
+
+        // initialize with preferences
+        prefs = cs.getUserPreferences(ctx.getBundle().getSymbolicName());
+        Activator.setDefaults(prefs);
+        init(prefs);
+    }
+
+    @Invalidate
+    public void invalidate() {
+        sortStrategies.clear();
+
+        stop();
     }
 
     @Override
@@ -72,13 +102,13 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
         if(d != null) {
             // cancel the download
             d.cancel();
-            
+
             // remove download from active downloads
             downloads.remove(d);
-            
+
             // delete the info file
             deleteInfoFile(new File(d.getLocalFile()));
-            
+
             // delete the descriptor file
             deleteDescritorFile(new File(d.getLocalFile()));
         }
@@ -94,12 +124,12 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
                 download = dto;
             }
         }
-        
+
         if(download == null) {
             logger.log(LogService.LOG_WARNING, "Download does not exist " + id);
             return;
         }
-        
+
         // delete the video file
         File videoFile = download.getVideoFile();
         if(videoFile != null && videoFile.exists()) {
@@ -108,10 +138,10 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
                 logger.log(LogService.LOG_WARNING, "Couldn't delete file " + videoFile.getAbsolutePath());
             }
         }
-        
+
         // delete the nfo file
         deleteInfoFile(videoFile);
-        
+
         // delete the descriptor file
         deleteDescritorFile(videoFile);
     }
@@ -123,19 +153,19 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
         if(d == null) {
             throw new InstantiationException("No applicable downloader found");
         }
-        
+
         d.addDownloadStateListener(this);
         d.setDestinationDir(dataDir);
-        
+
         // add download to active downloads
         downloads.add(d);
-        
+
         // persist download information
         createDescriptorFile(d);
-        
+
         // start the download
         executor.submit(d);
-        
+
         // create the nfo file
         try {
             createInfoFile(new File(d.getLocalFile()), d.getVideoPage());
@@ -183,7 +213,9 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
     @Override
     public void stopDownload(String id) {
         Download d = getDownload(id);
-        if(d != null) d.stop();
+        if(d != null) {
+            d.stop();
+        }
     }
 
     @Override
@@ -206,9 +238,9 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
                 reconfigure();
             }
         });
-        
+
         reconfigure();
-        
+
         // set up jaxb stuff
         try {
             ClassLoader cl = getClass().getClassLoader();
@@ -219,26 +251,28 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
         } catch (Exception e) {
             logger.log(LogService.LOG_ERROR, "Couldn't create jaxb context", e);
         }
-        
+
         // create service tracker for download factories
         downloadFactoryTracker = new ServiceTracker(ctx, DownloadFactory.class.getName(), null);
         downloadFactoryTracker.open();
     }
-    
+
     private void reconfigure() {
         // shutdown the current executor after all downloads are finished
-        if(executor != null) executor.shutdown();
-        
+        if(executor != null) {
+            executor.shutdown();
+        }
+
         // create new thread pool
         executor = createExecutorService();
-        
+
         // create data directory
         dataDir = new File(prefs.get("data.dir", "data"));
         if(!dataDir.exists()) {
             dataDir.mkdirs();
         }
     }
-    
+
     private ExecutorService createExecutorService() {
         int numberOfConcurrentDownloads = prefs.getInt("concurrent_downloads", 2);
         return Executors.newFixedThreadPool(numberOfConcurrentDownloads);
@@ -255,7 +289,7 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
     public List<Download> getActiveDownloads() {
         return downloads;
     }
-    
+
     @Override
     public synchronized List<DownloadDTO> getFinishedDownloads() {
         File[] descriptors = dataDir.listFiles(new FilenameFilter() {
@@ -288,7 +322,7 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
                 }
             }
         }
-        
+
         // sort the downloads
         String className = prefs.get("sort.strategy", ByTitle.class.getName());
         for (SortStrategy sortStrategy : sortStrategies) {
@@ -296,21 +330,21 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
                 sortStrategy.sort(finished);
             }
         }
- 
-        
+
+
         return finished;
     }
-    
+
     private Download getDownload(String id) {
         for (Download d : downloads) {
             if(d.getId().equals(id)) {
                 return d;
             }
         }
-        
+
         return null;
     }
-    
+
     @Override
     public void downloadStateChanged(AbstractDownload download) {
         if(download.getStatus() == Download.Status.FINISHED) {
@@ -318,7 +352,7 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
             downloads.remove(download);
         }
     }
-    
+
     private void createDescriptorFile(Download d) {
         // write the download information to the file
         File downloadFile = new File(d.getLocalFile());
@@ -340,10 +374,10 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
                 marshaller.marshal(dto, data);
             } catch(Exception e) {
                 logger.log(LogService.LOG_ERROR, "Coulnd't save download data. Download will be lost after the next restart", e);
-            } 
+            }
         }
     }
-    
+
     private void deleteDescritorFile(File videoFile) {
         if(videoFile != null) {
             File descriptor = new File(videoFile.getParentFile(), videoFile.getName() + ".vch");
@@ -368,7 +402,7 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
         if(video == null || video.getTitle() == null || video.getTitle().length() == 0) {
             logger.log(LogService.LOG_INFO, "Video has no title. No .nfo file will be written");
         }
-        
+
         if(videoFile != null) {
             File nfoFile = new File(videoFile.getParentFile(), videoFile.getName() + ".nfo");
             if(!nfoFile.exists()) {
@@ -377,7 +411,9 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
                     //pw = new PrintWriter(nfoFile, Config.getInstance().getProperty("default.encoding"));
                     pw = new PrintWriter(nfoFile, "UTF-8");
                     pw.write(video.getTitle() + "\n");
-                    if(video.getPublishDate() != null) pw.write(DateFormat.getDateTimeInstance().format(video.getPublishDate().getTime()) + "\n");
+                    if(video.getPublishDate() != null) {
+                        pw.write(DateFormat.getDateTimeInstance().format(video.getPublishDate().getTime()) + "\n");
+                    }
                     if(video.getDescription() != null) {
                         pw.write("\n" + video.getDescription());
                     }
@@ -391,7 +427,7 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
             logger.log(LogService.LOG_INFO, "Video file is null. No .nfo file will be written");
         }
     }
-    
+
     /**
      * Deletes a .nfo file for a given video file, if the nfo file exists
      * @param videoFile
