@@ -61,6 +61,12 @@
                 <include>de.berlios.vch:parser.youtube</include>
                 <include>de.berlios.vch:parser.zdf</include>
                 <include>de.berlios.vch:playlist</include>
+                <include>de.berlios.vch:search</include>
+                <include>de.berlios.vch:search.ard</include>
+                <include>de.berlios.vch:search.arte</include>
+                <include>de.berlios.vch:search.web</include>
+                <include>de.berlios.vch:search.youtube</include>
+                <include>de.berlios.vch:search.zdf</include>
                 <include>de.berlios.vch:update</include>
                 <include>de.berlios.vch:uri.resolver</include>
                 <include>de.berlios.vch:web</include>
@@ -73,7 +79,7 @@
         </moduleSet>
         <moduleSet>
             <includes>
-                <include>de.berlios.vch:slf4j-logger</include>
+                <include>de.berlios.vch:logger</include>
                 <include>de.berlios.vch:bundle-loader</include>
             </includes>
             <binaries>

@@ -1,11 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>slf4j-logger</artifactId>
+	<artifactId>logger</artifactId>
 	<packaging>bundle</packaging>
-	<name>LogListener</name>
-	<version>1.0.2</version>
-	<description>This bundle provides an OSGi R4 LogListener, which uses SLF4J to log the messages</description>
+	<name>VCH Log Listener</name>
+	<version>1.1.0</version>
+	<description>This bundle provides an OSGi R4 LogListener.</description>
 
 	<parent>
         <artifactId>parent</artifactId>

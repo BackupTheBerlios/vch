@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <iPOJO>
-	<instance component="de.berlios.vch.logger.Slf4jLogger" name="LogListener" />
+	<instance component="de.berlios.vch.logger.JulLogger" name="LogListener" />
 </iPOJO>
