@@ -94,10 +94,11 @@ public class Activator implements ResourceBundleProvider {
     public void stop() {
         if (http != null) {
             http.unregister(SearchServlet.PATH);
+            http.unregister(SearchServlet.STATIC_PATH);
         }
 
         // unregister the web menu
-        if(menuReg != null) {
+        if (menuReg != null) {
             menuReg.unregister();
         }
 
@@ -106,7 +107,7 @@ public class Activator implements ResourceBundleProvider {
 
     @Override
     public ResourceBundle getResourceBundle() {
-        if(resourceBundle == null) {
+        if (resourceBundle == null) {
             try {
                 logger.log(LogService.LOG_DEBUG, "Loading resource bundle for " + getClass().getSimpleName());
                 resourceBundle = ResourceBundleLoader.load(ctx, Locale.getDefault());
