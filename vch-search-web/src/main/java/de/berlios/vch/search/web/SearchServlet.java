@@ -45,7 +45,7 @@ public class SearchServlet extends BundleContextServlet {
     @Override
     protected void post(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         String action = req.getParameter("action");
-        if(action == null) {
+        if (action == null) {
             renderHtml(null, req, resp);
         } else if ("search".equals(action)) {
             String q = req.getParameter("q");
@@ -103,17 +103,19 @@ public class SearchServlet extends BundleContextServlet {
         String q = req.getParameter("q");
         params.put("Q", q);
 
-        params.put("RESULTS", result);
-        try {
-            int resultCount = 0;
-            for (IWebPage page : result.getPages()) {
-                if (page instanceof IOverviewPage) {
-                    resultCount += ((IOverviewPage) page).getPages().size();
+        if (result != null) {
+            params.put("RESULTS", result);
+            try {
+                int resultCount = 0;
+                for (IWebPage page : result.getPages()) {
+                    if (page instanceof IOverviewPage) {
+                        resultCount += ((IOverviewPage) page).getPages().size();
+                    }
                 }
+                params.put("COUNT", resultCount);
+            } catch (Exception e) {
+                logger.log(LogService.LOG_ERROR, "Couldn't determine search result count", e);
             }
-            params.put("COUNT", resultCount);
-        } catch (Exception e) {
-            logger.log(LogService.LOG_ERROR, "Couldn't determine search result count", e);
         }
 
         String page = templateLoader.loadTemplate("search.ftl", params);
@@ -132,7 +134,7 @@ public class SearchServlet extends BundleContextServlet {
         Map<String, Object> json = new HashMap<String, Object>();
         json.put("title", page.getTitle());
         json.put("parser", page.getParser());
-        if(page.getUri() != null) {
+        if (page.getUri() != null) {
             json.put("uri", page.getUri());
         }
 
@@ -150,7 +152,6 @@ public class SearchServlet extends BundleContextServlet {
 
         json.put("title", page.getTitle());
         json.put("parser", page.getParser());
-
 
         if (page.getVchUri() != null) {
             json.put("vchuri", page.getVchUri().toString());
@@ -246,7 +247,7 @@ public class SearchServlet extends BundleContextServlet {
     }
 
     private String actionsToJSON(List<IWebAction> webActions, IWebPage page) throws UnsupportedEncodingException,
-    URISyntaxException {
+            URISyntaxException {
         if (!webActions.isEmpty()) {
             String json = "[";
             for (Iterator<IWebAction> iterator = webActions.iterator(); iterator.hasNext();) {
