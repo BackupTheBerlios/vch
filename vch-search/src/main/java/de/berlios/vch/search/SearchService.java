@@ -121,8 +121,10 @@ public class SearchService implements ISearchService, IVchUriResolver {
             throw new IllegalArgumentException("URI for this resolver has to have the scheme vchsearch://");
         }
 
+        logger.log(LogService.LOG_DEBUG, "Resolve VCH URI: " + vchuri);
         String parser = vchuri.getPath().substring(1);
-        String query = vchuri.getQuery();
+        String query = vchuri.getRawQuery();
+        logger.log(LogService.LOG_DEBUG, "Resolve query: " + query);
         Map<String, List<String>> params = HttpUtils.parseQuery(query);
 
         IWebPage page = null;
@@ -180,6 +182,7 @@ public class SearchService implements ISearchService, IVchUriResolver {
             vchuri += "&duration=" + video.getDuration();
             if(video.getVideoUri() != null) {
                 vchuri += "&videoUri=" + URLEncoder.encode(video.getVideoUri().toString(), charset);
+                logger.log(LogService.LOG_DEBUG, "Video URI: " + URLEncoder.encode(video.getVideoUri().toString(), charset));
             }
             if(video.getThumbnail() != null) {
                 vchuri += "&thumbUri=" + URLEncoder.encode(video.getThumbnail().toString(), charset);
