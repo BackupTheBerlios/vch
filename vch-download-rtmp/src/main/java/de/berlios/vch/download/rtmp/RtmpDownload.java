@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -24,26 +25,26 @@ import de.berlios.vch.parser.IVideoPage;
 public class RtmpDownload extends AbstractDownload  {
 
     private LogService logger;
-    
+
     private String scheme;
     private String host;
     private String app;
     private String streamName;
     private File localFile;
     private URI swfUri;
-    
+
     private int progress;
     private Channel channel;
-    
+
     private BandwidthMeterHandler bandwidthMeterHandler;
-    
-    public RtmpDownload(IVideoPage video, LogService logger) {
+
+    public RtmpDownload(IVideoPage video, LogService logger) throws URISyntaxException {
         super(video);
         this.logger = logger;
-        
+
         // scheme
         this.scheme = video.getVideoUri().getScheme();
-        
+
         // file
         URI uri = video.getVideoUri();
         String p = uri.getPath();
@@ -51,14 +52,14 @@ public class RtmpDownload extends AbstractDownload  {
         if(uri.getQuery() != null) {
             file += "?" + uri.getQuery();
         }
-        
+
         // host
         host = uri.getHost();
-        
+
         // app
         streamName = (String) video.getUserData().get("streamName");
         app = uri.getPath() + (uri.getQuery() != null ? "?" + uri.getQuery() : "")
-                + (uri.getFragment() != null ? "#" + uri.getFragment() : "");
+        + (uri.getFragment() != null ? "#" + uri.getFragment() : "");
         app = app.substring(1); // cut off the leading /
         int pos = app.indexOf(streamName);
         if(streamName.startsWith("mp4:")) {
@@ -67,13 +68,14 @@ public class RtmpDownload extends AbstractDownload  {
             }
         }
         app = app.substring(0, pos);
-        
+
         // swf verification
-        swfUri = (URI) video.getUserData().get("swfUri");
-        
+        swfUri = new URI(video.getUserData().get("swfUri").toString());
+
+
         bandwidthMeterHandler = new BandwidthMeterHandler();
     }
-    
+
     @Override
     public int getProgress() {
         return progress;
@@ -94,7 +96,7 @@ public class RtmpDownload extends AbstractDownload  {
             long bytes = bandwidthMeterHandler.getBytesReceived();
             bandwidthMeterHandler.reset();
             float kbytes = bytes / 1024f;
-            return (float)(kbytes / diffInSeconds);
+            return (kbytes / diffInSeconds);
         } else {
             return -1;
         }
@@ -112,11 +114,11 @@ public class RtmpDownload extends AbstractDownload  {
             channel.close().awaitUninterruptibly();
         }
     }
-    
+
     @Override
     public void cancel() {
         setStatus(Status.CANCELED);
-        
+
         // delete the video file
         if(localFile != null && localFile.exists()) {
             boolean deleted = localFile.delete();
@@ -129,15 +131,15 @@ public class RtmpDownload extends AbstractDownload  {
     @Override
     public synchronized String getLocalFile() {
         String filename = file.substring(1);
-        
+
         // cut off query parameters
         if(filename.contains("?")) {
             filename = filename.substring(0, filename.indexOf('?'));
         }
-        
+
         // replace anything other than a-z, A-Z or 0-9 with _
         String title = getVideoPage().getTitle().replaceAll("[^a-zA-z0-9]", "_");
-        
+
         return getDestinationDir() + File.separator + title + "_" + filename;
     }
 
@@ -169,7 +171,7 @@ public class RtmpDownload extends AbstractDownload  {
                     setStatus(Status.DOWNLOADING);
                 }
             });
-            
+
             ClientOptions options;
             if("rtmpe".equals(scheme)) {
                 logger.log(LogService.LOG_INFO, "Trying to establish encrypted connection over rtmpe");
@@ -207,7 +209,7 @@ public class RtmpDownload extends AbstractDownload  {
             logger.log(LogService.LOG_ERROR, "Couldn't start download to file " + getLocalFile(), e);
         }
     }
-    
+
     public static ClientBootstrap getBootstrap(final Executor executor, final BandwidthMeterHandler bandwidthMeterHandler, final ClientOptions options) {
         final ChannelFactory factory = new NioClientSocketChannelFactory(executor, executor);
         final ClientBootstrap bootstrap = new ClientBootstrap(factory);

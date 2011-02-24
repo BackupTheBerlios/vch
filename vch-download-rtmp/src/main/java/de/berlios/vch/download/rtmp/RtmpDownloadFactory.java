@@ -1,5 +1,7 @@
 package de.berlios.vch.download.rtmp;
 
+import java.net.URISyntaxException;
+
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
@@ -14,36 +16,36 @@ import de.berlios.vch.parser.IVideoPage;
 @Component
 @Provides
 public class RtmpDownloadFactory implements DownloadFactory {
-    
+
     @Requires
     private LogService logger;
-    
+
     private boolean valid = false;
-    
+
     public RtmpDownloadFactory(LogService logger) {
         this.logger = logger;
     }
-    
+
     @Override
     public boolean accept(IVideoPage video) {
         if(valid && video.getVideoUri() != null) {
             return "rtmp".equals(video.getVideoUri().getScheme())
-                || "rtmpt".equals(video.getVideoUri().getScheme())
-                || "rtmpe".equals(video.getVideoUri().getScheme());
+            || "rtmpt".equals(video.getVideoUri().getScheme())
+            || "rtmpe".equals(video.getVideoUri().getScheme());
         }
         return false;
     }
 
     @Override
-    public Download createDownload(IVideoPage page) {
+    public Download createDownload(IVideoPage page) throws URISyntaxException {
         return new RtmpDownload(page, logger);
     }
-    
+
     @Validate
     public void start() {
         valid = true;
     }
-    
+
     @Invalidate
     public void stop() {
         valid = false;
