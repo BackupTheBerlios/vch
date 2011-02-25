@@ -7,13 +7,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import android.app.ListActivity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
-import de.berlios.vch.android.actions.Search;
 import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebPage;
 
@@ -32,7 +32,7 @@ public class SearchBrowseActivity extends ListActivity {
             try {
                 JSONArray pages = new JSONArray(getIntent().getStringExtra("pages"));
                 Log.d(BrowseActivity.TAG, pages.toString());
-                results = Search.parseJSONArray(pages);
+                results = SearchActivity.parseJSONArray(pages);
             } catch (JSONException e) {
                 Log.e(BrowseActivity.TAG, "Couldn't parse JSON array", e); // TODO show toast
             } catch (Exception e) {
@@ -53,15 +53,10 @@ public class SearchBrowseActivity extends ListActivity {
                 IWebPage page = listAdapter.getResults().get(position);
                 if (page instanceof IVideoPage) {
                     Log.i(BrowseActivity.TAG, "Parse search result " + page.getTitle() + " " + page.getUri());
-                    // ExceptionHandler eh = new ExceptionHandler() {
-                    // @Override
-                    // public void handleException(Exception e) {
-                    // Log.e(BrowseActivity.TAG, "Exception occured", e);
-                    // }
-                    // };
-                    // String requestUri = new Config(SearchBrowseActivity.this).getVchSearchUri();
-                    // new ExecuteActionAsyncTask(SearchBrowseActivity.this, eh).execute(new SearchBrowse(SearchBrowseActivity.this, requestUri,
-                    // page.getUri().toString(), page.getParser()));
+                    Intent intent = new Intent(SearchBrowseActivity.this, SearchVideoDetailsActivity.class);
+                    intent.putExtra("parser", page.getParser());
+                    intent.putExtra("uri", page.getUri().toString());
+                    SearchBrowseActivity.this.startActivity(intent);
                 } else {
                     // TODO toast nested search results not implemented
                 }

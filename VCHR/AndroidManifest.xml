@@ -18,8 +18,8 @@
         <activity android:name=".ActiveDownloadsActivity" android:label="@string/downloads" android:configChanges="keyboardHidden|orientation" />
         <activity android:name=".FinishedDownloadsActivity" android:label="@string/downloads" android:configChanges="keyboardHidden|orientation" />
         <activity android:name=".SearchBrowseActivity" android:label="@string/search" android:configChanges="keyboardHidden|orientation" />
-        <activity android:name=".SearchActivity" android:label="@string/search" android:configChanges="keyboardHidden|orientation">
-        </activity>
+        <activity android:name=".SearchActivity" android:label="@string/search" android:configChanges="keyboardHidden|orientation" />
+        <activity android:name=".SearchVideoDetailsActivity" android:label="@string/video_details" android:configChanges="keyboardHidden|orientation" />
         <activity android:name=".Settings" android:label="@string/settings" android:configChanges="keyboardHidden|orientation" />
 	</application>
 	

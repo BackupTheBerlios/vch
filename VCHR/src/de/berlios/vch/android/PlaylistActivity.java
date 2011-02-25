@@ -19,6 +19,7 @@ import org.json.JSONObject;
 
 import android.app.ListActivity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -34,7 +35,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import com.android.music.TouchInterceptor;
 import com.android.music.TouchInterceptor.DropListener;
 
-import de.berlios.vch.android.actions.ReorderPlaylist;
+import de.berlios.vch.android.actions.StartPlaylist;
 
 public class PlaylistActivity extends ListActivity {
 
@@ -58,6 +59,7 @@ public class PlaylistActivity extends ListActivity {
 
         // add a drop listener, so that drag and drop works
         ((TouchInterceptor) listView).setDropListener(new DropListener() {
+            @SuppressWarnings("unchecked")
             @Override
             public void drop(int from, int to) {
                 if (from == to) {
@@ -73,8 +75,8 @@ public class PlaylistActivity extends ListActivity {
                 newOrder.add(to, draggedEntry);
                 adapter.setEntries(newOrder);
 
-                ReorderPlaylist rp = new ReorderPlaylist(playlistUri, oldOrder, newOrder);
-                new ReorderAsyncTask().execute(rp);
+                ReorderPlaylistAsyncTask rp = new ReorderPlaylistAsyncTask(PlaylistActivity.this);
+                rp.execute(newOrder, oldOrder);
             }
         });
 
@@ -102,21 +104,11 @@ public class PlaylistActivity extends ListActivity {
 
         switch (item.getItemId()) {
         case MENU_REMOVE:
-            removeEntry(entry);
+            RemoveFromPlaylistAsyncTask task = new RemoveFromPlaylistAsyncTask(this);
+            task.execute(entry);
             return true;
         }
         return false;
-    }
-
-    private void removeEntry(PlaylistEntry entry) {
-        // ExceptionHandler eh = new ExceptionHandler() {
-        // @Override
-        // public void handleException(Exception e) {
-        // Toast.makeText(PlaylistActivity.this, getString(R.string.remove_failed, e.getLocalizedMessage()), Toast.LENGTH_LONG).show();
-        // }
-        // };
-        // String playlistUri = new Config(this).getVchPlaylistUri();
-        // new ExecuteActionAsyncTask(this, eh).execute(new RemoveFromPlaylist(playlistUri, getListView(), entry, adapter));
     }
 
     @Override
@@ -128,26 +120,14 @@ public class PlaylistActivity extends ListActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         super.onOptionsItemSelected(item);
-        String playlistUri = new Config(this).getVchPlaylistUri();
 
         switch (item.getItemId()) {
         case MENU_PLAY:
-            // Action play = new StartPlaylist(playlistUri);
-            // ExceptionHandler eh = new ExceptionHandler() {
-            // @Override
-            // public void handleException(Exception e) {
-            // Toast.makeText(PlaylistActivity.this, getString(R.string.playback_failed, e.getLocalizedMessage()), Toast.LENGTH_LONG).show();
-            // }
-            // };
-            // new ExecuteActionAsyncTask(this, eh).execute(play);
+            new StartPlaylist(this).execute();
             return true;
         }
 
         return false;
-    }
-
-    public void handleException(Exception e) {
-        Toast.makeText(this, getString(R.string.reorder_failed, e.getLocalizedMessage()), Toast.LENGTH_LONG).show();
     }
 
     private class LoadPlaylistAsyncTask extends AsyncTask<URI, Integer, List<PlaylistEntry>> {
@@ -181,9 +161,9 @@ public class PlaylistActivity extends ListActivity {
                     result.add(entry);
                 }
             } catch (IOException e) {
-                Log.e(TAG, "Couldn't load playlist " + requestUri, e);
+                Log.e(TAG, "Couldn't load playlist " + requestUri, e); // TODO toast
             } catch (JSONException e) {
-                Log.e(TAG, "Couldn't parse json response", e);
+                Log.e(TAG, "Couldn't parse json response", e); // TODO toast
             }
             return result;
         }
@@ -205,48 +185,89 @@ public class PlaylistActivity extends ListActivity {
         }
     }
 
-    private class ReorderAsyncTask extends AsyncTask<ReorderPlaylist, Integer, Void> {
+    private class ReorderPlaylistAsyncTask extends VchrAsyncTask<List<PlaylistEntry>, Void, String> {
+        private List<PlaylistEntry> oldOrder;
+        private List<PlaylistEntry> newOrder;
 
-        private ProgressDialog dialog;
-
-        private Exception e;
-
-        private ReorderPlaylist action;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            dialog = ProgressDialog.show(PlaylistActivity.this, "", PlaylistActivity.this.getString(R.string.executing), true);
+        public ReorderPlaylistAsyncTask(Context ctx) {
+            super(ctx);
         }
 
         @Override
-        protected Void doInBackground(ReorderPlaylist... actions) {
-            try {
-                action = actions[0];
-                action.execute();
-            } catch (Exception e) {
-                this.e = e;
+        protected String doTheWork(List<PlaylistEntry>... params) throws Exception {
+            // create request
+            String playlistUri = new Config(ctx).getVchPlaylistUri();
+            String request = playlistUri + "?action=reorder";
+            newOrder = params[0];
+            oldOrder = params[1];
+            for (PlaylistEntry entry : newOrder) {
+                request += "&pe[]=" + entry.id;
             }
-            return null;
+
+            // execute request
+            HttpGet get = new HttpGet(request);
+            HttpClient client = new DefaultHttpClient();
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+            String responseBody = client.execute(get, responseHandler);
+            Log.v(BrowseActivity.TAG, "Server response: " + responseBody);
+            return responseBody;
         }
 
         @Override
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
-
-            Log.i(TAG, "Action finished");
-
-            if (!isCancelled()) {
-                if (dialog.isShowing()) {
-                    dialog.dismiss();
-                }
+        protected void finished(String response) {
+            if (!"ok".equalsIgnoreCase(response.trim())) {
+                adapter.setEntries(oldOrder);
+                Toast.makeText(ctx, getString(R.string.reorder_failed, response), Toast.LENGTH_LONG).show();
             }
+        }
 
-            if (e != null) {
-                List<PlaylistEntry> newOrder = action.getOldOrder();
-                adapter.setEntries(newOrder);
-                handleException(e);
+        @Override
+        protected void handleException(Exception e) {
+            adapter.setEntries(oldOrder);
+
+            String msg = getString(R.string.reorder_failed, e.getLocalizedMessage());
+            Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show();
+            Log.e(BrowseActivity.TAG, msg, e);
+        }
+    }
+
+    private class RemoveFromPlaylistAsyncTask extends VchrAsyncTask<PlaylistEntry, Void, String> {
+
+        private PlaylistEntry entry;
+
+        public RemoveFromPlaylistAsyncTask(Context ctx) {
+            super(ctx);
+        }
+
+        @Override
+        protected String doTheWork(PlaylistEntry... params) throws Exception {
+            entry = params[0];
+            String playlistUri = new Config(ctx).getVchPlaylistUri();
+            String request = playlistUri + "?action=remove&id=" + entry.id;
+            HttpGet get = new HttpGet(request);
+            get.addHeader("X-Requested-With", "XMLHttpRequest");
+            HttpClient client = new DefaultHttpClient();
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+            String responseBody = client.execute(get, responseHandler);
+            Log.v(BrowseActivity.TAG, "Server response: " + responseBody);
+            return responseBody;
+        }
+
+        @Override
+        protected void finished(String response) {
+            if (!"ok".equalsIgnoreCase(response.trim())) {
+                Toast.makeText(ctx, ctx.getString(R.string.remove_failed, response), Toast.LENGTH_LONG).show();
+            } else {
+                adapter.getEntries().remove(entry);
+                adapter.notifyDataSetChanged();
             }
+        }
+
+        @Override
+        protected void handleException(Exception e) {
+            String msg = ctx.getString(R.string.remove_failed, e.getLocalizedMessage());
+            Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show();
+            Log.e(BrowseActivity.TAG, msg, e);
         }
     }
 }

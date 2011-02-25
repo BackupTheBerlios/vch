@@ -28,7 +28,11 @@ public abstract class VchrAsyncTask<Params, Progress, Result> extends AsyncTask<
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        dialog = ProgressDialog.show(ctx, "", ctx.getString(progressMessageId), true);
+        try {
+            dialog = ProgressDialog.show(ctx, "", ctx.getString(progressMessageId), true);
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
     }
 
     @Override

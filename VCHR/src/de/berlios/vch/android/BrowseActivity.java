@@ -76,9 +76,8 @@ public class BrowseActivity extends ListActivity {
                     browse.putExtra(PAGE_TITLE, page.getTitle());
                     startActivity(browse);
                 } else if (page instanceof IVideoPage) {
-                    String vchuri = getIntent().getExtras().getString(VCHURI);
                     Intent intent = new Intent(BrowseActivity.this, VideoDetailsActivity.class);
-                    intent.putExtra(VCHURI, vchuri);
+                    intent.putExtra(VCHURI, page.getVchUri().toString());
                     startActivity(intent);
                 }
             }

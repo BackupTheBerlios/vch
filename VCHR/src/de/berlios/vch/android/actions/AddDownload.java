@@ -37,7 +37,9 @@ public class AddDownload extends VchrAsyncTask<String, Void, String> {
 
     @Override
     protected void finished(String response) {
-        // TODO check the response
+        if (!"ok".equalsIgnoreCase(response.trim())) {
+            Toast.makeText(ctx, "Error: " + response, Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override

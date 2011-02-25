@@ -3,6 +3,7 @@ package de.berlios.vch.android;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.Calendar;
 
 import org.apache.http.client.HttpClient;
@@ -10,7 +11,6 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -26,6 +26,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import de.berlios.vch.android.actions.AddDownload;
+import de.berlios.vch.android.actions.AddToPlaylist;
+import de.berlios.vch.android.actions.ClearPlaylist;
+import de.berlios.vch.android.actions.StartPlaylist;
 import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.VideoPage;
 
@@ -42,7 +45,7 @@ public class VideoDetailsActivity extends Activity {
     private TextView duration;
     private ImageView thumb;
 
-    private String vchuri;
+    protected String vchuri;
 
     /** Called when the activity is first created. */
     @Override
@@ -56,6 +59,10 @@ public class VideoDetailsActivity extends Activity {
         thumb = (ImageView) findViewById(R.id.thumb);
 
         vchuri = getIntent().getExtras().getString("vchuri");
+        loadVideoPage();
+    }
+
+    protected void loadVideoPage() {
         new LoadVideoPage(this).execute(vchuri);
     }
 
@@ -70,17 +77,15 @@ public class VideoDetailsActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         super.onOptionsItemSelected(item);
-        String playlistUri = new Config(this).getVchPlaylistUri();
 
         switch (item.getItemId()) {
-        // case MENU_ADD_TO_PLAYLIST:
-        // Action add = new AddToPlaylist(playlistUri, vchuri);
-        // new ExecuteActionAsyncTask(this, this).execute(add);
-        // return true;
-        // case MENU_PLAY:
-        // Action play = new PlayVideo(playlistUri, vchuri);
-        // new ExecuteActionAsyncTask(this, this).execute(play);
-        // return true;
+        case MENU_ADD_TO_PLAYLIST:
+            AddToPlaylist add = new AddToPlaylist(this);
+            add.execute(vchuri);
+            return true;
+        case MENU_PLAY:
+            play(vchuri);
+            return true;
         case MENU_START_DOWNLOAD:
             AddDownload download = new AddDownload(this);
             download.execute(vchuri);
@@ -88,6 +93,12 @@ public class VideoDetailsActivity extends Activity {
         }
 
         return false;
+    }
+
+    private void play(String vchuri) {
+        new ClearPlaylist(this).execute();
+        new AddToPlaylist(this).execute(vchuri);
+        new StartPlaylist(this).execute();
     }
 
     public void updateView(String title, String desc, long duration, URI thumb) {
@@ -158,7 +169,7 @@ public class VideoDetailsActivity extends Activity {
                 if (slashPos > 0) {
                     parser = parser.substring(0, slashPos);
                 }
-                request = parserUri + "?id=" + parser + "&uri=" + vchuri;
+                request = parserUri + "?id=" + parser + "&uri=" + URLEncoder.encode(vchuri.toString(), "UTF-8");
 
                 Log.d(BrowseActivity.TAG, "Sending request " + request);
                 HttpGet get = new HttpGet(request);
@@ -174,8 +185,8 @@ public class VideoDetailsActivity extends Activity {
         }
 
         private IVideoPage parseVideoPage(String responseBody) throws JSONException, URISyntaxException {
-            JSONArray response = new JSONArray(responseBody);
-            JSONObject video = response.getJSONObject(0);
+            JSONObject response = new JSONObject(responseBody);
+            JSONObject video = response.getJSONObject("video");
             JSONObject attrs = video.getJSONObject("attributes");
             IVideoPage videoPage = new VideoPage();
 

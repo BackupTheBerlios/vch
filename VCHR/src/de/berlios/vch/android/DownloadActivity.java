@@ -13,7 +13,7 @@ public class DownloadActivity extends TabActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+
         setContentView(R.layout.downloads);
 
         TabHost tabHost = getTabHost(); // The activity TabHost
@@ -22,14 +22,13 @@ public class DownloadActivity extends TabActivity {
 
         // create the intents and add them as tabs
         intent = new Intent().setClass(this, ActiveDownloadsActivity.class);
-        
         activeDownloadsIcon = new AnimationDrawable();
-        activeDownloadsIcon.addFrame(getResources().getDrawable(R.drawable.stat_sys_download_anim0) , 50);
-        activeDownloadsIcon.addFrame(getResources().getDrawable(R.drawable.stat_sys_download_anim1) , 50);
-        activeDownloadsIcon.addFrame(getResources().getDrawable(R.drawable.stat_sys_download_anim2) , 50);
-        activeDownloadsIcon.addFrame(getResources().getDrawable(R.drawable.stat_sys_download_anim3) , 50);
-        activeDownloadsIcon.addFrame(getResources().getDrawable(R.drawable.stat_sys_download_anim4) , 50);
-        activeDownloadsIcon.addFrame(getResources().getDrawable(R.drawable.stat_sys_download_anim5) , 50);
+        activeDownloadsIcon.addFrame(getResources().getDrawable(R.drawable.stat_sys_download_anim0), 50);
+        activeDownloadsIcon.addFrame(getResources().getDrawable(R.drawable.stat_sys_download_anim1), 50);
+        activeDownloadsIcon.addFrame(getResources().getDrawable(R.drawable.stat_sys_download_anim2), 50);
+        activeDownloadsIcon.addFrame(getResources().getDrawable(R.drawable.stat_sys_download_anim3), 50);
+        activeDownloadsIcon.addFrame(getResources().getDrawable(R.drawable.stat_sys_download_anim4), 50);
+        activeDownloadsIcon.addFrame(getResources().getDrawable(R.drawable.stat_sys_download_anim5), 50);
         activeDownloadsIcon.setOneShot(false);
         activeDownloadsIcon.start();
         spec = tabHost.newTabSpec("active").setIndicator(getString(R.string.active_downloads), activeDownloadsIcon).setContent(intent);

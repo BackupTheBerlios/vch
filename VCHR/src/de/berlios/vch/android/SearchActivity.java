@@ -1,7 +1,15 @@
 package de.berlios.vch.android;
 
+import java.net.URI;
+import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.List;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,6 +32,8 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.TextView.OnEditorActionListener;
 import de.berlios.vch.parser.IOverviewPage;
 import de.berlios.vch.parser.IWebPage;
+import de.berlios.vch.parser.OverviewPage;
+import de.berlios.vch.parser.VideoPage;
 
 public class SearchActivity extends Activity implements OnItemClickListener {
 
@@ -64,17 +74,10 @@ public class SearchActivity extends Activity implements OnItemClickListener {
     private void search() {
         Log.i(BrowseActivity.TAG, "Searching for " + query.getText());
 
-        // ExceptionHandler eh = new ExceptionHandler() {
-        // @Override
-        // public void handleException(Exception e) {
-        // // TODO show toast
-        // Log.e(BrowseActivity.TAG, "Couldn't execute search", e);
-        // }
-        // };
-        //        
-        // String uri = new Config(this).getVchSearchUri();
-        // new ExecuteActionAsyncTask(this, eh).execute(new Search(uri, query.getText().toString(), adapter));
+        // execute the search asynchronously
+        new Search(this).execute(query.getText().toString());
 
+        // hide the soft keyboard
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(query.getApplicationWindowToken(), 0);
     }
@@ -91,6 +94,78 @@ public class SearchActivity extends Activity implements OnItemClickListener {
             } catch (JSONException e) {
                 Log.e(BrowseActivity.TAG, "Couldn't open subpages", e); // TODO show toast
             }
+        }
+    }
+
+    public static IWebPage parseJSON(JSONObject object) throws Exception {
+        IWebPage page;
+        if (object.has("isLeaf")) {
+            page = new VideoPage();
+        } else {
+            IOverviewPage opage = new OverviewPage();
+            page = opage;
+            if (object.has("pages")) {
+                JSONArray pages = object.getJSONArray("pages");
+                List<IWebPage> subpages = parseJSONArray(pages);
+                opage.getPages().addAll(subpages);
+            }
+        }
+
+        if (object.has("uri") && object.getString("uri") != null) {
+            page.setUri(new URI(object.getString("uri")));
+        }
+        page.setTitle(object.getString("title"));
+        page.setParser(object.getString("parser"));
+        page.getUserData().put("json", object);
+
+        return page;
+    }
+
+    public static List<IWebPage> parseJSONArray(JSONArray pages) throws JSONException, Exception {
+        List<IWebPage> list = new ArrayList<IWebPage>(pages.length());
+        for (int i = 0; i < pages.length(); i++) {
+            list.add(parseJSON(pages.getJSONObject(i)));
+        }
+        return list;
+    }
+
+    private class Search extends VchrAsyncTask<String, Void, List<IWebPage>> {
+
+        public Search(Context ctx) {
+            super(ctx);
+        }
+
+        @Override
+        protected List<IWebPage> doTheWork(String... queries) throws Exception {
+            String uri = new Config(SearchActivity.this).getVchSearchUri();
+            String request = uri + "?action=search&q=" + URLEncoder.encode(queries[0], "UTF-8");
+            HttpGet get = new HttpGet(request);
+            get.addHeader("X-Requested-With", "XMLHttpRequest");
+            HttpClient client = new DefaultHttpClient();
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+            String responseBody = client.execute(get, responseHandler);
+            Log.v(BrowseActivity.TAG, "Server response: " + responseBody);
+
+            JSONObject result = new JSONObject(responseBody);
+            JSONArray providers = result.getJSONArray("pages");
+            List<IWebPage> pages = new ArrayList<IWebPage>();
+            for (int i = 0; i < providers.length(); i++) {
+                JSONObject provider = providers.getJSONObject(i);
+                IWebPage page = parseJSON(provider);
+                pages.add(page);
+            }
+
+            return pages;
+        }
+
+        @Override
+        protected void finished(List<IWebPage> result) {
+            adapter.setResults(result);
+        }
+
+        @Override
+        protected void handleException(Exception e) {
+            Log.e(BrowseActivity.TAG, "Couldn't execute search", e); // TODO toast
         }
     }
 }
