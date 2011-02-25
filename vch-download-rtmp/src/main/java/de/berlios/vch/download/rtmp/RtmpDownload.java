@@ -21,8 +21,7 @@ import com.flazr.rtmp.client.ClientOptions;
 import de.berlios.vch.download.AbstractDownload;
 import de.berlios.vch.parser.IVideoPage;
 
-
-public class RtmpDownload extends AbstractDownload  {
+public class RtmpDownload extends AbstractDownload {
 
     private LogService logger;
 
@@ -49,7 +48,7 @@ public class RtmpDownload extends AbstractDownload  {
         URI uri = video.getVideoUri();
         String p = uri.getPath();
         file = p.substring(p.lastIndexOf('/'));
-        if(uri.getQuery() != null) {
+        if (uri.getQuery() != null) {
             file += "?" + uri.getQuery();
         }
 
@@ -59,19 +58,20 @@ public class RtmpDownload extends AbstractDownload  {
         // app
         streamName = (String) video.getUserData().get("streamName");
         app = uri.getPath() + (uri.getQuery() != null ? "?" + uri.getQuery() : "")
-        + (uri.getFragment() != null ? "#" + uri.getFragment() : "");
+                + (uri.getFragment() != null ? "#" + uri.getFragment() : "");
         app = app.substring(1); // cut off the leading /
         int pos = app.indexOf(streamName);
-        if(streamName.startsWith("mp4:")) {
-            if(!app.contains("mp4:")) {
+        if (streamName.startsWith("mp4:")) {
+            if (!app.contains("mp4:")) {
                 pos = app.indexOf(streamName.substring(4));
             }
         }
         app = app.substring(0, pos);
 
         // swf verification
-        swfUri = new URI(video.getUserData().get("swfUri").toString());
-
+        if (video.getUserData().get("swfUri") != null) {
+            swfUri = new URI(video.getUserData().get("swfUri").toString());
+        }
 
         bandwidthMeterHandler = new BandwidthMeterHandler();
     }
@@ -87,9 +87,10 @@ public class RtmpDownload extends AbstractDownload  {
     }
 
     private long lastPoll = System.currentTimeMillis();
+
     @Override
     public float getSpeed() {
-        if(getStatus() == Status.DOWNLOADING) {
+        if (getStatus() == Status.DOWNLOADING) {
             // calculate throughput
             float diffInSeconds = (System.currentTimeMillis() - lastPoll) / 1000f;
             lastPoll = System.currentTimeMillis();
@@ -110,7 +111,7 @@ public class RtmpDownload extends AbstractDownload  {
     @Override
     public void stop() {
         setStatus(Status.STOPPED);
-        if(channel != null) {
+        if (channel != null) {
             channel.close().awaitUninterruptibly();
         }
     }
@@ -120,9 +121,9 @@ public class RtmpDownload extends AbstractDownload  {
         setStatus(Status.CANCELED);
 
         // delete the video file
-        if(localFile != null && localFile.exists()) {
+        if (localFile != null && localFile.exists()) {
             boolean deleted = localFile.delete();
-            if(!deleted) {
+            if (!deleted) {
                 logger.log(LogService.LOG_WARNING, "Couldn't delete file " + localFile.getAbsolutePath());
             }
         }
@@ -133,7 +134,7 @@ public class RtmpDownload extends AbstractDownload  {
         String filename = file.substring(1);
 
         // cut off query parameters
-        if(filename.contains("?")) {
+        if (filename.contains("?")) {
             filename = filename.substring(0, filename.indexOf('?'));
         }
 
@@ -173,13 +174,13 @@ public class RtmpDownload extends AbstractDownload  {
             });
 
             ClientOptions options;
-            if("rtmpe".equals(scheme)) {
+            if ("rtmpe".equals(scheme)) {
                 logger.log(LogService.LOG_INFO, "Trying to establish encrypted connection over rtmpe");
                 options = new ClientOptions(host, 1935, app, streamName, getLocalFile(), true, null);
             } else {
                 options = new ClientOptions(host, app, streamName, getLocalFile());
             }
-            if(swfUri != null) {
+            if (swfUri != null) {
                 try {
                     RTMP.initSwfVerification(options, swfUri);
                 } catch (Exception e) {
@@ -188,17 +189,18 @@ public class RtmpDownload extends AbstractDownload  {
             }
             options.setWriterToSave(writer);
             logger.log(LogService.LOG_INFO, "Starting download: " + host + " " + app + " " + streamName);
-            final ClientBootstrap bootstrap = getBootstrap(Executors.newCachedThreadPool(), bandwidthMeterHandler, options);
+            final ClientBootstrap bootstrap = getBootstrap(Executors.newCachedThreadPool(), bandwidthMeterHandler,
+                    options);
             final ChannelFuture future = bootstrap.connect(new InetSocketAddress(options.getHost(), options.getPort()));
             future.awaitUninterruptibly();
-            if(!future.isSuccess()) {
-                logger.log(LogService.LOG_ERROR, "Error creating client connection",future.getCause());
+            if (!future.isSuccess()) {
+                logger.log(LogService.LOG_ERROR, "Error creating client connection", future.getCause());
                 setStatus(Status.FAILED);
                 setException(future.getCause());
             }
             channel = future.getChannel();
             future.getChannel().getCloseFuture().awaitUninterruptibly();
-            if(getProgress() == 100) {
+            if (getProgress() == 100) {
                 setStatus(Status.FINISHED);
             } else {
                 setStatus(Status.STOPPED);
@@ -210,11 +212,12 @@ public class RtmpDownload extends AbstractDownload  {
         }
     }
 
-    public static ClientBootstrap getBootstrap(final Executor executor, final BandwidthMeterHandler bandwidthMeterHandler, final ClientOptions options) {
+    public static ClientBootstrap getBootstrap(final Executor executor,
+            final BandwidthMeterHandler bandwidthMeterHandler, final ClientOptions options) {
         final ChannelFactory factory = new NioClientSocketChannelFactory(executor, executor);
         final ClientBootstrap bootstrap = new ClientBootstrap(factory);
         bootstrap.setPipelineFactory(new RtmpPipelineFactory(bandwidthMeterHandler, options));
-        bootstrap.setOption("tcpNoDelay" , true);
+        bootstrap.setOption("tcpNoDelay", true);
         bootstrap.setOption("keepAlive", true);
         return bootstrap;
     }
