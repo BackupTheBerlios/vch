@@ -27,9 +27,10 @@ public class JsonListFinishedHandler implements RequestHandler {
         resp.getWriter().print("[");
         for (Iterator<DownloadDTO> iterator = dm.getFinishedDownloads().iterator(); iterator.hasNext();) {
             DownloadDTO download = iterator.next();
-            resp.getWriter().print("{\"id\":\"" + download.getId()+ "\","
-                    + "\"title\":\"" + download.getTitle().replaceAll("\"", "\\\\\"")+"\"}");
-            if(iterator.hasNext()) {
+            resp.getWriter().print(
+                    "{\"id\":\"" + download.getId() + "\"," + "\"title\":\""
+                            + download.getTitle().replaceAll("\"", "\\\\\"") + "\"}");
+            if (iterator.hasNext()) {
                 resp.getWriter().print(",");
             }
         }
@@ -38,6 +39,6 @@ public class JsonListFinishedHandler implements RequestHandler {
 
     @Override
     public boolean acceptRequest(String action, boolean json) {
-        return "list_active".equals(action) && json;
+        return "list_finished".equals(action) && json;
     }
 }
