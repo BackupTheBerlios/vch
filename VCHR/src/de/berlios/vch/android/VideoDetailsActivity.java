@@ -25,6 +25,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import de.berlios.vch.android.VchrAsyncTask.TaskCallback;
 import de.berlios.vch.android.actions.AddDownload;
 import de.berlios.vch.android.actions.AddToPlaylist;
 import de.berlios.vch.android.actions.ClearPlaylist;
@@ -95,10 +96,40 @@ public class VideoDetailsActivity extends Activity {
         return false;
     }
 
-    private void play(String vchuri) {
-        new ClearPlaylist(this).execute();
-        new AddToPlaylist(this).execute(vchuri);
-        new StartPlaylist(this).execute();
+    private void play(final String vchuri) {
+        // 3 actions serialized with callbacks:
+        // 1. clear the playlist
+        // 2. if that was successful, add the video to the playlist
+        // 3. if that was successful, too,
+        // start the playback of the playlist
+        ClearPlaylist cp = new ClearPlaylist(this);
+        cp.setCallback(new TaskCallback<String>() {
+            @Override
+            public void failed(Exception e) {
+            }
+
+            @Override
+            public void success(String r) {
+                if ("ok".equalsIgnoreCase(r.trim())) {
+                    AddToPlaylist atp = new AddToPlaylist(VideoDetailsActivity.this);
+                    atp.setCallback(new TaskCallback<String>() {
+                        @Override
+                        public void failed(Exception e) {
+                        }
+
+                        @Override
+                        public void success(String r) {
+                            if ("ok".equalsIgnoreCase(r.trim())) {
+                                new StartPlaylist(VideoDetailsActivity.this).execute();
+                            }
+                        }
+                    });
+                    atp.execute(vchuri);
+                }
+            }
+        });
+
+        cp.execute();
     }
 
     public void updateView(String title, String desc, long duration, URI thumb) {

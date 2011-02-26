@@ -16,6 +16,8 @@ public abstract class VchrAsyncTask<Params, Progress, Result> extends AsyncTask<
 
     private int progressMessageId;
 
+    private TaskCallback<Result> callback;
+
     public VchrAsyncTask(Context ctx) {
         this(ctx, R.string.executing);
     }
@@ -61,17 +63,31 @@ public abstract class VchrAsyncTask<Params, Progress, Result> extends AsyncTask<
 
         if (e != null) {
             handleException(e);
+            if (callback != null) {
+                callback.failed(e);
+            }
+
             return;
         }
 
         finished(result);
+        if (callback != null) {
+            callback.success(result);
+        }
     }
 
     protected abstract void handleException(Exception e);
 
     protected abstract void finished(Result result);
 
-    public interface ExceptionHandler {
-        public void handleException(Exception e);
+    public void setCallback(TaskCallback<Result> callback) {
+        this.callback = callback;
     }
+
+    public interface TaskCallback<Result> {
+        public void success(Result r);
+
+        public void failed(Exception e);
+    }
+
 }
