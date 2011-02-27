@@ -44,4 +44,5 @@
 <string name="video_details">Videodetails</string>
 <string name="search">Suche</string>
 <string name="search_hint">Suchbegriff</string>
+<string name="search_failed">Suche fehlgeschlagen: %s</string>
 </resources>

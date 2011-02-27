@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebPage;
@@ -34,9 +35,13 @@ public class SearchBrowseActivity extends ListActivity {
                 Log.d(BrowseActivity.TAG, pages.toString());
                 results = SearchActivity.parseJSONArray(pages);
             } catch (JSONException e) {
-                Log.e(BrowseActivity.TAG, "Couldn't parse JSON array", e); // TODO show toast
+                String msg = getString(R.string.search_failed, e.getLocalizedMessage());
+                Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+                Log.e(BrowseActivity.TAG, "Couldn't parse JSON array", e);
             } catch (Exception e) {
-                Log.e(BrowseActivity.TAG, "Couldn't create list from JSON array", e); // TODO show toast
+                String msg = getString(R.string.search_failed, e.getLocalizedMessage());
+                Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+                Log.e(BrowseActivity.TAG, "Couldn't create list from JSON array", e);
             }
         }
 
@@ -58,7 +63,8 @@ public class SearchBrowseActivity extends ListActivity {
                     intent.putExtra("uri", page.getUri().toString());
                     SearchBrowseActivity.this.startActivity(intent);
                 } else {
-                    // TODO toast nested search results not implemented
+                    String msg = getString(R.string.search_failed, "Nested results not yet supported."); // TODO i18n
+                    Toast.makeText(SearchBrowseActivity.this, msg, Toast.LENGTH_LONG).show();
                 }
             }
         });

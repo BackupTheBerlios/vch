@@ -161,9 +161,13 @@ public class PlaylistActivity extends ListActivity {
                     result.add(entry);
                 }
             } catch (IOException e) {
-                Log.e(TAG, "Couldn't load playlist " + requestUri, e); // TODO toast
+                String msg = getString(R.string.communication_error, e.getLocalizedMessage());
+                Toast.makeText(PlaylistActivity.this, msg, Toast.LENGTH_LONG).show();
+                Log.e(TAG, "Couldn't load playlist " + requestUri, e);
             } catch (JSONException e) {
-                Log.e(TAG, "Couldn't parse json response", e); // TODO toast
+                String msg = getString(R.string.communication_error, e.getLocalizedMessage());
+                Toast.makeText(PlaylistActivity.this, msg, Toast.LENGTH_LONG).show();
+                Log.e(TAG, "Couldn't parse json response", e);
             }
             return result;
         }

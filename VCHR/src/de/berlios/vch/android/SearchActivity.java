@@ -28,6 +28,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.TextView.OnEditorActionListener;
 import de.berlios.vch.parser.IOverviewPage;
@@ -52,7 +53,6 @@ public class SearchActivity extends Activity implements OnItemClickListener {
         lv.setOnItemClickListener(this);
 
         query = (EditText) findViewById(R.id.query);
-        query.setText("Google");
         query.setOnEditorActionListener(new OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView view, int actionId, KeyEvent key) {
@@ -92,7 +92,9 @@ public class SearchActivity extends Activity implements OnItemClickListener {
                 intent.putExtra("pages", subpages.toString());
                 startActivity(intent);
             } catch (JSONException e) {
-                Log.e(BrowseActivity.TAG, "Couldn't open subpages", e); // TODO show toast
+                String msg = getString(R.string.search_failed, e.getLocalizedMessage());
+                Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+                Log.e(BrowseActivity.TAG, "Couldn't open subpages", e);
             }
         }
     }
@@ -165,7 +167,9 @@ public class SearchActivity extends Activity implements OnItemClickListener {
 
         @Override
         protected void handleException(Exception e) {
-            Log.e(BrowseActivity.TAG, "Couldn't execute search", e); // TODO toast
+            String msg = ctx.getString(R.string.search_failed, e.getLocalizedMessage());
+            Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show();
+            Log.e(BrowseActivity.TAG, msg, e);
         }
     }
 }

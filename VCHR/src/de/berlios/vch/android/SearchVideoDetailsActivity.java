@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.VideoPage;
 
@@ -72,7 +73,9 @@ public class SearchVideoDetailsActivity extends VideoDetailsActivity {
 
         @Override
         protected void handleException(Exception e) {
-            Log.e(BrowseActivity.TAG, "Exception occured", e); // TODO show toast
+            String msg = getString(R.string.search_failed, e.getLocalizedMessage());
+            Toast.makeText(SearchVideoDetailsActivity.this, msg, Toast.LENGTH_LONG).show();
+            Log.e(BrowseActivity.TAG, "Couldn't open load page", e);
         }
     }
 }
