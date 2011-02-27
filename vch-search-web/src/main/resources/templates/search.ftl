@@ -21,10 +21,14 @@ function showDetails(parser, uri, isVideoPage) {
         dataType: 'json',
         timeout: 30000,
         error: function(xhr, text, error) {
-            $('#content').html('');
+            $('#details').html('');
+            var output_text = '<strong>' + xhr.status + ' - ' + xhr.statusText + '</strong>';
+            if(!xhr.responseText.indexOf('<html>') == 0) {
+                output_text += '<br/>' + xhr.responseText;
+            } 
             $.pnotify( {
                 pnotify_title : '${I18N_ERROR}',
-                pnotify_text : '<strong>' + xhr.status + ' - ' + xhr.statusText + '</strong><br/>' + xhr.responseText,
+                pnotify_text : output_text,
                 pnotify_type : 'error',
                 pnotify_hide: false
             });
