@@ -40,12 +40,12 @@ public class Activator implements ResourceBundleProvider {
 
     @Requires
     private ConfigService cs;
-    
+
     @Requires
     private TemplateLoader templateLoader;
 
     private ResourceBundle resourceBundle;
-    
+
     private ServiceRegistration menuReg;
 
     public Activator(BundleContext ctx) {
@@ -88,16 +88,16 @@ public class Activator implements ResourceBundleProvider {
     @Invalidate
     public void stop() {
         // unregister the config servlet
-        if(httpService != null) {
+        if (httpService != null) {
             httpService.unregister(ConfigServlet.PATH);
         }
-        
+
         // unregister the web menu
-        if(menuReg != null) {
+        if (menuReg != null) {
             menuReg.unregister();
         }
-        
-        i18n.addProvider(this);
+
+        i18n.removeProvider(this);
     }
 
     @Override
