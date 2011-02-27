@@ -4,7 +4,7 @@
 	<artifactId>config.playlist</artifactId>
 	<packaging>bundle</packaging>
 	<name>VCH Playlist Configuration</name>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<description>This bundle provides a configuration webage for the playlist module</description>
     
     <parent>
