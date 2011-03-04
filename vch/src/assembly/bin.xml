@@ -63,7 +63,6 @@
                 <include>de.berlios.vch:playlist</include>
                 <include>de.berlios.vch:search</include>
                 <include>de.berlios.vch:search.ard</include>
-                <include>de.berlios.vch:search.arte</include>
                 <include>de.berlios.vch:search.web</include>
                 <include>de.berlios.vch:search.youtube</include>
                 <include>de.berlios.vch:search.zdf</include>
