@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -31,6 +33,7 @@ public class RtmpDownload extends AbstractDownload {
     private String streamName;
     private File localFile;
     private URI swfUri;
+    private String pageUri;
 
     private int progress;
     private Channel channel;
@@ -57,6 +60,7 @@ public class RtmpDownload extends AbstractDownload {
 
         // app
         streamName = (String) video.getUserData().get("streamName");
+        logger.log(LogService.LOG_INFO, "Stream Name: " + streamName);
         app = uri.getPath() + (uri.getQuery() != null ? "?" + uri.getQuery() : "")
                 + (uri.getFragment() != null ? "#" + uri.getFragment() : "");
         app = app.substring(1); // cut off the leading /
@@ -67,10 +71,21 @@ public class RtmpDownload extends AbstractDownload {
             }
         }
         app = app.substring(0, pos);
+        if(app.endsWith("/")) {
+            app = app.substring(0, app.length()-1);
+        }
+        logger.log(LogService.LOG_INFO, "app: " + app);
 
         // swf verification
         if (video.getUserData().get("swfUri") != null) {
             swfUri = new URI(video.getUserData().get("swfUri").toString());
+            logger.log(LogService.LOG_INFO, "swfUrl: " + swfUri);
+        }
+        
+        // pageUrl
+        if (video.getUserData().get("pageUrl") != null) {
+            pageUri = video.getUserData().get("pageUrl").toString();
+            logger.log(LogService.LOG_INFO, "pageUrl: " + pageUri);
         }
 
         bandwidthMeterHandler = new BandwidthMeterHandler();
@@ -183,9 +198,27 @@ public class RtmpDownload extends AbstractDownload {
             if (swfUri != null) {
                 try {
                     RTMP.initSwfVerification(options, swfUri);
+
+                    // log swf verification params
+                    logger.log(LogService.LOG_INFO, "SWF size: " + options.getSwfSize());
+                    String hash = "";
+                    for (byte b : options.getSwfHash()) {
+                        String s = Integer.toHexString(b & 0xFF);
+                        s = s.length() == 1 ? "0" + s : s;
+                        hash += s + " ";
+                    }
+                    logger.log(LogService.LOG_INFO, "HMAC SHA 256: " + hash);
                 } catch (Exception e) {
                     logger.log(LogService.LOG_ERROR, "Couldn't initialize SWF verification", e);
                 }
+            }
+            if(pageUri != null) {
+                Map<String, Object> params = options.getParams();
+                if(params == null) {
+                    params = new HashMap<String, Object>();
+                    options.setParams(params);
+                }
+                params.put("pageUrl", pageUri);
             }
             options.setWriterToSave(writer);
             logger.log(LogService.LOG_INFO, "Starting download: " + host + " " + app + " " + streamName);
