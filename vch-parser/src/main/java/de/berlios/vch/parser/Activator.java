@@ -5,18 +5,16 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Invalidate;
-import org.apache.felix.ipojo.annotations.Requires;
-import org.apache.felix.ipojo.annotations.Validate;
+import org.apache.felix.ipojo.annotations.Provides;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
 
 @Component
+@Provides
 public class Activator implements ResourceBundleProvider {
 
     private static transient Logger logger = LoggerFactory.getLogger(Activator.class);
@@ -25,22 +23,9 @@ public class Activator implements ResourceBundleProvider {
     
     private BundleContext ctx;
     
-    @Requires
-    private Messages i18n;
-    
     public Activator(BundleContext ctx) {
         this.ctx = ctx;
-    }
-    
-    @Validate
-    public void start() {
-        i18n.addProvider(this);
-    }
-    
-    @Invalidate
-    public void stop() {
-        i18n.removeProvider(this);
-    }
+    }  
     
     @Override
     public ResourceBundle getResourceBundle() {

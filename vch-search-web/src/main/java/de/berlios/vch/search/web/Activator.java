@@ -10,6 +10,7 @@ import javax.servlet.ServletException;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
@@ -29,6 +30,7 @@ import de.berlios.vch.web.menu.IWebMenuEntry;
 import de.berlios.vch.web.menu.WebMenuEntry;
 
 @Component
+@Provides
 public class Activator implements ResourceBundleProvider {
 
     @Requires
@@ -61,10 +63,7 @@ public class Activator implements ResourceBundleProvider {
 
     @Validate
     public void start() throws ServletException, NamespaceException {
-        // register translation
-        i18n.addProvider(this);
-
-        // register search servlet
+        // register search servlet // TODO ipojo
         SearchServlet servlet = new SearchServlet(this);
         servlet.setBundleContext(ctx);
         servlet.setLogger(logger);
@@ -78,12 +77,12 @@ public class Activator implements ResourceBundleProvider {
         http.registerResources(SearchServlet.STATIC_PATH, "/htdocs", resourceHttpContext);
 
         // register web interface menu
-        IWebMenuEntry menu = new WebMenuEntry(i18n.translate("I18N_SEARCH"));
+        IWebMenuEntry menu = new WebMenuEntry(getResourceBundle().getString("I18N_SEARCH"));
         menu.setPreferredPosition(Integer.MIN_VALUE + 1);
         menu.setLinkUri("#");
         SortedSet<IWebMenuEntry> childs = new TreeSet<IWebMenuEntry>();
         IWebMenuEntry entry = new WebMenuEntry();
-        entry.setTitle(i18n.translate("I18N_SEARCH"));
+        entry.setTitle(getResourceBundle().getString("I18N_SEARCH"));
         entry.setLinkUri(SearchServlet.PATH);
         childs.add(entry);
         menu.setChilds(childs);
@@ -101,8 +100,6 @@ public class Activator implements ResourceBundleProvider {
         if (menuReg != null) {
             menuReg.unregister();
         }
-
-        i18n.removeProvider(this);
     }
 
     @Override

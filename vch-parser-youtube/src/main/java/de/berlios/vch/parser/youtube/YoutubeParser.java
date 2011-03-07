@@ -59,7 +59,7 @@ import de.berlios.vch.web.menu.IWebMenuEntry;
 import de.berlios.vch.web.menu.WebMenuEntry;
 
 @Component
-@Provides(specifications= {IWebParser.class})
+@Provides
 public class YoutubeParser implements IWebParser, ResourceBundleProvider {
 
     @Requires
@@ -340,7 +340,6 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider {
     
     @Validate
     public void start() {
-        i18n.addProvider(this);
         prefs = cs.getUserPreferences(ctx.getBundle().getSymbolicName());
         registerServlet();
     }
@@ -395,8 +394,6 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider {
         if(menuReg != null) {
             menuReg.unregister();
         }
-        
-        i18n.removeProvider(this);
     }
     
     public List<Feed> getFeeds() {

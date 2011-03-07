@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
@@ -41,7 +42,6 @@ import de.berlios.vch.download.webinterface.handler.json.JsonStartAllHandler;
 import de.berlios.vch.download.webinterface.handler.json.JsonStartHandler;
 import de.berlios.vch.download.webinterface.handler.json.JsonStopAllHandler;
 import de.berlios.vch.download.webinterface.handler.json.JsonStopHandler;
-import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.uri.IVchUriResolveService;
@@ -52,6 +52,7 @@ import de.berlios.vch.web.menu.WebMenuEntry;
 import de.berlios.vch.web.servlets.VchHttpServlet;
 
 @Component
+@Provides
 public class DownloadsServlet extends VchHttpServlet implements ResourceBundleProvider {
 
     private static final long serialVersionUID = 2L;
@@ -70,9 +71,6 @@ public class DownloadsServlet extends VchHttpServlet implements ResourceBundlePr
 
     @Requires
     private HttpService httpService;
-
-    @Requires
-    private Messages i18n;
 
     @Requires
     private TemplateLoader templateLoader;
@@ -123,8 +121,6 @@ public class DownloadsServlet extends VchHttpServlet implements ResourceBundlePr
 
     @Validate
     public void start() {
-        i18n.addProvider(this);
-
         // initialize the preferences
         prefs = cs.getUserPreferences("de.berlios.vch.download");
 
@@ -190,8 +186,6 @@ public class DownloadsServlet extends VchHttpServlet implements ResourceBundlePr
     @Invalidate
     public void stop() {
         handlers.clear();
-
-        i18n.removeProvider(this);
 
         logger.log(LogService.LOG_DEBUG, "Unregistering servlet " + PATH);
         httpService.unregister(PATH);

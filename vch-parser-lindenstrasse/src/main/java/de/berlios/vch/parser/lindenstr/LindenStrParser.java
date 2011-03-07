@@ -27,7 +27,6 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.log.LogService;
 
 import de.berlios.vch.http.client.HttpUtils;
-import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.net.INetworkProtocol;
@@ -41,7 +40,7 @@ import de.berlios.vch.parser.VideoPage;
 import de.berlios.vch.parser.exceptions.NoSupportedVideoFoundException;
 
 @Component
-@Provides(specifications= {IWebParser.class})
+@Provides
 public class LindenStrParser implements IWebParser, ResourceBundleProvider {
 
     public static final String ID = LindenStrParser.class.getName();
@@ -57,9 +56,6 @@ public class LindenStrParser implements IWebParser, ResourceBundleProvider {
     private LogService logger;
     
     private List<String> supportedProtocols = new ArrayList<String>();
-    
-    @Requires
-    private Messages i18n;
     
     private ResourceBundle resourceBundle;
     
@@ -190,12 +186,10 @@ public class LindenStrParser implements IWebParser, ResourceBundleProvider {
     // validate and invalidate method seem to be necessary for the bind methods to work
     @Validate
     public void start() {
-        i18n.addProvider(this);
     }
 
     @Invalidate
     public void stop() {
-        i18n.removeProvider(this);
     }
 
     @Bind(id = "supportedProtocols", aggregate = true)

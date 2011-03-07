@@ -8,6 +8,7 @@ import java.util.ResourceBundle;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
@@ -23,6 +24,7 @@ import de.berlios.vch.web.menu.WebMenuEntry;
 import de.berlios.vch.web.servlets.WelcomeServlet;
 
 @Component
+@Provides
 public class WebInterfaceIPojo implements ResourceBundleProvider {
     private ResourceBundle resourceBundle;
 
@@ -50,7 +52,6 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
 
     @Validate
     public void validate() {
-        i18n.addProvider(this);
         registerHttpContext();
         registerMenu();
     }
@@ -81,7 +82,6 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
         for (ServiceRegistration reg : menuRegs) {
             unregisterService(reg);
         }
-        i18n.removeProvider(this);
     }
 
     private void unregisterService(ServiceRegistration sr) {
@@ -97,7 +97,7 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
             httpService.registerResources(STATIC_PATH, "/htdocs", httpCtx);
             httpService.createDefaultHttpContext();
 
-            // register welcome servlet
+            // register welcome servlet // TODO use ipojo
             WelcomeServlet welcome = new WelcomeServlet();
             welcome.setBundleContext(ctx);
             welcome.setTemplateLoader(templateLoader);

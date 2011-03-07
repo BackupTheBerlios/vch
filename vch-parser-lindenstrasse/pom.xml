@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>parser.lindenstr</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<name>VCH Lindenstraße Parser</name>
 	<description>Parser for www.lindenstrasse.de</description>
 

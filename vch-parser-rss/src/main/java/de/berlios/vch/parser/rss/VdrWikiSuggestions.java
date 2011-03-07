@@ -46,12 +46,12 @@ public class VdrWikiSuggestions {
         return result;
     }
     
-    static class Group {
+    public static class Group {
         String title;
         List<Feed> feeds = new ArrayList<Feed>();
     }
     
-    static class Feed {
+    public static class Feed {
         String title;
         String uri;
     }

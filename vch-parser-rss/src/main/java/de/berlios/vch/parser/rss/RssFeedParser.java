@@ -11,7 +11,6 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.UUID;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -23,7 +22,6 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.jdom.Element;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogService;
 
 import com.sun.syndication.feed.synd.SyndEnclosure;
@@ -31,7 +29,6 @@ import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 
 import de.berlios.vch.config.ConfigService;
-import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.parser.IOverviewPage;
@@ -40,27 +37,17 @@ import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
 import de.berlios.vch.parser.VideoPage;
 import de.berlios.vch.rss.RssParser;
-import de.berlios.vch.web.TemplateLoader;
 import de.berlios.vch.web.menu.IWebMenuEntry;
 import de.berlios.vch.web.menu.WebMenuEntry;
 
 @Component
-@Provides(specifications= {IWebParser.class})
+@Provides
 public class RssFeedParser implements IWebParser, ResourceBundleProvider {
 
     @Requires
     private ConfigService cs;
     
     private Preferences prefs;
-    
-    @Requires
-    private HttpService http;
-    
-    @Requires
-    private Messages i18n;
-    
-    @Requires
-    private TemplateLoader templateLoader;
     
     @Requires
     private LogService logger;
@@ -153,21 +140,12 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
     
     @Validate
     public void start() {
-        i18n.addProvider(this);
         prefs = cs.getUserPreferences(ctx.getBundle().getSymbolicName());
         registerServlet();
     }
     
     private void registerServlet() {
-        ConfigServlet servlet = new ConfigServlet(this);
-        servlet.setLogger(logger);
-        servlet.setBundleContext(ctx);
-        servlet.setMessages(i18n);
-        servlet.setTemplateLoader(templateLoader);
         try {
-            // register the servlet
-            http.registerServlet(ConfigServlet.PATH, servlet, null, null);
-            
             // register web interface menu
             IWebMenuEntry menu = new WebMenuEntry(getResourceBundle().getString("I18N_BROWSE"));
             menu.setPreferredPosition(Integer.MIN_VALUE);
@@ -199,20 +177,9 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
     public void stop() {
         prefs = null;
         
-        // unregister the config servlet
-        unregisterServlet();
-        
         // unregister web menu
         if(menuReg != null) {
             menuReg.unregister();
-        }
-        
-        i18n.removeProvider(this);
-    }
-
-    private void unregisterServlet() {
-        if(http != null) {
-            http.unregister(ConfigServlet.PATH);
         }
     }
 
@@ -234,24 +201,6 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
         return feeds;
     }
     
-    public void addFeed(String title, String uri) {
-        Preferences feeds = prefs.node("feeds");
-        String id = UUID.randomUUID().toString();
-        Preferences feed = feeds.node(id);        
-        feed.put("title", title);
-        feed.put("uri", uri);
-    }
-    
-    public void removeFeed(String id) {
-        Preferences feeds = prefs.node("feeds");
-        Preferences feed = feeds.node(id);     
-        try {
-            feed.removeNode();
-        } catch (BackingStoreException e) {
-            logger.log(LogService.LOG_ERROR, "Couldn't remove feed", e);
-        }
-    }
-
     @Override
     public ResourceBundle getResourceBundle() {
         if(resourceBundle == null) {

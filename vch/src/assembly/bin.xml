@@ -44,6 +44,7 @@
                 <include>de.berlios.vch:download</include>
                 <include>de.berlios.vch:download.http</include>
                 <include>de.berlios.vch:download.mms</include>
+                <include>de.berlios.vch:download.web</include>
                 <include>de.berlios.vch:feedsupport</include>
                 <include>de.berlios.vch:httpclient</include>
                 <include>de.berlios.vch:i18n</include>

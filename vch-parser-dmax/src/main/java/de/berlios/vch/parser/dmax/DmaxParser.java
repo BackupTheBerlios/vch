@@ -26,7 +26,6 @@ import org.osgi.service.log.LogService;
 
 import de.berlios.vch.config.ConfigService;
 import de.berlios.vch.http.client.HttpUtils;
-import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.parser.HtmlParserUtils;
@@ -39,7 +38,7 @@ import de.berlios.vch.parser.VideoPage;
 import de.berlios.vch.parser.WebPageTitleComparator;
 
 @Component
-@Provides(specifications={IWebParser.class})
+@Provides
 public class DmaxParser implements IWebParser, ResourceBundleProvider {
 
     final static String CHARSET = "utf-8";
@@ -53,9 +52,6 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
     private BundleContext ctx;
     
     private ResourceBundle resourceBundle;
-    
-    @Requires
-    private Messages i18n;
     
     @Requires
     private LogService logger;
@@ -199,7 +195,7 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
             LinkTag episodesLink = (LinkTag) HtmlParserUtils.getTag(episodesDiv.toHtml(), CHARSET, "a[class=section-more-link][title=Alle]");
             IOverviewPage episodes = new OverviewPage();
             episodes.setParser(getId());
-            episodes.setTitle(i18n.translate("I18N_EPISODES"));
+            episodes.setTitle(getResourceBundle().getString("I18N_EPISODES"));
             String uri = HttpUtils.addParameter(BASE_URI + episodesLink.getLink(), "sort", "date");
             episodes.setUri(new URI(uri));
             opage.getPages().add(episodes);
@@ -210,7 +206,7 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
             LinkTag clipsLink = (LinkTag) HtmlParserUtils.getTag(clipsDiv.toHtml(), CHARSET, "a[class=section-more-link][title=Alle]");
             IOverviewPage clips = new OverviewPage();
             clips.setParser(getId());
-            clips.setTitle(i18n.translate("I18N_CLIPS"));
+            clips.setTitle(getResourceBundle().getString("I18N_CLIPS"));
             String uri = HttpUtils.addParameter(BASE_URI + clipsLink.getLink(), "sort", "date");
             clips.setUri(new URI(uri));
             opage.getPages().add(clips);
@@ -225,8 +221,6 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
 
     @Validate
     public void start() throws Exception {
-        i18n.addProvider(this);
-        
         prefs = config.getUserPreferences(ctx.getBundle().getSymbolicName());
         prefs.remove("max.videos");
     }
@@ -234,7 +228,6 @@ public class DmaxParser implements IWebParser, ResourceBundleProvider {
     @Invalidate
     public void stop() {
         prefs = null;
-        i18n.removeProvider(this);
     }
 
     @Override

@@ -8,6 +8,7 @@ import javax.servlet.ServletException;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
@@ -25,6 +26,7 @@ import de.berlios.vch.web.menu.IWebMenuEntry;
 import de.berlios.vch.web.menu.WebMenuEntry;
 
 @Component
+@Provides
 public class Activator implements ResourceBundleProvider {
 
     @Requires
@@ -53,7 +55,6 @@ public class Activator implements ResourceBundleProvider {
     
     @Validate
     public void start() {
-        messages.addProvider(this);
         try {
             registerServlet();
         } catch (Exception e) {
@@ -62,7 +63,7 @@ public class Activator implements ResourceBundleProvider {
     }
 
     private void registerServlet() throws ServletException, NamespaceException {
-        // register the extensions servlet
+        // register the extensions servlet // TODO use ipojo for servlets
         servlet = new UpdateServlet();
         servlet.setBundleContext(ctx);
         servlet.setMessages(messages);
@@ -102,7 +103,6 @@ public class Activator implements ResourceBundleProvider {
         if(menuReg != null) {
             menuReg.unregister();
         }
-        messages.removeProvider(this);
     }
 
     private void unregisterServlet() {
