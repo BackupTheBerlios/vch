@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <iPOJO>
-	<instance component="de.berlios.vch.playlist.config.Activator" name="Playlist Configuration Servlet" />
+	<instance component="de.berlios.vch.playlist.config.ConfigServlet" name="vch.web.playlist.servlet.config" />
 </iPOJO>
