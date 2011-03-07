@@ -146,24 +146,24 @@ public class DownloadsServlet extends VchHttpServlet implements ResourceBundlePr
         handlers.add(new JsonStopHandler(dm));
 
         // add the handlers for html requests
-        handlers.add(new HtmlAddHandler(this, i18n, dm, templateLoader, uriResolver, logger));
-        handlers.add(new HtmlDeleteFinishedHandler(this, i18n, dm, templateLoader));
-        handlers.add(new HtmlDeleteHandler(this, i18n, dm, templateLoader));
-        handlers.add(new HtmlListHandler(this, i18n, dm, templateLoader));
-        handlers.add(new HtmlStartAllHandler(this, i18n, dm, templateLoader));
-        handlers.add(new HtmlStartHandler(this, i18n, dm, templateLoader));
-        handlers.add(new HtmlStopAllHandler(this, i18n, dm, templateLoader));
-        handlers.add(new HtmlStopHandler(this, i18n, dm, templateLoader));
+        handlers.add(new HtmlAddHandler(this, getResourceBundle(), dm, templateLoader, uriResolver, logger));
+        handlers.add(new HtmlDeleteFinishedHandler(this, getResourceBundle(), dm, templateLoader));
+        handlers.add(new HtmlDeleteHandler(this, getResourceBundle(), dm, templateLoader));
+        handlers.add(new HtmlListHandler(this, getResourceBundle(), dm, templateLoader));
+        handlers.add(new HtmlStartAllHandler(this, getResourceBundle(), dm, templateLoader));
+        handlers.add(new HtmlStartHandler(this, getResourceBundle(), dm, templateLoader));
+        handlers.add(new HtmlStopAllHandler(this, getResourceBundle(), dm, templateLoader));
+        handlers.add(new HtmlStopHandler(this, getResourceBundle(), dm, templateLoader));
 
     }
 
     private void registerMenu() {
         // register web interface menu
         WebMenuEntry downloads = new WebMenuEntry();
-        downloads.setTitle(i18n.translate("I18N_DOWNLOADS"));
+        downloads.setTitle(getResourceBundle().getString("I18N_DOWNLOADS"));
         downloads.setPreferredPosition(Integer.MAX_VALUE - 2);
         downloads.setLinkUri("#");
-        WebMenuEntry manage = new WebMenuEntry(i18n.translate("I18N_MANAGE"));
+        WebMenuEntry manage = new WebMenuEntry(getResourceBundle().getString("I18N_MANAGE"));
         manage.setLinkUri(DownloadsServlet.PATH);
         downloads.getChilds().add(manage);
         ServiceRegistration sr = ctx.registerService(IWebMenuEntry.class.getName(), downloads, null);

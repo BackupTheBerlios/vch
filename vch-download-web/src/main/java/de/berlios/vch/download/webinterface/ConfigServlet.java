@@ -20,7 +20,7 @@ import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogService;
 
 import de.berlios.vch.config.ConfigService;
-import de.berlios.vch.i18n.Messages;
+import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.web.NotifyMessage;
 import de.berlios.vch.web.NotifyMessage.TYPE;
 import de.berlios.vch.web.TemplateLoader;
@@ -39,8 +39,8 @@ public class ConfigServlet extends VchHttpServlet {
     @Requires
     private ConfigService cs;
 
-    @Requires
-    private Messages i18n;
+    @Requires(filter="(instance.name=VCH Download Servlet)")
+    private ResourceBundleProvider rbp;
 
     @Requires
     private TemplateLoader templateLoader;
@@ -63,10 +63,10 @@ public class ConfigServlet extends VchHttpServlet {
         if(req.getParameter("save_config") != null) {
             prefs.put("data.dir", req.getParameter("data_dir"));
             prefs.putInt("concurrent_downloads", Integer.parseInt(req.getParameter("concurrent_downloads")));
-            addNotify(req, new NotifyMessage(TYPE.INFO, i18n.translate("I18N_SETTINGS_SAVED")));
+            addNotify(req, new NotifyMessage(TYPE.INFO, rbp.getResourceBundle().getString("I18N_SETTINGS_SAVED")));
         }
 
-        params.put("TITLE", i18n.translate("I18N_DOWNLOADS_CONFIG"));
+        params.put("TITLE", rbp.getResourceBundle().getString("I18N_DOWNLOADS_CONFIG"));
         params.put("SERVLET_URI", req.getScheme() + "://" + req.getServerName() + ":" + req.getServerPort()
                 + req.getServletPath());
         params.put("ACTION", PATH);
@@ -95,10 +95,10 @@ public class ConfigServlet extends VchHttpServlet {
     private void registerMenu() {
         // register web interface menu
         WebMenuEntry downloads = new WebMenuEntry();
-        downloads.setTitle(i18n.translate("I18N_DOWNLOADS"));
+        downloads.setTitle(rbp.getResourceBundle().getString("I18N_DOWNLOADS"));
         downloads.setPreferredPosition(Integer.MAX_VALUE-2);
         downloads.setLinkUri("#");
-        WebMenuEntry config = new WebMenuEntry(i18n.translate("I18N_CONFIGURATION"));
+        WebMenuEntry config = new WebMenuEntry(rbp.getResourceBundle().getString("I18N_CONFIGURATION"));
         config.setLinkUri(ConfigServlet.PATH);
         downloads.getChilds().add(config);
         ServiceRegistration sr = ctx.registerService(IWebMenuEntry.class.getName(), downloads, null);

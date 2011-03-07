@@ -2,6 +2,7 @@ package de.berlios.vch.download.webinterface.handler.html;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ResourceBundle;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -11,7 +12,6 @@ import org.osgi.service.log.LogService;
 
 import de.berlios.vch.download.DownloadManager;
 import de.berlios.vch.download.PlaylistFileFoundException;
-import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.uri.IVchUriResolveService;
@@ -24,9 +24,9 @@ public class HtmlAddHandler extends AbstractHtmlRequestHandler {
 
     private LogService logger;
 
-    public HtmlAddHandler(VchHttpServlet servlet, Messages i18n, DownloadManager dm, TemplateLoader templateLoader,
+    public HtmlAddHandler(VchHttpServlet servlet, ResourceBundle rb, DownloadManager dm, TemplateLoader templateLoader,
             IVchUriResolveService uriResolver, LogService logger) {
-        super(servlet, i18n, dm, templateLoader);
+        super(servlet, rb, dm, templateLoader);
         this.uriResolver = uriResolver;
         this.logger = logger;
     }

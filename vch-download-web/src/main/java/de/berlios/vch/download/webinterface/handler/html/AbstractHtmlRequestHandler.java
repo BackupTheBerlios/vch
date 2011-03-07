@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -13,13 +14,12 @@ import javax.servlet.http.HttpServletResponse;
 import de.berlios.vch.download.DownloadManager;
 import de.berlios.vch.download.webinterface.DownloadsServlet;
 import de.berlios.vch.download.webinterface.handler.RequestHandler;
-import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.web.TemplateLoader;
 import de.berlios.vch.web.servlets.VchHttpServlet;
 
 public abstract class AbstractHtmlRequestHandler implements RequestHandler {
 
-    protected Messages i18n;
+    protected ResourceBundle rb;
 
     protected DownloadManager dm;
 
@@ -27,10 +27,10 @@ public abstract class AbstractHtmlRequestHandler implements RequestHandler {
 
     protected VchHttpServlet servlet;
 
-    public AbstractHtmlRequestHandler(VchHttpServlet servlet, Messages i18n, DownloadManager dm, TemplateLoader templateLoader) {
+    public AbstractHtmlRequestHandler(VchHttpServlet servlet, ResourceBundle rb, DownloadManager dm, TemplateLoader templateLoader) {
         super();
         this.servlet = servlet;
-        this.i18n = i18n;
+        this.rb = rb;
         this.dm = dm;
         this.templateLoader = templateLoader;
     }
@@ -43,7 +43,7 @@ public abstract class AbstractHtmlRequestHandler implements RequestHandler {
 
     void listDownloads(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put("TITLE", i18n.translate("I18N_DOWNLOADS"));
+        params.put("TITLE", rb.getString("I18N_DOWNLOADS"));
         params.put("ACTION", DownloadsServlet.PATH);
         params.put("FILE_PATH", DownloadsServlet.FILE_PATH);
         params.put("STATIC_PATH", DownloadsServlet.STATIC_PATH);
