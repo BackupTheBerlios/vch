@@ -11,15 +11,26 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.json.JSONObject;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.http.HttpService;
+import org.osgi.service.http.NamespaceException;
 import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 
+import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.parser.IOverviewPage;
 import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebPage;
@@ -28,18 +39,39 @@ import de.berlios.vch.parser.VideoPage;
 import de.berlios.vch.parser.WebPageTitleComparator;
 import de.berlios.vch.search.ISearchService;
 import de.berlios.vch.web.IWebAction;
-import de.berlios.vch.web.servlets.BundleContextServlet;
+import de.berlios.vch.web.TemplateLoader;
+import de.berlios.vch.web.menu.IWebMenuEntry;
+import de.berlios.vch.web.menu.WebMenuEntry;
+import de.berlios.vch.web.servlets.VchHttpServlet;
 
-public class SearchServlet extends BundleContextServlet {
+@Component
+public class SearchServlet extends VchHttpServlet {
 
     public static final String PATH = "/search";
 
     public static final String STATIC_PATH = PATH + "/static";
 
-    private Activator activator;
+    @Requires(filter = "(instance.name=vch.web.search)")
+    private ResourceBundleProvider rbp;
 
-    public SearchServlet(Activator activator) {
-        this.activator = activator;
+    @Requires
+    private LogService logger;
+
+    @Requires
+    private TemplateLoader templateLoader;
+
+    @Requires
+    private HttpService httpService;
+
+    @Requires
+    private ISearchService searchService;
+
+    private BundleContext ctx;
+
+    private ServiceRegistration menuReg;
+
+    public SearchServlet(BundleContext ctx) {
+        this.ctx = ctx;
     }
 
     @Override
@@ -93,7 +125,7 @@ public class SearchServlet extends BundleContextServlet {
 
     private void renderHtml(IOverviewPage result, HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put("TITLE", i18n.translate("I18N_SEARCH"));
+        params.put("TITLE", rbp.getResourceBundle().getString("I18N_SEARCH"));
         params.put("ACTION", PATH);
         params.put("NOTIFY_MESSAGES", getNotifyMessages(req));
         List<String> css = new ArrayList<String>();
@@ -180,14 +212,6 @@ public class SearchServlet extends BundleContextServlet {
     }
 
     private IWebPage parse(HttpServletRequest req, HttpServletResponse resp) throws Exception {
-        // check, if the search service is available
-        ISearchService searchService = activator.getSearchService();
-        if (searchService == null) {
-            error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE,
-                    activator.getResourceBundle().getString("I18N_SEARCH_SERVICE_MISSING"));
-            return null;
-        }
-
         String id = req.getParameter("id");
         String uri = req.getParameter("uri");
         String isVideoPage = req.getParameter("isVideoPage");
@@ -203,15 +227,6 @@ public class SearchServlet extends BundleContextServlet {
     }
 
     private IOverviewPage search(String q, HttpServletResponse resp) throws IOException {
-
-        // check, if the search service is available
-        ISearchService searchService = activator.getSearchService();
-        if (searchService == null) {
-            error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE,
-                    activator.getResourceBundle().getString("I18N_SEARCH_SERVICE_MISSING"));
-            return null;
-        }
-
         // use the search service to search with different providers
         IOverviewPage results = searchService.search(q);
         try {
@@ -231,7 +246,7 @@ public class SearchServlet extends BundleContextServlet {
     private List<IWebAction> getWebActions() {
         List<IWebAction> actions = new LinkedList<IWebAction>();
 
-        ServiceTracker actionsTracker = new ServiceTracker(bundleContext, IWebAction.class.getName(), null);
+        ServiceTracker actionsTracker = new ServiceTracker(ctx, IWebAction.class.getName(), null);
         actionsTracker.open();
         Object[] services = actionsTracker.getServices();
         actionsTracker.close();
@@ -268,5 +283,36 @@ public class SearchServlet extends BundleContextServlet {
         object.put("title", action.getTitle());
         object.put("uri", action.getUri(page));
         return new JSONObject(object).toString();
+    }
+
+    @Validate
+    public void start() throws ServletException, NamespaceException {
+        // register search servlet
+        httpService.registerServlet(PATH, this, null, null);
+
+        // register web interface menu
+        IWebMenuEntry menu = new WebMenuEntry(rbp.getResourceBundle().getString("I18N_SEARCH"));
+        menu.setPreferredPosition(Integer.MIN_VALUE + 1);
+        menu.setLinkUri("#");
+        SortedSet<IWebMenuEntry> childs = new TreeSet<IWebMenuEntry>();
+        IWebMenuEntry entry = new WebMenuEntry();
+        entry.setTitle(rbp.getResourceBundle().getString("I18N_SEARCH"));
+        entry.setLinkUri(SearchServlet.PATH);
+        childs.add(entry);
+        menu.setChilds(childs);
+        menuReg = ctx.registerService(IWebMenuEntry.class.getName(), menu, null);
+    }
+
+    @Invalidate
+    public void stop() {
+        // unregister the servlet
+        if (httpService != null) {
+            httpService.unregister(SearchServlet.PATH);
+        }
+
+        // unregister the web menu
+        if (menuReg != null) {
+            menuReg.unregister();
+        }
     }
 }
