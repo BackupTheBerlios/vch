@@ -3,6 +3,7 @@ package de.berlios.vch.update;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,15 +18,25 @@ import java.util.Vector;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Invalidate;
+import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.apache.felix.ipojo.annotations.Validate;
 import org.json.JSONObject;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.Version;
+import org.osgi.service.http.HttpService;
+import org.osgi.service.http.NamespaceException;
 import org.osgi.service.log.LogService;
 import org.osgi.service.obr.Capability;
 import org.osgi.service.obr.Repository;
@@ -35,17 +46,22 @@ import org.osgi.service.obr.Resolver;
 import org.osgi.service.obr.Resource;
 
 import de.berlios.vch.config.ConfigService;
+import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.web.NotifyMessage;
 import de.berlios.vch.web.NotifyMessage.TYPE;
-import de.berlios.vch.web.servlets.BundleContextServlet;
+import de.berlios.vch.web.TemplateLoader;
+import de.berlios.vch.web.menu.IWebMenuEntry;
+import de.berlios.vch.web.menu.WebMenuEntry;
+import de.berlios.vch.web.servlets.VchHttpServlet;
 
-public class UpdateServlet extends BundleContextServlet {
+@Component
+@Provides
+public class UpdateServlet extends VchHttpServlet implements ObrManager {
     
     public static final String PATH = "/extensions";
     
     public static final String STATIC_PATH = PATH + "/static";
     
-    private Preferences prefs;
     
     private List<Resource> availableBundles = new Vector<Resource>();
     
@@ -60,8 +76,35 @@ public class UpdateServlet extends BundleContextServlet {
     
     boolean updateUpdateManager = false;
     
+    @Requires(filter="(instance.name=vch.web.update)")
+    private ResourceBundleProvider rbp;
+    
+    @Requires
+    private LogService logger;
+    
+    @Requires
+    private TemplateLoader templateLoader;
+    
+    @Requires
+    private HttpService httpService;
+    
+    @Requires
+    private ConfigService cs;
+    private Preferences prefs;
+    
+    @Requires
+    private RepositoryAdmin repoAdmin;
+    
+    private BundleContext ctx;
+    
+    private ServiceRegistration menuReg;
+    
+    public UpdateServlet(BundleContext ctx) {
+        this.ctx = ctx;
+    }
+    
     @Override
-    protected void get(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    protected void get(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         try {
             // if the user has submitted any form, execute the actions
             if(req.getParameter("submit_install") != null) {
@@ -82,12 +125,12 @@ public class UpdateServlet extends BundleContextServlet {
             } else if(req.getParameter("updated") != null) {
                 // we have been redirected from an update, which included the update manager
                 // now we should add a notify message
-                addNotify(req, new NotifyMessage(TYPE.INFO, i18n.translate("info.please_restart")));
+                addNotify(req, new NotifyMessage(TYPE.INFO, rbp.getResourceBundle().getString("info.please_restart")));
             }
             
             // render page parts 
             if(req.getParameter("tab") != null) {
-                try {
+                
                     String tab = req.getParameter("tab");
                     if("installed".equalsIgnoreCase(tab)) {
                         updateInstalledList();
@@ -97,11 +140,9 @@ public class UpdateServlet extends BundleContextServlet {
                         updateAvailableList();
                         renderAvailable(req, resp);
                     }
-                } catch (ServiceUnavailableException e) {
-                    error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, e.getLocalizedMessage(), true);
-                }
+                
             } else if(req.getParameter("updates") != null) {
-                try {
+  
                     List<Resource> available = downloadAvailableList();
                     for (Iterator<Resource> iterator = available.iterator(); iterator.hasNext();) {
                         Resource resource = iterator.next();
@@ -119,53 +160,37 @@ public class UpdateServlet extends BundleContextServlet {
                     }
                     resp.setContentType("application/json; charset=utf-8");
                     resp.getWriter().write(toJSON(available));
-                } catch (ServiceUnavailableException e) {
-                    error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, e.getLocalizedMessage(), true);
-                }
-            } else {
+               } else {
                 renderMainPage(req, resp);
             }
-        } catch (ServiceUnavailableException e) {
-            logger.log(LogService.LOG_ERROR, "Service unavailable", e);
-            error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, e.getLocalizedMessage());
         } catch (Exception e) {
-            logger.log(LogService.LOG_ERROR, "Internal server error", e);
-            error(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+            throw new ServletException(e);
         } 
     }
     
     private void updateBundles(HttpServletRequest req, HttpServletResponse resp) throws Exception {
         String[] bundleIds = req.getParameterValues("installed");
         if(bundleIds == null) {
-            addNotify(req, new NotifyMessage(TYPE.ERROR, i18n.translate("info.no_extension_selected")));
+            addNotify(req, new NotifyMessage(TYPE.ERROR, rbp.getResourceBundle().getString("info.no_extension_selected")));
             return;
         }
-        
-        ServiceReference sr = getBundleContext().getServiceReference(RepositoryAdmin.class.getName());
-        if (sr == null) {
-            error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, i18n.translate("error.obr_not_available"));
-        }
-        RepositoryAdmin adm = (RepositoryAdmin) getBundleContext().getService(sr);
-        if (adm == null) {
-            error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, i18n.translate("error.obr_not_available"));
-        }
-        Resolver resolver = adm.resolver();
         
         updateUpdateManager = false;
         Resource updateManagerResource = null;
         
+        Resolver resolver = repoAdmin.resolver();
         for (String bundleId : bundleIds) {
             int _bundleId = Integer.parseInt(bundleId);
-            Bundle bundle = getBundleContext().getBundle(_bundleId);
+            Bundle bundle = ctx.getBundle(_bundleId);
             String symbolicName = bundle.getSymbolicName();
             // String version = (String) bundle.getHeaders().get(Constants.BUNDLE_VERSION);
             String filter = "(symbolicname=" + symbolicName + ")";
             logger.log(LogService.LOG_INFO, "Resolving " + filter);
-            Collection<Resource> resources = filterByVersion(adm.discoverResources(filter));
+            Collection<Resource> resources = filterByVersion(repoAdmin.discoverResources(filter));
             logger.log(LogService.LOG_INFO, "Found " + resources.size() + " resources");
             if (resources.size() > 0) {
                 for (Resource resource : resources) {
-                    if(resource.getSymbolicName().equals(bundleContext.getBundle().getSymbolicName())) {
+                    if(resource.getSymbolicName().equals(ctx.getBundle().getSymbolicName())) {
                         // we are trying to update vch-update. to avoid, that the obr bundle tries to update itself
                         // we have to handle this update in a special manner
                         updateManagerResource = resource;
@@ -182,9 +207,9 @@ public class UpdateServlet extends BundleContextServlet {
 
         if (resolver.resolve()) {
             resolver.deploy(true); // deploy and start (true means "start")
-            addNotify(req, new NotifyMessage(TYPE.INFO, i18n.translate("info.please_restart")));
+            addNotify(req, new NotifyMessage(TYPE.INFO, rbp.getResourceBundle().getString("info.please_restart")));
         } else {
-            String msg = i18n.translate("error.load_list");
+            String msg = rbp.getResourceBundle().getString("error.load_list");
             logger.log(LogService.LOG_ERROR, msg);
             addNotify(req, new NotifyMessage(TYPE.ERROR, msg));
         }
@@ -205,21 +230,12 @@ public class UpdateServlet extends BundleContextServlet {
             removeOBR(FELIX_OBR);
         }
         
-        ServiceReference sr = getBundleContext().getServiceReference(RepositoryAdmin.class.getName());
-        if (sr == null) {
-            error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, i18n.translate("error.obr_not_available"));
-        }
-        RepositoryAdmin adm = (RepositoryAdmin) getBundleContext().getService(sr);
-        if (adm == null) {
-            error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, i18n.translate("error.obr_not_available"));
-        }
-        
-        Resolver resolver = adm.resolver();
+        Resolver resolver = repoAdmin.resolver();
         resolver.add(resource);
         if (resolver.resolve()) {
             resolver.deploy(true); // deploy and start (true means "start")
         } else {
-            String msg = i18n.translate("error.load_list");
+            String msg = rbp.getResourceBundle().getString("error.load_list");
             logger.log(LogService.LOG_ERROR, msg);
             addNotify(req, new NotifyMessage(TYPE.ERROR, msg));
         }
@@ -232,20 +248,21 @@ public class UpdateServlet extends BundleContextServlet {
     private void stopBundles(HttpServletRequest req, HttpServletResponse resp) {
         String[] bundleIds = req.getParameterValues("installed");
         if(bundleIds == null) {
-            addNotify(req, new NotifyMessage(TYPE.ERROR, i18n.translate("info.no_extension_selected")));
+            addNotify(req, new NotifyMessage(TYPE.ERROR, rbp.getResourceBundle().getString("info.no_extension_selected")));
             return;
         }
         for (String bundleId : bundleIds) {
             int _bundleId = Integer.parseInt(bundleId);
             try {
-                Bundle bundle = getBundleContext().getBundle(_bundleId);
+                Bundle bundle = ctx.getBundle(_bundleId);
                 if(bundle != null) {
                     bundle.stop();
                 } else {
-                    addNotify(req, new NotifyMessage(TYPE.WARNING, i18n.translate("warning.bundle_does_not_exist", _bundleId)));
+                    String mesg = MessageFormat.format(rbp.getResourceBundle().getString("warning.bundle_does_not_exist"), _bundleId);
+                    addNotify(req, new NotifyMessage(TYPE.WARNING, mesg));
                 }
             } catch (BundleException e) {
-                String msg = i18n.translate("error.stop_bundle", _bundleId);
+                String msg = MessageFormat.format(rbp.getResourceBundle().getString("error.stop_bundle"), _bundleId);
                 logger.log(LogService.LOG_ERROR, msg, e);
                 addNotify(req, new NotifyMessage(TYPE.ERROR, msg, e));
             }
@@ -255,20 +272,21 @@ public class UpdateServlet extends BundleContextServlet {
     private void startBundles(HttpServletRequest req, HttpServletResponse resp) {
         String[] bundleIds = req.getParameterValues("installed");
         if(bundleIds == null) {
-            addNotify(req, new NotifyMessage(TYPE.ERROR, i18n.translate("info.no_extension_selected")));
+            addNotify(req, new NotifyMessage(TYPE.ERROR, rbp.getResourceBundle().getString("info.no_extension_selected")));
             return;
         }
         for (String bundleId : bundleIds) {
             int _bundleId = Integer.parseInt(bundleId);
             try {
-                Bundle bundle = getBundleContext().getBundle(_bundleId);
+                Bundle bundle = ctx.getBundle(_bundleId);
                 if(bundle != null) {
                     bundle.start();
                 } else {
-                    addNotify(req, new NotifyMessage(TYPE.WARNING, i18n.translate("warning.bundle_does_not_exist", _bundleId)));
+                    String mesg = MessageFormat.format(rbp.getResourceBundle().getString("warning.bundle_does_not_exist"), _bundleId);
+                    addNotify(req, new NotifyMessage(TYPE.WARNING, mesg));
                 }
             } catch (BundleException e) {
-                String msg = i18n.translate("error.start_bundle", _bundleId);
+                String msg = MessageFormat.format(rbp.getResourceBundle().getString("error.start_bundle"), _bundleId);
                 logger.log(LogService.LOG_ERROR, msg, e);
                 addNotify(req, new NotifyMessage(TYPE.ERROR, msg, e));
             }
@@ -300,7 +318,7 @@ public class UpdateServlet extends BundleContextServlet {
         String path = req.getRequestURI();
         tplParams.put("ACTION", path);
         tplParams.put("STATIC_PATH", STATIC_PATH);
-        tplParams.put("TITLE", i18n.translate("I18N_EXTENSIONS"));
+        tplParams.put("TITLE", rbp.getResourceBundle().getString("I18N_EXTENSIONS"));
         
         // add additional css
         List<String> css = new ArrayList<String>();
@@ -319,17 +337,17 @@ public class UpdateServlet extends BundleContextServlet {
     private void uninstall(HttpServletRequest req) {
         String[] bundleIds = req.getParameterValues("installed");
         if(bundleIds == null) {
-            addNotify(req, new NotifyMessage(TYPE.ERROR, i18n.translate("info.no_extension_selected")));
+            addNotify(req, new NotifyMessage(TYPE.ERROR, rbp.getResourceBundle().getString("info.no_extension_selected")));
             return;
         }
         for (String bundleId : bundleIds) {
             long id = Long.parseLong(bundleId);
-            Bundle bundle = getBundleContext().getBundle(id);
+            Bundle bundle = ctx.getBundle(id);
             if(bundle != null) {
                 try {
                     bundle.uninstall();
                 } catch (BundleException e) {
-                    String msg = i18n.translate("error.uninstall_extension");
+                    String msg = rbp.getResourceBundle().getString("error.uninstall_extension");
                     logger.log(LogService.LOG_ERROR, msg, e);
                     addNotify(req, new NotifyMessage(TYPE.ERROR, msg, e));
                 }
@@ -338,24 +356,16 @@ public class UpdateServlet extends BundleContextServlet {
     }
 
     private void install(HttpServletRequest req, HttpServletResponse resp) throws Exception {
-        // lookup RepositoryAdmin
-        ServiceReference sr = getBundleContext().getServiceReference(RepositoryAdmin.class.getName());
-        if (sr == null) {
-            error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, i18n.translate("error.obr_not_available"));
-        }
-        RepositoryAdmin adm = (RepositoryAdmin) getBundleContext().getService(sr);
-        if (adm == null) {
-            error(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, i18n.translate("error.obr_not_available"));
-        }
-        Resolver resolver = adm.resolver();
         
         // resolve given symbolicNames to Resource objects and pass them to the Resolver
         List<Resource> available = downloadAvailableList();
         String[] symbolicNames = req.getParameterValues("available");
         if(symbolicNames == null) {
-            addNotify(req, new NotifyMessage(TYPE.ERROR, i18n.translate("info.no_extension_selected")));
+            addNotify(req, new NotifyMessage(TYPE.ERROR, rbp.getResourceBundle().getString("info.no_extension_selected")));
             return;
         }
+        
+        Resolver resolver = repoAdmin.resolver();
         for (String symbolicName : symbolicNames) {
             for (Resource resource : available) {
                 if(resource.getSymbolicName().equals(symbolicName)) {
@@ -367,7 +377,7 @@ public class UpdateServlet extends BundleContextServlet {
         // try to resolve the bundles and then install them
         if (resolver.resolve()) {
             resolver.deploy(true);
-            addNotify(req, new NotifyMessage(TYPE.INFO, i18n.translate("info.please_restart")));
+            addNotify(req, new NotifyMessage(TYPE.INFO, rbp.getResourceBundle().getString("info.please_restart")));
         } else {
             for (Requirement requirement : resolver.getUnsatisfiedRequirements()) {
                 String msg = "Unsatisfied requirement: " + requirement.getName() + " " + requirement.getFilter();
@@ -378,26 +388,17 @@ public class UpdateServlet extends BundleContextServlet {
     }
 
     private List<Resource> downloadAvailableList() throws MalformedURLException, Exception {
-        ServiceReference sr = getBundleContext().getServiceReference(RepositoryAdmin.class.getName());
-        if (sr == null) {
-            throw new ServiceUnavailableException(i18n.translate("error.obr_not_available"));
-        }
-        RepositoryAdmin adm = (RepositoryAdmin) getBundleContext().getService(sr);
-        if (adm == null) {
-            throw new ServiceUnavailableException(i18n.translate("error.obr_not_available"));
-        }
-        
         // add repos from configuration
         for (String uri : getOBRs()) {
             try {
                 logger.log(LogService.LOG_DEBUG, "Adding bundle repository " + uri);
-                adm.addRepository(new URL(uri));
+                repoAdmin.addRepository(new URL(uri));
             } catch (Exception e) {
                 logger.log(LogService.LOG_WARNING, "Couldn't add repository", e);
             }
         }
         
-        Repository[] repos = adm.listRepositories();
+        Repository[] repos = repoAdmin.listRepositories();
         StringBuilder sb = new StringBuilder();
         for (Repository repo : repos) {
             sb.append('\n').append(repo.getName()).append(' ').append(repo.getURL().toString());
@@ -405,7 +406,7 @@ public class UpdateServlet extends BundleContextServlet {
         logger.log(LogService.LOG_INFO, "Loading extensions list from obrs:" + sb.toString());
         String filter = "(symbolicname=*)"; // get all bundles
         logger.log(LogService.LOG_INFO, "Resolving " + filter);
-        Resource[] res = adm.discoverResources(filter);
+        Resource[] res = repoAdmin.discoverResources(filter);
         Collection<Resource> resources = filterByVersion(res);
         for (Iterator<Resource> iterator = resources.iterator(); iterator.hasNext();) {
             Resource resource = iterator.next();
@@ -489,7 +490,7 @@ public class UpdateServlet extends BundleContextServlet {
     
     private synchronized void updateInstalledList() {
         installedBundles.clear();
-        Bundle[] bundles = getBundleContext().getBundles();
+        Bundle[] bundles = ctx.getBundles();
         for (Bundle bundle : bundles) {
             if ("true".equalsIgnoreCase((String) bundle.getHeaders().get("VCH-Bundle"))
                     && !ignoreList.contains(bundle.getSymbolicName())) {
@@ -530,7 +531,7 @@ public class UpdateServlet extends BundleContextServlet {
     }
 
     @Override
-    protected void post(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    protected void post(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         get(req, resp);
     }
     
@@ -558,15 +559,6 @@ public class UpdateServlet extends BundleContextServlet {
     }
     
     public List<String> getOBRs() throws MalformedURLException, Exception {
-        // lookup preferences service
-        ServiceReference sr = bundleContext.getServiceReference(ConfigService.class.getName());
-        if(sr != null) {
-            ConfigService cs = (ConfigService) bundleContext.getService(sr);
-            prefs = cs.getUserPreferences("");
-        } else {
-            throw new ServiceUnavailableException(i18n.translate("I18N_CONFIG_SERVICE_NOT_AVAILABLE"));
-        }
-        
         List<String> obrUris = new ArrayList<String>();
         try {
             Preferences persitentRepos = prefs.node("obrs");
@@ -590,15 +582,7 @@ public class UpdateServlet extends BundleContextServlet {
     }
     
     public void addOBR(String uri) throws MalformedURLException, Exception {
-        ServiceReference sr = getBundleContext().getServiceReference(RepositoryAdmin.class.getName());
-        if(sr == null) {
-            throw new ServiceUnavailableException(i18n.translate("error.obr_not_available"));
-        }
-        RepositoryAdmin adm = (RepositoryAdmin) getBundleContext().getService(sr);
-        if(adm == null) {
-            throw new ServiceUnavailableException(i18n.translate("error.obr_not_available"));
-        }
-        adm.addRepository(new URL(uri));
+        repoAdmin.addRepository(new URL(uri));
         
         Preferences obrs = prefs.node("obrs");
         String id = UUID.randomUUID().toString();
@@ -607,11 +591,11 @@ public class UpdateServlet extends BundleContextServlet {
     }
     
     public void removeOBR(String uri) throws MalformedURLException, ServiceUnavailableException {
-        ServiceReference sr = getBundleContext().getServiceReference(RepositoryAdmin.class.getName());
+        ServiceReference sr = ctx.getServiceReference(RepositoryAdmin.class.getName());
         if(sr == null) {
-            throw new ServiceUnavailableException(i18n.translate("error.obr_not_available"));
+            throw new ServiceUnavailableException(rbp.getResourceBundle().getString("error.obr_not_available"));
         }
-        RepositoryAdmin adm = (RepositoryAdmin) getBundleContext().getService(sr);
+        RepositoryAdmin adm = (RepositoryAdmin) ctx.getService(sr);
         
         
         Preferences obrs = prefs.node("obrs");
@@ -657,11 +641,80 @@ public class UpdateServlet extends BundleContextServlet {
             
     }
     
-    public static void main(String[] args) {
-        Version v1 = new Version(1,1,0);
-        Version v2 = new Version(1,0,0);
+    protected void error(HttpServletResponse res, int code, String msg) throws IOException {
+        error(res, code, msg, null, false);
+    }
+    
+    protected void error(HttpServletResponse res, int code, String msg, boolean isAjaxRequest) throws IOException {
+        error(res, code, msg, null, isAjaxRequest);
+    }
+    
+    protected void error(HttpServletResponse res, int code, String msg, Throwable t, boolean isAjaxRequest) throws IOException {
+        if(isAjaxRequest) {
+            res.setHeader("Content-Type", "text/plain; charset=utf-8");
+            res.setStatus(code);
+            res.getWriter().println(msg + "\n");
+            if(t!= null) {
+                t.printStackTrace(res.getWriter());
+            }
+        } else {
+            Map<String, Object> tplParams = new HashMap<String, Object>();
+            tplParams.put("TITLE", rbp.getResourceBundle().getString("I18N_ERROR"));
+            tplParams.put("MESSAGE", msg != null ? msg : "");
+            
+            if(t != null) {
+                tplParams.put("STACKTRACE", NotifyMessage.stackTraceToString(t));
+            }
+            
+            res.setHeader("Content-Type", "text/html;charset=utf-8");
+            res.setStatus(code);
+            String template = templateLoader.loadTemplate("error.ftl", tplParams);
+            res.getWriter().println(template);
+        }
+    }
+    
+    @Validate
+    public void start() {
+        prefs = cs.getUserPreferences("");
         
-        System.out.println(compare(v1, v2));
+        try {
+            registerServlet();
+        } catch (Exception e) {
+            logger.log(LogService.LOG_ERROR, "Couldn't register update servlet", e);
+        }
+    }
+
+    private void registerServlet() throws ServletException, NamespaceException {
+        // register the extensions servlet
+        httpService.registerServlet(PATH, this, null, null);
+        
+       
+        // register web interface menu
+        WebMenuEntry menu = new WebMenuEntry();
+        menu.setTitle(rbp.getResourceBundle().getString("I18N_EXTENSIONS"));
+        menu.setPreferredPosition(Integer.MAX_VALUE-1);
+        menu.setLinkUri("#");
+        WebMenuEntry content = new WebMenuEntry(rbp.getResourceBundle().getString("I18N_MANAGE"));
+        content.setLinkUri(UpdateServlet.PATH);
+        menu.getChilds().add(content);
+        menuReg = ctx.registerService(IWebMenuEntry.class.getName(), menu, null);
+    }
+
+    @Invalidate
+    public void stop() {
+        prefs = null;
+        
+        unregisterServlet();
+        
+        if(menuReg != null) {
+            menuReg.unregister();
+        }
+    }
+
+    private void unregisterServlet() {
+        if(httpService != null) {
+            httpService.unregister(PATH);
+        }
     }
 }
 
