@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <iPOJO>
-	<instance component="de.berlios.vch.web.WebInterfaceIPojo" name="WebInterface" />
-	<instance component="de.berlios.vch.web.TemplateLoaderImpl" name="TemplateLoader" />
+	<instance component="de.berlios.vch.web.WebInterface" name="vch.web" />
+	<instance component="de.berlios.vch.web.TemplateLoaderImpl" name="vch.web.template" />
+	<instance component="de.berlios.vch.web.servlets.WelcomeServlet" name="vch.web.servlet.welcome" />
 </iPOJO>

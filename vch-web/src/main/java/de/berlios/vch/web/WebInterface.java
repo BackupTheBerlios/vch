@@ -16,16 +16,14 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogService;
 
-import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.web.menu.IWebMenuEntry;
 import de.berlios.vch.web.menu.WebMenuEntry;
-import de.berlios.vch.web.servlets.WelcomeServlet;
 
 @Component
 @Provides
-public class WebInterfaceIPojo implements ResourceBundleProvider {
+public class WebInterface implements ResourceBundleProvider {
     private ResourceBundle resourceBundle;
 
     @Requires
@@ -37,16 +35,13 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
     @Requires
     private HttpService httpService;
 
-    @Requires
-    private Messages i18n;
-
     private BundleContext ctx;
 
     private static final String STATIC_PATH = "/static";
 
     private List<ServiceRegistration> menuRegs = new ArrayList<ServiceRegistration>();
 
-    public WebInterfaceIPojo(final BundleContext ctx) throws IOException {
+    public WebInterface(final BundleContext ctx) throws IOException {
         this.ctx = ctx;
     }
 
@@ -96,13 +91,6 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
             ResourceHttpContext httpCtx = new ResourceHttpContext(ctx, log);
             httpService.registerResources(STATIC_PATH, "/htdocs", httpCtx);
             httpService.createDefaultHttpContext();
-
-            // register welcome servlet // TODO use ipojo
-            WelcomeServlet welcome = new WelcomeServlet();
-            welcome.setBundleContext(ctx);
-            welcome.setTemplateLoader(templateLoader);
-            welcome.setMessages(i18n);
-            httpService.registerServlet(WelcomeServlet.PATH, welcome, null, httpCtx);
         } catch (Exception e) {
             log.log(LogService.LOG_ERROR, "Couldn't register servlets", e);
         }
@@ -111,7 +99,6 @@ public class WebInterfaceIPojo implements ResourceBundleProvider {
     private void unregisterHttpContext(HttpService service) {
         if (httpService != null) {
             httpService.unregister(STATIC_PATH);
-            httpService.unregister(WelcomeServlet.PATH);
         }
     }
 
