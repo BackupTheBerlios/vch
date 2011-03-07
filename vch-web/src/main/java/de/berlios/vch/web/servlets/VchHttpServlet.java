@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
 import de.berlios.vch.web.NotifyMessage;
@@ -20,8 +19,6 @@ public abstract class VchHttpServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     protected Dictionary<?, ?> properties;
-
-    protected BundleContext bundleContext;
 
     protected List<ServiceRegistration> serviceRegs = new LinkedList<ServiceRegistration>();
 
