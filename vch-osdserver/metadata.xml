@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <iPOJO>
-	<instance component="de.berlios.vch.osdserver.Activator" name="OsdServer" />
+	<instance component="de.berlios.vch.osdserver.Activator" name="vch.osd" />
+	<instance component="de.berlios.vch.osdserver.ActivatorServlet" name="vch.web.osd.servlet" />
+	<instance component="de.berlios.vch.osdserver.ConfigServlet" name="vch.web.osd.servlet.config" />
 </iPOJO>
