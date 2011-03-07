@@ -23,7 +23,7 @@ public class ArteSearchProvider implements ISearchProvider {
 
     private static final String SEARCH_PAGE = BASE_URI + "/de/do_search/videos/suche?q=";
 
-    @Requires(filter = "(instance.name=VCH Arte+7 Parser)")
+    @Requires(filter = "(instance.name=vch.parser.arte)")
     private IWebParser parser;
 
     @Override
