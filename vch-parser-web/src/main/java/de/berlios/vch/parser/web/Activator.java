@@ -10,8 +10,6 @@ import java.util.ResourceBundle;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.servlet.ServletException;
-
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Provides;
@@ -20,8 +18,6 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.http.HttpService;
-import org.osgi.service.http.NamespaceException;
 import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 
@@ -29,9 +25,6 @@ import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.parser.IWebParser;
-import de.berlios.vch.parser.service.IParserService;
-import de.berlios.vch.web.ResourceHttpContext;
-import de.berlios.vch.web.TemplateLoader;
 import de.berlios.vch.web.menu.IWebMenuEntry;
 import de.berlios.vch.web.menu.WebMenuEntry;
 
@@ -51,15 +44,6 @@ public class Activator implements ResourceBundleProvider {
     @Requires
     private Messages messages;
 
-    @Requires
-    private TemplateLoader templateLoader;
-
-    @Requires
-    private HttpService http;
-
-    @Requires
-    private IParserService parserService;
-
     private ResourceBundle resourceBundle;
 
     public Activator(BundleContext ctx) {
@@ -69,27 +53,6 @@ public class Activator implements ResourceBundleProvider {
     @Validate
     public void start() throws Exception {
         openParserTracker(ctx);
-        registerServlet();
-    }
-
-    private void registerServlet() throws ServletException, NamespaceException {
-        BrowseServlet servlet = new BrowseServlet(parserService);
-        servlet.setBundleContext(ctx);
-        servlet.setMessages(messages);
-        servlet.setTemplateLoader(templateLoader);
-        servlet.setLogger(logger);
-        http.registerServlet(BrowseServlet.PATH, servlet, null, null);
-
-        // register resource context for static files
-        ResourceHttpContext resourceHttpContext = new ResourceHttpContext(ctx, logger);
-        http.registerResources(BrowseServlet.STATIC_PATH, "/htdocs", resourceHttpContext);
-    }
-
-    private void unregisterServlet() {
-        if (http != null) {
-            http.unregister(BrowseServlet.PATH);
-            http.unregister(BrowseServlet.STATIC_PATH);
-        }
     }
 
     private void openParserTracker(final BundleContext ctx) {
@@ -151,8 +114,6 @@ public class Activator implements ResourceBundleProvider {
         for (ServiceRegistration reg : registrations.values()) {
             reg.unregister();
         }
-
-        unregisterServlet();
     }
 
     @Override
