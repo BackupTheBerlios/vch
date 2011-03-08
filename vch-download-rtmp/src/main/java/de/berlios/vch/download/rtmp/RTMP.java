@@ -19,9 +19,7 @@ import java.util.Map;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
-import org.apache.felix.ipojo.annotations.Validate;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogService;
 
 import com.flazr.rtmp.RtmpHandshake;
@@ -35,9 +33,6 @@ import de.berlios.vch.net.INetworkProtocol;
 public class RTMP implements INetworkProtocol {
 
     private List<String> schemes = Arrays.asList(new String[] { "rtmp", "rtmpt", "rtmpe" });
-
-    @Requires
-    private HttpService httpService;
 
     @Requires
     private LogService logger;
@@ -71,18 +66,17 @@ public class RTMP implements INetworkProtocol {
         // app
         String streamName = (String) connectionDetails.get("streamName");
         String app = videoUri.getPath() + (videoUri.getQuery() != null ? "?" + videoUri.getQuery() : "")
-        + (videoUri.getFragment() != null ? "#" + videoUri.getFragment() : "");
+                + (videoUri.getFragment() != null ? "#" + videoUri.getFragment() : "");
         app = app.substring(1); // cut off the leading /
         int pos = app.indexOf(streamName);
-        if(streamName.startsWith("mp4:")) {
-            if(!app.contains("mp4:")) {
+        if (streamName.startsWith("mp4:")) {
+            if (!app.contains("mp4:")) {
                 pos = app.indexOf(streamName.substring(4));
             }
         }
-        if(pos > 0) {
+        if (pos > 0) {
             app = app.substring(0, pos);
         }
-
 
         String servletHost = "localhost";
         InetAddress localMachine;
@@ -96,8 +90,8 @@ public class RTMP implements INetworkProtocol {
         String uri = null;
         try {
             uri = "http://" + servletHost + ":" + port + StreamBridge.PATH + "?host=" + host + "&app=" + app
-            + "&stream=" + URLEncoder.encode(streamName, "UTF-8") + "&scheme="+ videoUri.getScheme();
-            if(connectionDetails.containsKey("swfUri")) {
+                    + "&stream=" + URLEncoder.encode(streamName, "UTF-8") + "&scheme=" + videoUri.getScheme();
+            if (connectionDetails.containsKey("swfUri")) {
                 uri += "&swfUri=" + URLEncoder.encode(connectionDetails.get("swfUri").toString(), "UTF-8");
             }
         } catch (UnsupportedEncodingException e) {
@@ -106,20 +100,8 @@ public class RTMP implements INetworkProtocol {
         return new URI(uri);
     }
 
-    @Validate
-    public void start() {
-        // register stream bridge servlet
-        StreamBridge streamBridge = new StreamBridge();
-        streamBridge.setBundleContext(ctx);
-        streamBridge.setLogger(logger);
-        try {
-            httpService.registerServlet(StreamBridge.PATH, streamBridge, null, null);
-        } catch (Exception e) {
-            logger.log(LogService.LOG_ERROR, "Couldn't register stream bridge servlet", e);
-        }
-    }
-
-    public static void initSwfVerification(ClientOptions options, URI swfUri) throws MalformedURLException, IOException, InvalidKeyException, NoSuchAlgorithmException {
+    public static void initSwfVerification(ClientOptions options, URI swfUri) throws MalformedURLException,
+            IOException, InvalidKeyException, NoSuchAlgorithmException {
         InputStream in = swfUri.toURL().openStream();
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         SwfFile.decompressSwf(in, bos);
