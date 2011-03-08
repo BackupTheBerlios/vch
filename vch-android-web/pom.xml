@@ -35,21 +35,20 @@
         <dependency>
         	<groupId>de.berlios.vch</groupId>
         	<artifactId>parser.web</artifactId>
-        	<version>1.1.0</version>
+        	<version>1.1.1</version>
         	<type>bundle</type>
         	<scope>provided</scope>
         </dependency>
         <dependency>
         	<groupId>de.berlios.vch</groupId>
         	<artifactId>playlist.web</artifactId>
-        	<version>1.1.0</version>
+        	<version>1.1.1</version>
         	<type>bundle</type>
         	<scope>provided</scope>
         </dependency>
         <dependency>
         	<groupId>de.berlios.vch</groupId>
         	<artifactId>download</artifactId>
-        	<version>1.1.0</version>
         	<type>bundle</type>
         	<scope>provided</scope>
         </dependency>
