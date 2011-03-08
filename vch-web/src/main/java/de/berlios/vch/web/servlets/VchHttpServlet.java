@@ -14,6 +14,8 @@ import org.osgi.framework.ServiceRegistration;
 
 import de.berlios.vch.web.NotifyMessage;
 
+// TODO think about a central exception handling and automatic
+// response rendering (html/ajax) with appropriate http status codes
 public abstract class VchHttpServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -53,7 +55,7 @@ public abstract class VchHttpServlet extends HttpServlet {
     public List<NotifyMessage> getNotifyMessages(HttpServletRequest req) {
         @SuppressWarnings("unchecked")
         List<NotifyMessage> msgs = (List<NotifyMessage>) req.getAttribute(NOTIFY_MESSAGES);
-        if(msgs == null) {
+        if (msgs == null) {
             msgs = new LinkedList<NotifyMessage>();
             req.setAttribute(NOTIFY_MESSAGES, msgs);
         }
