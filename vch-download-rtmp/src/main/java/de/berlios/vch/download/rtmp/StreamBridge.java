@@ -3,6 +3,8 @@ package de.berlios.vch.download.rtmp;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
 import javax.servlet.ServletException;
@@ -41,6 +43,7 @@ public class StreamBridge extends VchHttpServlet {
         String streamName = req.getParameter("stream");
         String scheme = req.getParameter("scheme");
         String swfUri = req.getParameter("swfUri");
+        String pageUrl = req.getParameter("pageUrl");
         logger.log(LogService.LOG_INFO, "StreamBridge params: " + req.getParameterMap());
 
         resp.setContentType("video");
@@ -64,6 +67,14 @@ public class StreamBridge extends VchHttpServlet {
             } catch (Exception e) {
                 logger.log(LogService.LOG_ERROR, "Couldn't initialize SWF verification", e);
             }
+        }
+        if (pageUrl != null) {
+            Map<String, Object> params = co.getParams();
+            if (params == null) {
+                params = new HashMap<String, Object>();
+                co.setParams(params);
+            }
+            params.put("pageUrl", pageUrl);
         }
 
         OutputStreamFlvWriter writer = new OutputStreamFlvWriter(0, resp.getOutputStream(), new DownloadListener() {

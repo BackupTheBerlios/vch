@@ -94,6 +94,9 @@ public class RTMP implements INetworkProtocol {
             if (connectionDetails.containsKey("swfUri")) {
                 uri += "&swfUri=" + URLEncoder.encode(connectionDetails.get("swfUri").toString(), "UTF-8");
             }
+            if (connectionDetails.containsKey("pageUrl")) {
+                uri += "&pageUrl=" + URLEncoder.encode(connectionDetails.get("pageUrl").toString(), "UTF-8");
+            }
         } catch (UnsupportedEncodingException e) {
             logger.log(LogService.LOG_ERROR, "Couldn't create bridge uri", e);
         }
