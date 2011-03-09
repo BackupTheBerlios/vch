@@ -1,8 +1,9 @@
 package de.berlios.vch.download.osd;
 
+import java.util.ResourceBundle;
+
 import de.berlios.vch.download.DownloadManager;
 import de.berlios.vch.download.jaxb.DownloadDTO;
-import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.io.command.OsdMessage;
 import de.berlios.vch.osdserver.io.response.Event;
@@ -14,14 +15,13 @@ import de.berlios.vch.osdserver.osd.menu.actions.ItemDetailsAction;
 
 public class DeleteAction implements ItemDetailsAction {
 
-    private Messages i18n;
-    
+    private ResourceBundle rb;
+
     private DownloadManager dm;
-    
-    
-    public DeleteAction(Messages i18n, DownloadManager dm) {
+
+    public DeleteAction(ResourceBundle rb, DownloadManager dm) {
         super();
-        this.i18n = i18n;
+        this.rb = rb;
         this.dm = dm;
     }
 
@@ -29,11 +29,11 @@ public class DeleteAction implements ItemDetailsAction {
     public void execute(OsdSession session, OsdObject oo) throws Exception {
         Osd osd = session.getOsd();
         OsdItem item = osd.getCurrentItem();
-        dm.deleteDownload( ((DownloadDTO)item.getUserData()).getId() );
+        dm.deleteDownload(((DownloadDTO) item.getUserData()).getId());
         Menu current = osd.getCurrentMenu();
         current.removeOsdItem(item);
         osd.refreshMenu(current);
-        osd.showMessageSilent(new OsdMessage(i18n.translate("I18N_DL_FILE_DELETED"), OsdMessage.INFO));
+        osd.showMessageSilent(new OsdMessage(rb.getString("I18N_DL_FILE_DELETED"), OsdMessage.INFO));
     }
 
     @Override
@@ -48,7 +48,7 @@ public class DeleteAction implements ItemDetailsAction {
 
     @Override
     public String getName() {
-        return i18n.translate("I18N_DL_DELETE");
+        return rb.getString("I18N_DL_DELETE");
     }
 
 }

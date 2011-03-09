@@ -1,7 +1,8 @@
 package de.berlios.vch.download.osd;
 
+import java.util.ResourceBundle;
+
 import de.berlios.vch.download.jaxb.DownloadDTO;
-import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.io.response.Event;
 import de.berlios.vch.osdserver.osd.Osd;
@@ -15,18 +16,18 @@ import de.berlios.vch.playlist.PlaylistEntry;
 
 public class PlayFinishedAction implements ItemDetailsAction {
 
-    private Messages i18n;
-     
-    public PlayFinishedAction(Messages i18n) {
+    private ResourceBundle rb;
+
+    public PlayFinishedAction(ResourceBundle rb) {
         super();
-        this.i18n = i18n;
+        this.rb = rb;
     }
 
     @Override
     public void execute(OsdSession session, OsdObject oo) throws Exception {
         Osd osd = session.getOsd();
         OsdItem item = osd.getCurrentItem();
-        DownloadDTO dto = (DownloadDTO)item.getUserData();
+        DownloadDTO dto = (DownloadDTO) item.getUserData();
         Playlist pl = new Playlist();
         IVideoPage page = new VideoPage();
         page.setTitle(dto.getTitle());
@@ -47,7 +48,7 @@ public class PlayFinishedAction implements ItemDetailsAction {
 
     @Override
     public String getName() {
-        return i18n.translate("play");
+        return rb.getString("play");
     }
 
 }
