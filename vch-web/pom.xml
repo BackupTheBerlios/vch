@@ -40,6 +40,30 @@
             <artifactId>org.apache.felix.ipojo.annotations</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+        	<groupId>de.berlios.vch</groupId>
+        	<artifactId>json.support</artifactId>
+        	<type>bundle</type>
+        	<scope>provided</scope>
+        </dependency>
+        <dependency>
+        	<groupId>org.json</groupId>
+        	<artifactId>json</artifactId>
+        	<type>jar</type>
+        	<scope>provided</scope>
+        </dependency>
+        <dependency>
+        	<groupId>de.berlios.vch</groupId>
+        	<artifactId>feedsupport</artifactId>
+        	<type>bundle</type>
+        	<scope>provided</scope>
+        </dependency>
+        <dependency>
+        	<groupId>rome</groupId>
+        	<artifactId>rome</artifactId>
+        	<type>jar</type>
+        	<scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
