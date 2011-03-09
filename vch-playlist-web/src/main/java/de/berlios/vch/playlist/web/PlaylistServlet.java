@@ -43,28 +43,28 @@ public class PlaylistServlet extends VchHttpServlet {
 
     public static final String PATH = "/playlist";
 
-    @Requires(filter="(instance.name=vch.web.playlist)")
+    @Requires(filter = "(instance.name=vch.web.playlist)")
     private ResourceBundleProvider rbp;
-    
+
     @Requires
     private LogService logger;
-    
+
     @Requires
     private TemplateLoader templateLoader;
-    
+
     @Requires
     private HttpService httpService;
-    
-    @Requires 
+
+    @Requires
     private PlaylistService playlistService;
-    
+
     @Requires
     private IVchUriResolveService uriResolver;
-    
+
     private BundleContext ctx;
-    
+
     private ServiceRegistration menuReg;
-    
+
     public PlaylistServlet(BundleContext ctx) {
         this.ctx = ctx;
     }
@@ -195,21 +195,21 @@ public class PlaylistServlet extends VchHttpServlet {
     protected void get(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         post(req, resp);
     }
-    
+
     protected void error(HttpServletResponse res, int code, String msg) throws IOException {
         res.setHeader("Content-Type", "text/plain; charset=utf-8");
         res.setStatus(code);
         res.getWriter().println(msg + "\n");
-    } 
-    
+    }
+
     @Validate
     public void start() throws ServletException, NamespaceException {
         // register playlist servlet
         httpService.registerServlet(PATH, this, null, null);
-        
+
         // register web interface menu
         IWebMenuEntry menu = new WebMenuEntry(rbp.getResourceBundle().getString("I18N_PLAYLIST"));
-        menu.setPreferredPosition(Integer.MIN_VALUE + 10);
+        menu.setPreferredPosition(Integer.MIN_VALUE + 300);
         menu.setLinkUri("#");
         SortedSet<IWebMenuEntry> childs = new TreeSet<IWebMenuEntry>();
         IWebMenuEntry entry = new WebMenuEntry();
@@ -226,9 +226,9 @@ public class PlaylistServlet extends VchHttpServlet {
         if (httpService != null) {
             httpService.unregister(PATH);
         }
-        
+
         // unregister the web menu
-        if(menuReg != null) {
+        if (menuReg != null) {
             menuReg.unregister();
         }
     }

@@ -30,36 +30,36 @@ import de.berlios.vch.web.servlets.VchHttpServlet;
 public class UpdateConfigServlet extends VchHttpServlet {
 
     public static String PATH = "/config/extensions";
-    
+
     @Requires
     private ObrManager obrManager;
-    
-    @Requires(filter="(instance.name=vch.web.update)")
+
+    @Requires(filter = "(instance.name=vch.web.update)")
     private ResourceBundleProvider rbp;
-    
+
     @Requires
     private LogService logger;
-    
+
     @Requires
     private TemplateLoader templateLoader;
-    
+
     @Requires
     private HttpService httpService;
-    
+
     private BundleContext ctx;
-    
+
     private ServiceRegistration menuReg;
-    
+
     public UpdateConfigServlet(BundleContext ctx) {
         this.ctx = ctx;
     }
-    
+
     @Override
     protected void get(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             Map<String, Object> params = new HashMap<String, Object>();
-            
-            if(req.getParameter("add_obr") != null) {
+
+            if (req.getParameter("add_obr") != null) {
                 String obrUri = req.getParameter("obr");
                 try {
                     obrManager.addOBR(obrUri);
@@ -69,22 +69,22 @@ public class UpdateConfigServlet extends VchHttpServlet {
                     logger.log(LogService.LOG_ERROR, msg, e);
                     addNotify(req, new NotifyMessage(TYPE.ERROR, msg, e));
                 }
-            } else if(req.getParameter("remove_obrs") != null) {
+            } else if (req.getParameter("remove_obrs") != null) {
                 String[] obrs = req.getParameterValues("obrs");
-                if(obrs != null) {
+                if (obrs != null) {
                     for (String id : obrs) {
                         obrManager.removeOBR(id);
                     }
                 }
-            } 
-            
+            }
+
             params.put("TITLE", rbp.getResourceBundle().getString("I18N_CONFIG_TITLE"));
-            params.put("SERVLET_URI", req.getScheme() + "://" + req.getServerName() + ":" + req.getServerPort()
-                    + req.getServletPath());
+            params.put("SERVLET_URI",
+                    req.getScheme() + "://" + req.getServerName() + ":" + req.getServerPort() + req.getServletPath());
             params.put("OBRS", obrManager.getOBRs());
             params.put("ACTION", PATH);
             params.put("NOTIFY_MESSAGES", getNotifyMessages(req));
-            
+
             String page = templateLoader.loadTemplate("extensions_config.ftl", params);
             resp.getWriter().print(page);
         } catch (Exception e) {
@@ -107,13 +107,13 @@ public class UpdateConfigServlet extends VchHttpServlet {
     }
 
     private void registerServlet() throws ServletException, NamespaceException {
-        // register the configuration servlet 
+        // register the configuration servlet
         httpService.registerServlet(PATH, this, null, null);
-       
+
         // register web interface menu
         WebMenuEntry menu = new WebMenuEntry();
         menu.setTitle(rbp.getResourceBundle().getString("I18N_EXTENSIONS"));
-        menu.setPreferredPosition(Integer.MAX_VALUE-1);
+        menu.setPreferredPosition(UpdateServlet.MENU_POS);
         menu.setLinkUri("#");
         WebMenuEntry config = new WebMenuEntry(rbp.getResourceBundle().getString("I18N_CONFIG"));
         config.setLinkUri(UpdateConfigServlet.PATH);
@@ -124,13 +124,13 @@ public class UpdateConfigServlet extends VchHttpServlet {
     @Invalidate
     public void stop() {
         unregisterServlet();
-        if(menuReg != null) {
+        if (menuReg != null) {
             menuReg.unregister();
         }
     }
 
     private void unregisterServlet() {
-        if(httpService != null) {
+        if (httpService != null) {
             httpService.unregister(PATH);
         }
     }

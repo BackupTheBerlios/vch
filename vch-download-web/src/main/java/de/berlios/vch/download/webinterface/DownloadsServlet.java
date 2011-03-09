@@ -63,6 +63,8 @@ public class DownloadsServlet extends VchHttpServlet implements ResourceBundlePr
 
     public static final String STATIC_PATH = PATH + "/static";
 
+    public static final int MENU_POS = Integer.MIN_VALUE + 300;
+
     @Requires
     private DownloadManager dm;
 
@@ -157,7 +159,7 @@ public class DownloadsServlet extends VchHttpServlet implements ResourceBundlePr
         // register web interface menu
         WebMenuEntry downloads = new WebMenuEntry();
         downloads.setTitle(getResourceBundle().getString("I18N_DOWNLOADS"));
-        downloads.setPreferredPosition(Integer.MAX_VALUE - 2);
+        downloads.setPreferredPosition(MENU_POS);
         downloads.setLinkUri("#");
         WebMenuEntry manage = new WebMenuEntry(getResourceBundle().getString("I18N_MANAGE"));
         manage.setLinkUri(DownloadsServlet.PATH);

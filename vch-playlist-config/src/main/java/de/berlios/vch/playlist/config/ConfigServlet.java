@@ -103,7 +103,7 @@ public class ConfigServlet extends VchHttpServlet implements ResourceBundleProvi
 
             // register web interface menu
             IWebMenuEntry menu = new WebMenuEntry(getResourceBundle().getString("I18N_CONFIGURATION"));
-            menu.setPreferredPosition(Integer.MAX_VALUE - 1);
+            menu.setPreferredPosition(Integer.MAX_VALUE - 100);
             menu.setLinkUri("#");
             SortedSet<IWebMenuEntry> childs = new TreeSet<IWebMenuEntry>();
             IWebMenuEntry entry = new WebMenuEntry();

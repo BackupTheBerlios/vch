@@ -39,7 +39,7 @@ public class ConfigServlet extends VchHttpServlet {
     @Requires
     private ConfigService cs;
 
-    @Requires(filter="(instance.name=VCH Download Servlet)")
+    @Requires(filter = "(instance.name=VCH Download Servlet)")
     private ResourceBundleProvider rbp;
 
     @Requires
@@ -60,15 +60,15 @@ public class ConfigServlet extends VchHttpServlet {
     protected void get(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         Map<String, Object> params = new HashMap<String, Object>();
 
-        if(req.getParameter("save_config") != null) {
+        if (req.getParameter("save_config") != null) {
             prefs.put("data.dir", req.getParameter("data_dir"));
             prefs.putInt("concurrent_downloads", Integer.parseInt(req.getParameter("concurrent_downloads")));
             addNotify(req, new NotifyMessage(TYPE.INFO, rbp.getResourceBundle().getString("I18N_SETTINGS_SAVED")));
         }
 
         params.put("TITLE", rbp.getResourceBundle().getString("I18N_DOWNLOADS_CONFIG"));
-        params.put("SERVLET_URI", req.getScheme() + "://" + req.getServerName() + ":" + req.getServerPort()
-                + req.getServletPath());
+        params.put("SERVLET_URI",
+                req.getScheme() + "://" + req.getServerName() + ":" + req.getServerPort() + req.getServletPath());
         params.put("ACTION", PATH);
         params.put("data_dir", prefs.get("data.dir", "data"));
         params.put("concurrent_downloads", prefs.getInt("concurrent_downloads", 2));
@@ -96,7 +96,7 @@ public class ConfigServlet extends VchHttpServlet {
         // register web interface menu
         WebMenuEntry downloads = new WebMenuEntry();
         downloads.setTitle(rbp.getResourceBundle().getString("I18N_DOWNLOADS"));
-        downloads.setPreferredPosition(Integer.MAX_VALUE-2);
+        downloads.setPreferredPosition(DownloadsServlet.MENU_POS);
         downloads.setLinkUri("#");
         WebMenuEntry config = new WebMenuEntry(rbp.getResourceBundle().getString("I18N_CONFIGURATION"));
         config.setLinkUri(ConfigServlet.PATH);
