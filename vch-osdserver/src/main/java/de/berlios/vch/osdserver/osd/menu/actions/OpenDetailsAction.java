@@ -1,10 +1,11 @@
 package de.berlios.vch.osdserver.osd.menu.actions;
 
+import java.util.ResourceBundle;
+
 import org.osgi.framework.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.osdserver.Activator;
 import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.io.command.OsdMessage;
@@ -21,9 +22,9 @@ import de.berlios.vch.parser.service.IParserService;
 public class OpenDetailsAction implements IOsdAction {
 
     private static transient Logger logger = LoggerFactory.getLogger(OpenDetailsAction.class);
-    
+
     private OsdSession session;
-   
+
     public OpenDetailsAction(OsdSession session) {
         this.session = session;
     }
@@ -33,21 +34,21 @@ public class OpenDetailsAction implements IOsdAction {
         OsdItem item = (OsdItem) oo;
         IVideoPage page = (IVideoPage) item.getUserData();
         Osd osd = session.getOsd();
-        Messages i18n = session.getI18N();
+        ResourceBundle rb = session.getResourceBundle();
         try {
             IParserService parserService = (IParserService) Activator.parserServiceTracker.getService();
-            if(parserService == null) {
+            if (parserService == null) {
                 throw new ServiceException("ParserService not available");
             }
-            
-            osd.showMessage(new OsdMessage(i18n.translate("loading"), OsdMessage.STATUS));
-           
+
+            osd.showMessage(new OsdMessage(rb.getString("loading"), OsdMessage.STATUS));
+
             IWebParser parser = parserService.getParser(page.getParser());
-            if(parser == null) {
-                osd.showMessage(new OsdMessage(i18n.translate("error_parser_missing"), OsdMessage.ERROR));
+            if (parser == null) {
+                osd.showMessage(new OsdMessage(rb.getString("error_parser_missing"), OsdMessage.ERROR));
                 return;
             }
-            
+
             page = (IVideoPage) parserService.parse(page.getVchUri());
             Menu itemDetailsMenu = new ItemDetailsMenu(session, page);
             osd.createMenu(itemDetailsMenu);
@@ -72,6 +73,6 @@ public class OpenDetailsAction implements IOsdAction {
 
     @Override
     public String getName() {
-        return session.getI18N().translate("show_details");
+        return session.getResourceBundle().getString("show_details");
     }
 }

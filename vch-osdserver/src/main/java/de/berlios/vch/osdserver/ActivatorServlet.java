@@ -17,7 +17,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 
-import de.berlios.vch.i18n.Messages;
+import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.playlist.PlaylistService;
 import de.berlios.vch.web.servlets.VchHttpServlet;
 
@@ -26,8 +26,8 @@ public class ActivatorServlet extends VchHttpServlet {
 
     public final static String PATH = "/osdserver";
 
-    @Requires
-    private Messages i18n;
+    @Requires(filter = "(instance.name=vch.osd)")
+    private ResourceBundleProvider rbp;
 
     @Requires
     private PlaylistService playlistService;
@@ -55,7 +55,7 @@ public class ActivatorServlet extends VchHttpServlet {
             }
         }
 
-        Thread t = new Thread(new OsdSession(ctx, i18n, playlistService, requestPrefs));
+        Thread t = new Thread(new OsdSession(ctx, rbp.getResourceBundle(), playlistService, requestPrefs));
         t.setName("Osdserver Session");
         t.start();
         resp.getWriter().println("Osdserver session started");

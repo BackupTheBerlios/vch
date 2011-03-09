@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.prefs.Preferences;
 
 import org.osgi.framework.BundleContext;
@@ -13,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.berlios.vch.config.ConfigService;
-import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.osdserver.osd.Osd;
 import de.berlios.vch.osdserver.osd.menu.Menu;
 import de.berlios.vch.osdserver.osd.menu.OverviewMenu;
@@ -23,60 +23,59 @@ import de.berlios.vch.playlist.Playlist;
 import de.berlios.vch.playlist.PlaylistService;
 
 /**
- * TODO create a logger, which logs to the osd
- * TODO i18n
- * Represents one OSD session. The sessions starts with the request to open the VCH menu
- * and ends when, the menu gets closed. 
- *
+ * TODO create a logger, which logs to the osd TODO i18n Represents one OSD session. The sessions starts with the
+ * request to open the VCH menu and ends when, the menu gets closed.
+ * 
  * @author <a href="mailto:hampelratte@users.berlios.de">hampelratte@users.berlios.de</a>
  */
 public class OsdSession implements Runnable {
 
     private static transient Logger logger = LoggerFactory.getLogger(OsdSession.class);
-    
+
     private Osd osd;
-    
+
     private boolean running = false;
-    
-    private Messages i18n;
-    
+
+    private ResourceBundle rb;
+
     private BundleContext ctx;
-    
+
     // load the config params
     private String osdserverHost = "localhost";
     private int osdserverPort = 2010;
     private String osdserverEncoding = "UTF-8";
-    
+
     private Map<String, String> requestPrefs;
-    
+
     private static Preferences prefs;
-    
+
     private PlaylistService playlistService;
 
     public Osd getOsd() {
-    	return osd;
+        return osd;
     }
-    
+
     public PlaylistService getPlaylistService() {
-    	return playlistService;
+        return playlistService;
     }
- 
-    public Messages getI18N() {
-    	return i18n;
+
+    public ResourceBundle getResourceBundle() {
+        return rb;
     }
-    
+
     public BundleContext getBundleContext() {
-    	return ctx;
+        return ctx;
     }
-    
-    public OsdSession(BundleContext ctx, Messages i18n, PlaylistService playlistService, Map<String, String> requestPrefs) {
-        this.i18n = i18n;
+
+    public OsdSession(BundleContext ctx, ResourceBundle rb, PlaylistService playlistService,
+            Map<String, String> requestPrefs) {
+        this.rb = rb;
         this.ctx = ctx;
         this.playlistService = playlistService;
         this.requestPrefs = requestPrefs;
 
         this.osd = new Osd(this);
-        
+
         ServiceReference sr = ctx.getServiceReference(ConfigService.class.getName());
         if (sr != null) {
             ConfigService config = (ConfigService) ctx.getService(sr);
@@ -86,19 +85,24 @@ public class OsdSession implements Runnable {
                 osdserverPort = prefs.getInt("osdserver.port", 2010);
                 osdserverEncoding = prefs.get("osdserver.encoding", "UTF-8");
             } else {
-                logger.error("Preferences service not available falling back to defaults ({},{},{})", new Object[] {osdserverHost, osdserverPort, osdserverEncoding});
+                logger.error("Preferences service not available falling back to defaults ({},{},{})", new Object[] {
+                        osdserverHost, osdserverPort, osdserverEncoding });
             }
         } else {
-            logger.error("Preferences service not available falling back to defaults ({},{},{})", new Object[] {osdserverHost, osdserverPort, osdserverEncoding});
+            logger.error("Preferences service not available falling back to defaults ({},{},{})", new Object[] {
+                    osdserverHost, osdserverPort, osdserverEncoding });
         }
 
         if (requestPrefs != null) {
-            if (requestPrefs.containsKey("osdhost"))
-            	osdserverHost = requestPrefs.get("osdhost");
-            if (requestPrefs.containsKey("osdport"))
-            	osdserverPort = Integer.parseInt(requestPrefs.get("osdport"));
-            if (requestPrefs.containsKey("encoding"))
-            	osdserverEncoding = requestPrefs.get("encoding");
+            if (requestPrefs.containsKey("osdhost")) {
+                osdserverHost = requestPrefs.get("osdhost");
+            }
+            if (requestPrefs.containsKey("osdport")) {
+                osdserverPort = Integer.parseInt(requestPrefs.get("osdport"));
+            }
+            if (requestPrefs.containsKey("encoding")) {
+                osdserverEncoding = requestPrefs.get("encoding");
+            }
         }
     }
 
@@ -117,23 +121,23 @@ public class OsdSession implements Runnable {
 
         try {
             Menu menu;
-//            if (osd.getCurrentMenu() != null) {
-//                logger.debug("Found previous menu");
-//                menu = osd.getCurrentMenu();
-//            } else {
-                menu = new OverviewMenu(this, getParsers());
-//            }
+            // if (osd.getCurrentMenu() != null) {
+            // logger.debug("Found previous menu");
+            // menu = osd.getCurrentMenu();
+            // } else {
+            menu = new OverviewMenu(this, getParsers());
+            // }
             osd.createMenu(menu);
             osd.show(menu);
         } catch (Exception e) {
             logger.error("Couldn't create osd menu", e);
             return;
         }
-        
-        while(running) {
+
+        while (running) {
             try {
                 Menu current = osd.getCurrentMenu();
-                if(current != null) {
+                if (current != null) {
                     osd.sleepEvent(osd.getCurrentMenu());
                 } else {
                     logger.debug("No active menu exists. Ending session");
@@ -146,19 +150,19 @@ public class OsdSession implements Runnable {
         }
         logger.info("osdserver session ended");
     }
-    
+
     public void stop() {
         logger.trace("Stopping osd session");
         running = false;
     }
 
     public void play(Playlist list) throws UnknownHostException, IOException, URISyntaxException {
-    	playlistService.play(list, requestPrefs);
+        playlistService.play(list, requestPrefs);
     }
-    
+
     private IOverviewPage getParsers() throws Exception {
         IParserService parserService = (IParserService) Activator.parserServiceTracker.getService();
-        if(parserService == null) {
+        if (parserService == null) {
             throw new ServiceException("ParserService not available");
         }
         return parserService.getParserOverview();

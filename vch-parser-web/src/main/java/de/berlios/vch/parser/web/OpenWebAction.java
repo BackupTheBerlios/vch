@@ -6,7 +6,7 @@ import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 
-import de.berlios.vch.i18n.Messages;
+import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.web.IWebAction;
 
@@ -14,9 +14,9 @@ import de.berlios.vch.web.IWebAction;
 @Provides
 public class OpenWebAction implements IWebAction {
 
-    @Requires
-    private Messages i18n;
-    
+    @Requires(filter = "(instance.name=vch.web.parser)")
+    private ResourceBundleProvider rbp;
+
     @Override
     public String getUri(IWebPage page) throws UnsupportedEncodingException {
         return page.getUri().toString();
@@ -24,7 +24,7 @@ public class OpenWebAction implements IWebAction {
 
     @Override
     public String getTitle() {
-        return i18n.translate("I18N_OPEN");
+        return rbp.getResourceBundle().getString("I18N_OPEN");
     }
 
 }

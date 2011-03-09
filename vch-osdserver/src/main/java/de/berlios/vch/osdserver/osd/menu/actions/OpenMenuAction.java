@@ -1,13 +1,15 @@
 package de.berlios.vch.osdserver.osd.menu.actions;
 
+import java.util.ResourceBundle;
+
 import org.osgi.framework.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.berlios.vch.osdserver.Activator;
+import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.io.command.OsdMessage;
 import de.berlios.vch.osdserver.io.response.Event;
-import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.osd.Osd;
 import de.berlios.vch.osdserver.osd.OsdItem;
 import de.berlios.vch.osdserver.osd.OsdObject;
@@ -21,25 +23,28 @@ public class OpenMenuAction implements IOsdAction {
     private static transient Logger logger = LoggerFactory.getLogger(OpenMenuAction.class);
 
     private OsdSession session;
-   
+
+    private ResourceBundle rb;
+
     public OpenMenuAction(OsdSession session) {
         this.session = session;
+        this.rb = session.getResourceBundle();
     }
-    
+
     @Override
     public void execute(OsdSession sess, OsdObject oo) {
         OsdItem item = (OsdItem) oo;
         IOverviewPage page = (IOverviewPage) item.getUserData();
         try {
             Osd osd = session.getOsd();
-            osd.showMessage(new OsdMessage(session.getI18N().translate("loading"), OsdMessage.STATUS));
+            osd.showMessage(new OsdMessage(rb.getString("loading"), OsdMessage.STATUS));
             IParserService parserService = (IParserService) Activator.parserServiceTracker.getService();
-            if(parserService == null) {
+            if (parserService == null) {
                 throw new ServiceException("ParserService not available");
             }
             page = (IOverviewPage) parserService.parse(page.getVchUri());
-            
-            Menu siteMenu = new OverviewMenu(session, (IOverviewPage) page);
+
+            Menu siteMenu = new OverviewMenu(session, page);
             osd.createMenu(siteMenu);
             osd.appendToFocus(siteMenu);
             osd.showMessage(new OsdMessage("", OsdMessage.STATUSCLEAR));
@@ -51,7 +56,7 @@ public class OpenMenuAction implements IOsdAction {
 
     @Override
     public String getName() {
-        return session.getI18N().translate("open_menu");
+        return rb.getString("open_menu");
     }
 
     @Override

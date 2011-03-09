@@ -17,17 +17,18 @@ import de.berlios.vch.playlist.PlaylistEntry;
 public class PlayAction implements IOsdAction {
 
     private OsdSession session;
-    
+
     public PlayAction(OsdSession session) {
         this.session = session;
     }
 
     @Override
     public void execute(OsdSession sess, OsdObject oo) throws IOException, OsdException, URISyntaxException {
-    	Osd osd = session.getOsd();
+        Osd osd = session.getOsd();
         OsdItem osditem = osd.getCurrentItem();
         IVideoPage page = (IVideoPage) osditem.getUserData();
-        osd.showMessageSilent(new OsdMessage(session.getI18N().translate("starting_playback"), OsdMessage.STATUS));
+        osd.showMessageSilent(new OsdMessage(session.getResourceBundle().getString("starting_playback"),
+                OsdMessage.STATUS));
         Playlist pl = new Playlist();
         pl.add(new PlaylistEntry(page));
         session.play(pl);
@@ -47,7 +48,7 @@ public class PlayAction implements IOsdAction {
 
     @Override
     public String getName() {
-        return session.getI18N().translate("play");
+        return session.getResourceBundle().getString("play");
     }
 
 }

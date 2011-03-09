@@ -21,7 +21,6 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 
-import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.parser.IWebParser;
@@ -41,9 +40,6 @@ public class Activator implements ResourceBundleProvider {
     @Requires
     private LogService logger;
 
-    @Requires
-    private Messages messages;
-
     private ResourceBundle resourceBundle;
 
     public Activator(BundleContext ctx) {
@@ -60,7 +56,7 @@ public class Activator implements ResourceBundleProvider {
             @Override
             public Object addingService(ServiceReference reference) {
                 IWebParser parser = (IWebParser) ctx.getService(reference);
-                IWebMenuEntry parserEntry = new WebMenuEntry(messages.translate("I18N_BROWSE"));
+                IWebMenuEntry parserEntry = new WebMenuEntry(getResourceBundle().getString("I18N_BROWSE"));
                 parserEntry.setLinkUri("#");
                 parserEntry.setPreferredPosition(Integer.MIN_VALUE);
                 SortedSet<IWebMenuEntry> childs = new TreeSet<IWebMenuEntry>();
