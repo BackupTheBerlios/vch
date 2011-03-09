@@ -173,7 +173,7 @@ public class PlaylistServlet extends VchHttpServlet {
                 }
             }
 
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
             resp.setContentType("text/plain; charset=utf-8");
             String msg = rbp.getResourceBundle().getString("entry_not_found");
             resp.getWriter().print(msg);
