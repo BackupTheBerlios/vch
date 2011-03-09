@@ -34,11 +34,11 @@ public class VideoItemPageParser {
 
     private static transient Logger logger = LoggerFactory.getLogger(VideoItemPageParser.class);
 
-    public static VideoPage parse(VideoPage page, BundleContext ctx) throws IOException, ParserException, URISyntaxException,
-            NoSupportedVideoFoundException {
+    public static VideoPage parse(VideoPage page, BundleContext ctx) throws IOException, ParserException,
+            URISyntaxException, NoSupportedVideoFoundException {
         String content = HttpUtils.get(page.getUri().toString(), ARDMediathekParser.HTTP_HEADERS,
                 ARDMediathekParser.CHARSET);
-        
+
         // create list of supported network protocols
         List<String> supportedProtocols = new ArrayList<String>();
         ServiceTracker st = new ServiceTracker(ctx, INetworkProtocol.class.getName(), null);
@@ -56,17 +56,17 @@ public class VideoItemPageParser {
         // sort by best format and quality
         Collections.sort(videos, new VideoTypeComparator());
 
-        // find the first supported protocol 
+        // find the first supported protocol
         VideoType bestVideo = null;
         for (VideoType video : videos) {
             URI uri = new URI(video.getUri());
-            if(supportedProtocols.contains(uri.getScheme())) {
+            if (supportedProtocols.contains(uri.getScheme())) {
                 bestVideo = video;
                 break;
             }
         }
 
-        if(bestVideo != null) {
+        if (bestVideo != null) {
             // set the video uri
             if (bestVideo.getUri().startsWith("http")) {
                 Map<String, List<String>> headers = HttpUtils.head(bestVideo.getUri(), ARDMediathekParser.HTTP_HEADERS,
@@ -78,18 +78,18 @@ public class VideoItemPageParser {
             }
             page.setVideoUri(new URI(bestVideo.getUri()));
             page.getUserData().put("streamName", bestVideo.uriPart2);
-            
+
             logger.info("Best video found is: " + page.getVideoUri().toString());
-    
+
             // parse title
             page.setTitle(parseTitle(content));
-    
+
             // parse description
             String description = parseDescription(content);
             logger.trace("Description {}", description);
             page.setDescription(description);
             page.getUserData().remove("desc");
-    
+
             // parse pubDate
             try {
                 Calendar date = parseDate(content);
@@ -100,24 +100,10 @@ public class VideoItemPageParser {
                 logger.trace("Content: {}", content);
                 page.setPublishDate(Calendar.getInstance());
             }
-    
-            // TODO enable streambridge
-            // if("flashmedia".equalsIgnoreCase(preferredFormat)) {
-            // if(entry.getEnclosures().size() > 0 &&
-            // ((SyndEnclosure)entry.getEnclosures().get(0)).getUrl().startsWith("rtmp"))
-            // {
-            // SyndEnclosure enc = (SyndEnclosure)entry.getEnclosures().get(0);
-            // String videoUri = enc.getUrl();
-            // String path = Config.getInstance().getHandlerMapping().getPath(StreamBridgeHandler.class);
-            // String base = Config.getInstance().getBaseUrl();
-            // String uri = base + path + "?uri=" + URLEncoder.encode(videoUri, "UTF-8");
-            // enc.setUrl(uri);
-            // }
-            // }
-            
+
             return page;
         } else {
-            throw new NoSupportedVideoFoundException(page.getUri().toString(), supportedProtocols); 
+            throw new NoSupportedVideoFoundException(page.getUri().toString(), supportedProtocols);
         }
     }
 
@@ -132,9 +118,9 @@ public class VideoItemPageParser {
     }
 
     private static Calendar parseDate(String content) throws ParserException, ParseException {
-        NodeList list = (NodeList) HtmlParserUtils.getTags(content, ARDMediathekParser.CHARSET, "p.clipinfo");
+        NodeList list = HtmlParserUtils.getTags(content, ARDMediathekParser.CHARSET, "p.clipinfo");
         for (NodeIterator iterator = list.elements(); iterator.hasMoreNodes();) {
-            Node node = (Node) iterator.nextNode();
+            Node node = iterator.nextNode();
             String string = node.toPlainTextString().trim();
             Pattern p = Pattern.compile("\\s*Online seit:\\s*(\\d+\\.\\d+\\.\\d+\\s*)\\s*", Pattern.DOTALL);
             Matcher m = p.matcher(string);
