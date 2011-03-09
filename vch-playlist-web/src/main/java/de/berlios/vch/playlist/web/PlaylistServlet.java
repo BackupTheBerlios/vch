@@ -172,8 +172,9 @@ public class PlaylistServlet extends VchHttpServlet {
                     return;
                 }
             }
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Playlist entry not found"); // TODO i18n, response as
-                                                                                            // notification
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            String msg = rbp.getResourceBundle().getString("playlist_service_missing");
+            addNotify(req, new NotifyMessage(TYPE.ERROR, msg));
         }
 
         // now display the playlist
