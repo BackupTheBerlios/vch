@@ -12,7 +12,6 @@ import org.osgi.service.log.LogService;
 
 import de.berlios.vch.i18n.ResourceBundleLoader;
 import de.berlios.vch.i18n.ResourceBundleProvider;
-import de.berlios.vch.playlist.PlaylistService;
 
 @Component
 @Provides
@@ -21,9 +20,6 @@ public class Activator implements ResourceBundleProvider {
     @Requires
     private LogService logger;
 
-    @Requires
-    private PlaylistService playlistService;
-
     private BundleContext ctx;
 
     private ResourceBundle resourceBundle;
@@ -31,14 +27,10 @@ public class Activator implements ResourceBundleProvider {
     public Activator(BundleContext ctx) {
         this.ctx = ctx;
     }
-    
-    public PlaylistService getPlaylistService() {
-        return playlistService;
-    }
 
     @Override
     public ResourceBundle getResourceBundle() {
-        if(resourceBundle == null) {
+        if (resourceBundle == null) {
             try {
                 logger.log(LogService.LOG_DEBUG, "Loading resource bundle for " + getClass().getSimpleName());
                 resourceBundle = ResourceBundleLoader.load(ctx, Locale.getDefault());

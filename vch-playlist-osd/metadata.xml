@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <iPOJO>
-	<instance component="de.berlios.vch.playlist.osd.Activator" name="Playlist OSD Interface" />
-    <instance component="de.berlios.vch.playlist.osd.AddToPlaylistAction" name="Add to playlist osd action" />
-    <instance component="de.berlios.vch.playlist.osd.OpenPlaylistAction" name="Open playlist osd action" />
+	<instance component="de.berlios.vch.playlist.osd.Activator" name="vch.osd.playlist" />
+    <instance component="de.berlios.vch.playlist.osd.AddToPlaylistAction" name="vch.osd.playlist.action.addToPlaylist" />
+    <instance component="de.berlios.vch.playlist.osd.OpenPlaylistAction" name="vch.osd.playlist.action.openPlaylist" />
 </iPOJO>

@@ -1,6 +1,7 @@
 package de.berlios.vch.playlist.osd;
 
-import de.berlios.vch.i18n.Messages;
+import java.util.ResourceBundle;
+
 import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.io.command.OsdMessage;
 import de.berlios.vch.osdserver.io.response.Event;
@@ -13,13 +14,13 @@ import de.berlios.vch.playlist.PlaylistService;
 
 public class DeleteAction implements ItemDetailsAction {
 
-    private Messages i18n;
-    
+    private ResourceBundle rb;
+
     private PlaylistService pls;
-    
-    public DeleteAction(Messages i18n, PlaylistService pls) {
+
+    public DeleteAction(ResourceBundle rb, PlaylistService pls) {
         super();
-        this.i18n = i18n;
+        this.rb = rb;
         this.pls = pls;
     }
 
@@ -27,14 +28,14 @@ public class DeleteAction implements ItemDetailsAction {
     public void execute(OsdSession session, OsdObject oo) throws Exception {
         Osd osd = session.getOsd();
         OsdItem item = osd.getCurrentItem();
-        if(item != null) {
+        if (item != null) {
             pls.getPlaylist().remove(item.getUserData());
             Menu current = osd.getCurrentMenu();
             current.removeOsdItem(item);
             osd.refreshMenu(current);
-            osd.showMessageSilent(new OsdMessage(i18n.translate("I18N_ENTRY_DELETED"), OsdMessage.INFO));
+            osd.showMessageSilent(new OsdMessage(rb.getString("I18N_ENTRY_DELETED"), OsdMessage.INFO));
         } else {
-            osd.showMessageSilent(new OsdMessage(i18n.translate("I18N_NO_ENTRY_SELECTED"), OsdMessage.WARN));
+            osd.showMessageSilent(new OsdMessage(rb.getString("I18N_NO_ENTRY_SELECTED"), OsdMessage.WARN));
         }
     }
 
@@ -50,7 +51,7 @@ public class DeleteAction implements ItemDetailsAction {
 
     @Override
     public String getName() {
-        return i18n.translate("I18N_DELETE");
+        return rb.getString("I18N_DELETE");
     }
 
 }

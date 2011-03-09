@@ -1,6 +1,7 @@
 package de.berlios.vch.playlist.osd;
 
-import de.berlios.vch.i18n.Messages;
+import java.util.ResourceBundle;
+
 import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.io.command.OsdMessage;
 import de.berlios.vch.osdserver.io.response.Event;
@@ -14,13 +15,13 @@ import de.berlios.vch.playlist.PlaylistService;
 
 public class MoveUpAction implements ItemDetailsAction {
 
-    private Messages i18n;
-    
+    private ResourceBundle rb;
+
     private PlaylistService pls;
 
-    public MoveUpAction(Messages i18n, PlaylistService pls) {
+    public MoveUpAction(ResourceBundle rb, PlaylistService pls) {
         super();
-        this.i18n = i18n;
+        this.rb = rb;
         this.pls = pls;
     }
 
@@ -28,22 +29,22 @@ public class MoveUpAction implements ItemDetailsAction {
     public void execute(OsdSession session, OsdObject oo) throws Exception {
         Osd osd = session.getOsd();
         OsdItem item = osd.getCurrentItem();
-        if(item != null) {
+        if (item != null) {
             PlaylistEntry entry = (PlaylistEntry) item.getUserData();
             Playlist pl = pls.getPlaylist();
             int index = -1;
-            if( (index = pl.indexOf(entry)) > 0) {
+            if ((index = pl.indexOf(entry)) > 0) {
                 pl.remove(index--);
                 pl.add(index, entry);
             }
-            
+
             PlaylistMenu playlistMenu = (PlaylistMenu) osd.getCurrentMenu();
             playlistMenu.reorder();
             osd.refreshMenu(playlistMenu);
-            osd.getConnection().send(playlistMenu.getId()+".SETCURRENT " + index);
+            osd.getConnection().send(playlistMenu.getId() + ".SETCURRENT " + index);
             osd.show(playlistMenu);
         } else {
-            osd.showMessageSilent(new OsdMessage(i18n.translate("I18N_NO_ENTRY_SELECTED"), OsdMessage.WARN));
+            osd.showMessageSilent(new OsdMessage(rb.getString("I18N_NO_ENTRY_SELECTED"), OsdMessage.WARN));
         }
     }
 
@@ -59,7 +60,7 @@ public class MoveUpAction implements ItemDetailsAction {
 
     @Override
     public String getName() {
-        return i18n.translate("I18N_MOVE_UP");
+        return rb.getString("I18N_MOVE_UP");
     }
 
 }
