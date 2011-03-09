@@ -172,9 +172,12 @@ public class PlaylistServlet extends VchHttpServlet {
                     return;
                 }
             }
+
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            String msg = rbp.getResourceBundle().getString("playlist_service_missing");
-            addNotify(req, new NotifyMessage(TYPE.ERROR, msg));
+            resp.setContentType("text/plain; charset=utf-8");
+            String msg = rbp.getResourceBundle().getString("entry_not_found");
+            resp.getWriter().print(msg);
+            return;
         }
 
         // now display the playlist

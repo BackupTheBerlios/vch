@@ -87,7 +87,7 @@
                     error: function() {
                         $.pnotify( {
                             pnotify_title : '${I18N_ERROR}',
-                            pnotify_text : '${I18N_REMOVE_FAILED}',
+                            pnotify_text : '${I18N_REMOVE_FAILED}: ' + xhr.responseText,
                             pnotify_type : 'error',
                             pnotify_hide: false
                         });
@@ -101,10 +101,10 @@
                             $(li).remove();
                         }); 
                     },
-                    error: function() {
+                    error: function(xhr, statusText, error) {
                         $.pnotify( {
                             pnotify_title : '${I18N_ERROR}',
-                            pnotify_text : '${I18N_REMOVE_FAILED}',
+                            pnotify_text : '${I18N_REMOVE_FAILED}: ' + xhr.responseText,
                             pnotify_type : 'error',
                             pnotify_hide: false
                         });
