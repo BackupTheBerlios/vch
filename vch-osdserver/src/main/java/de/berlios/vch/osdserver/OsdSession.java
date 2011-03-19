@@ -23,11 +23,13 @@ import de.berlios.vch.playlist.Playlist;
 import de.berlios.vch.playlist.PlaylistService;
 
 /**
- * TODO create a logger, which logs to the osd TODO i18n Represents one OSD session. The sessions starts with the
- * request to open the VCH menu and ends when, the menu gets closed.
+ * Represents one OSD session. The sessions starts with the request to open the VCH menu and ends when the menu gets
+ * closed.
  * 
  * @author <a href="mailto:hampelratte@users.berlios.de">hampelratte@users.berlios.de</a>
  */
+// TODO create a logger, which logs to the osd
+// TODO i18n
 public class OsdSession implements Runnable {
 
     private static transient Logger logger = LoggerFactory.getLogger(OsdSession.class);
