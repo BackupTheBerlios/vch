@@ -234,10 +234,9 @@ public class Osd implements IEventDispatcher {
                         logger.debug("Dispatching event {}-{} to action {}", new Object[] { event.getCode(), event.getType(), actionToExecute.getName() });
                         actionToExecute.execute(session, oo);
                     } catch (Exception e) {
-                        String s = "Couldn't execute action [" + actionToExecute.getName() + "] " + e.getLocalizedMessage();
-                        logger.error(s, e);
-                        OsdMessage msg = new OsdMessage(s, OsdMessage.ERROR);
-                        showMessageSilent(msg);
+                        logger.error("Couldn't execute action [" + actionToExecute.getName() + "] " + e.getLocalizedMessage(), e);
+                        showMessageSilent(new OsdMessage("", OsdMessage.STATUSCLEAR));
+                        showMessageSilent(new OsdMessage(e.getLocalizedMessage(), OsdMessage.ERROR));
                     }
                 } else {
                     logger.warn("Couldn't dispatch event {} {} {}", new Object[] { event.getCode(), event.getType(), event.getSourceId() });
