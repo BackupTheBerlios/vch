@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<iPOJO>
+	<instance component="de.berlios.vch.search.osd.Activator" name="vch.osd.search" />
+    <instance component="de.berlios.vch.search.osd.OpenSearchMenu" name="vch.osd.search.action.openMenu" />
+</iPOJO>
