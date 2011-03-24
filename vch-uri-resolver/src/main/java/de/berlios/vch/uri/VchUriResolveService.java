@@ -22,29 +22,31 @@ public class VchUriResolveService implements IVchUriResolveService {
 
     @Requires
     private LogService logger;
-    
+
     private Set<IVchUriResolver> resolvers = new HashSet<IVchUriResolver>();
-    
+
     @Override
     public IWebPage resolve(URI vchuri) throws Exception {
-    	for (IVchUriResolver resolver : resolvers) {
-			if(resolver.accept(vchuri)) {
-				return resolver.resolve(vchuri);
-			}
-		}
-    	
-    	throw new ServiceException("No resolver found for URI " + vchuri);
+        logger.log(LogService.LOG_DEBUG, "Trying to resolve " + vchuri);
+        for (IVchUriResolver resolver : resolvers) {
+            if (resolver.accept(vchuri)) {
+                return resolver.resolve(vchuri);
+            }
+        }
+
+        throw new ServiceException("No resolver found for URI " + vchuri);
     }
-    
-    
-// ############ ipojo stuff #########################################    
-    
+
+    // ############ ipojo stuff #########################################
+
     // validate and invalidate methods seem to be necessary for the bind methods to work
     @Validate
-    public void start() {}
-    
+    public void start() {
+    }
+
     @Invalidate
-    public void stop() {}
+    public void stop() {
+    }
 
     @Bind(id = "resolvers", aggregate = true)
     public synchronized void addResolver(IVchUriResolver resolver) {
@@ -52,8 +54,8 @@ public class VchUriResolveService implements IVchUriResolveService {
         resolvers.add(resolver);
         logger.log(LogService.LOG_INFO, resolvers.size() + " URI resolvers available");
     }
-    
-    @Unbind(id="resolvers", aggregate = true)
+
+    @Unbind(id = "resolvers", aggregate = true)
     public synchronized void removeResolver(IVchUriResolver resolver) {
         logger.log(LogService.LOG_INFO, "Removing search provider " + resolver.getClass().getName());
         resolvers.remove(resolver);
