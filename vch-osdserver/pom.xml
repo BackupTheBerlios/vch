@@ -56,5 +56,11 @@
 			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>de.berlios.vch</groupId>
+			<artifactId>uri.resolver</artifactId>
+			<type>bundle</type>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 </project>

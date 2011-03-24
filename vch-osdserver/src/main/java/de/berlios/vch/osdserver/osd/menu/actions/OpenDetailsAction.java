@@ -2,11 +2,9 @@ package de.berlios.vch.osdserver.osd.menu.actions;
 
 import java.util.ResourceBundle;
 
-import org.osgi.framework.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.berlios.vch.osdserver.Activator;
 import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.io.command.OsdMessage;
 import de.berlios.vch.osdserver.io.response.Event;
@@ -16,8 +14,7 @@ import de.berlios.vch.osdserver.osd.OsdObject;
 import de.berlios.vch.osdserver.osd.menu.ItemDetailsMenu;
 import de.berlios.vch.osdserver.osd.menu.Menu;
 import de.berlios.vch.parser.IVideoPage;
-import de.berlios.vch.parser.IWebParser;
-import de.berlios.vch.parser.service.IParserService;
+import de.berlios.vch.uri.IVchUriResolveService;
 
 public class OpenDetailsAction implements IOsdAction {
 
@@ -36,20 +33,13 @@ public class OpenDetailsAction implements IOsdAction {
         Osd osd = session.getOsd();
         ResourceBundle rb = session.getResourceBundle();
         try {
-            IParserService parserService = (IParserService) Activator.parserServiceTracker.getService();
-            if (parserService == null) {
-                throw new ServiceException("ParserService not available");
-            }
-
-            osd.showMessage(new OsdMessage(rb.getString("loading"), OsdMessage.STATUS));
-
-            IWebParser parser = parserService.getParser(page.getParser());
-            if (parser == null) {
-                osd.showMessage(new OsdMessage(rb.getString("error_parser_missing"), OsdMessage.ERROR));
+            IVchUriResolveService resolverService = session.getResolverService();
+            if (resolverService == null) {
+                osd.showMessage(new OsdMessage(rb.getString("resolver_missing"), OsdMessage.ERROR));
                 return;
             }
 
-            page = (IVideoPage) parserService.parse(page.getVchUri());
+            page = (IVideoPage) resolverService.resolve(page.getVchUri());
             Menu itemDetailsMenu = new ItemDetailsMenu(session, page);
             osd.createMenu(itemDetailsMenu);
             osd.appendToFocus(itemDetailsMenu);

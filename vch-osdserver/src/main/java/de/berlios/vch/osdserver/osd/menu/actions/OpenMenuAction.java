@@ -6,7 +6,6 @@ import org.osgi.framework.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.berlios.vch.osdserver.Activator;
 import de.berlios.vch.osdserver.OsdSession;
 import de.berlios.vch.osdserver.io.command.OsdMessage;
 import de.berlios.vch.osdserver.io.response.Event;
@@ -16,7 +15,7 @@ import de.berlios.vch.osdserver.osd.OsdObject;
 import de.berlios.vch.osdserver.osd.menu.Menu;
 import de.berlios.vch.osdserver.osd.menu.OverviewMenu;
 import de.berlios.vch.parser.IOverviewPage;
-import de.berlios.vch.parser.service.IParserService;
+import de.berlios.vch.uri.IVchUriResolveService;
 
 public class OpenMenuAction implements IOsdAction {
 
@@ -38,11 +37,11 @@ public class OpenMenuAction implements IOsdAction {
         try {
             Osd osd = session.getOsd();
             osd.showMessage(new OsdMessage(rb.getString("loading"), OsdMessage.STATUS));
-            IParserService parserService = (IParserService) Activator.parserServiceTracker.getService();
-            if (parserService == null) {
-                throw new ServiceException("ParserService not available");
+            IVchUriResolveService resolverService = session.getResolverService();
+            if (resolverService == null) {
+                throw new ServiceException("VCH URI resolver service not available");
             }
-            page = (IOverviewPage) parserService.parse(page.getVchUri());
+            page = (IOverviewPage) resolverService.resolve(page.getVchUri());
 
             Menu siteMenu = new OverviewMenu(session, page);
             osd.createMenu(siteMenu);
