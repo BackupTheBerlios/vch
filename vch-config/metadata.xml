@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <iPOJO>
-	<instance component="de.berlios.vch.config.ConfigServiceImpl" name="VCH Configuration Service" />
+	<instance component="de.berlios.vch.config.ConfigServiceImpl" name="vch.configuration.service" />
 </iPOJO>

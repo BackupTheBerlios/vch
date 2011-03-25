@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <iPOJO>
-    <instance component="de.berlios.vch.search.dreisat.DreisatSearchProvider" name="3sat Search Provider" />
+    <instance component="de.berlios.vch.search.dreisat.DreisatSearchProvider" name="vch.search.3sat" />
 </iPOJO>

@@ -15,7 +15,7 @@ import de.berlios.vch.web.IWebAction;
 @Provides
 public class DownloadWebAction implements IWebAction {
 
-    @Requires(filter="(instance.name=VCH Download Servlet)")
+    @Requires(filter = "(instance.name=vch.web.download.servlet)")
     private ResourceBundleProvider rbp;
 
     @Override

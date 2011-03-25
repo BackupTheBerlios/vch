@@ -11,18 +11,22 @@ import org.apache.felix.ipojo.annotations.Provides;
 
 import de.berlios.vch.net.INetworkProtocol;
 
+// TODO move to vch.net ?!
 @Component
 @Provides
 public class HTTP implements INetworkProtocol {
 
-    private List<String> schemes = Arrays.asList(new String[] {"http", "https"});
-    
-    public HTTP() {}
-    
+    private List<String> schemes = Arrays.asList(new String[] { "http", "https" });
+
+    public HTTP() {
+    }
+
+    @Override
     public String getName() {
         return "Hyper Text Transfer Protocol";
     }
 
+    @Override
     public List<String> getSchemes() {
         return schemes;
     }
@@ -36,6 +40,4 @@ public class HTTP implements INetworkProtocol {
     public URI toBridgeUri(URI videoUri, Map<String, ?> connectionDetails) throws URISyntaxException {
         return videoUri;
     }
-
-    
 }

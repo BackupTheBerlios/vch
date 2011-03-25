@@ -18,40 +18,39 @@ import de.berlios.vch.search.ISearchProvider;
 @Provides
 public class ZdfSearchProvider implements ISearchProvider {
 
-	@Requires(filter="(instance.name=VCH ZDFMediathek Parser)")
-	private IWebParser parser;
-	
-	@Override
-	public String getName() {
-		return "ZDFmediathek";
-	}
-	
-	@Override
-	public IOverviewPage search(String query) throws Exception {
-		if(parser == null) {
-			throw new ServiceException("ZDFMediathek Parser is not available");
-		}
-		
-		String uri = "http://www.zdf.de/ZDFmediathek/suche?flash=off&sucheText="
-			+ URLEncoder.encode(query, "UTF-8");
-		IOverviewPage opage = new OverviewPage();
-		opage.setParser(getId());
-		opage.setUri(new URI(uri));
-		opage = (IOverviewPage)parser.parse(opage);
-		return opage;
-	}
+    @Requires(filter = "(instance.name=vch.parser.zdf)")
+    private IWebParser parser;
 
-	@Override
-	public String getId() {
-		return "de.berlios.vch.parser.zdf.ZDFMediathekParser"; // TODO prüfen: wäre nicht eine eigene ID besser?
-	}
+    @Override
+    public String getName() {
+        return "ZDFmediathek";
+    }
 
-	@Override
-	public IWebPage parse(IWebPage page) throws Exception {
-		if(parser == null) {
-			throw new ServiceException("ZDFMediathek Parser is not available");
-		}
-		
-		return parser.parse(page);
-	}
+    @Override
+    public IOverviewPage search(String query) throws Exception {
+        if (parser == null) {
+            throw new ServiceException("ZDFMediathek Parser is not available");
+        }
+
+        String uri = "http://www.zdf.de/ZDFmediathek/suche?flash=off&sucheText=" + URLEncoder.encode(query, "UTF-8");
+        IOverviewPage opage = new OverviewPage();
+        opage.setParser(getId());
+        opage.setUri(new URI(uri));
+        opage = (IOverviewPage) parser.parse(opage);
+        return opage;
+    }
+
+    @Override
+    public String getId() {
+        return "de.berlios.vch.parser.zdf.ZDFMediathekParser"; // TODO prüfen: wäre nicht eine eigene ID besser?
+    }
+
+    @Override
+    public IWebPage parse(IWebPage page) throws Exception {
+        if (parser == null) {
+            throw new ServiceException("ZDFMediathek Parser is not available");
+        }
+
+        return parser.parse(page);
+    }
 }

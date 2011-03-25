@@ -39,7 +39,7 @@ public class ConfigServlet extends VchHttpServlet {
     @Requires
     private ConfigService cs;
 
-    @Requires(filter = "(instance.name=VCH Download Servlet)")
+    @Requires(filter = "(instance.name=vch.web.download.servlet)")
     private ResourceBundleProvider rbp;
 
     @Requires
@@ -67,8 +67,7 @@ public class ConfigServlet extends VchHttpServlet {
         }
 
         params.put("TITLE", rbp.getResourceBundle().getString("I18N_DOWNLOADS_CONFIG"));
-        params.put("SERVLET_URI",
-                req.getScheme() + "://" + req.getServerName() + ":" + req.getServerPort() + req.getServletPath());
+        params.put("SERVLET_URI", req.getScheme() + "://" + req.getServerName() + ":" + req.getServerPort() + req.getServletPath());
         params.put("ACTION", PATH);
         params.put("data_dir", prefs.get("data.dir", "data"));
         params.put("concurrent_downloads", prefs.getInt("concurrent_downloads", 2));

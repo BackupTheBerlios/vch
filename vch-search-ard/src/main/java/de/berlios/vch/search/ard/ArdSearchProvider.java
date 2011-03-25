@@ -47,7 +47,7 @@ public class ArdSearchProvider implements ISearchProvider {
         HTTP_HEADERS.put("Accept-Language", "de-de,de;q=0.8,en-us;q=0.5,en;q=0.3");
     }
 
-    @Requires(filter = "(instance.name=VCH ARD Mediathek Parser)")
+    @Requires(filter = "(instance.name=vch.parser.ard)")
     private IWebParser parser;
 
     @Requires
@@ -79,7 +79,7 @@ public class ArdSearchProvider implements ISearchProvider {
         IOverviewPage page = new OverviewPage();
         NodeList tags = HtmlParserUtils.getTags(content, CHARSET, "div#mt-box-suche-clips-inner div[class~=\"mt-media-item\"]");
         NodeIterator iter = tags.elements();
-        while(iter.hasMoreNodes()) {
+        while (iter.hasMoreNodes()) {
             // create a new VideoPage
             IVideoPage video = new VideoPage();
             video.setParser(getId());
@@ -107,7 +107,7 @@ public class ArdSearchProvider implements ISearchProvider {
 
             // parse the duration
             Matcher m = Pattern.compile(".*\\s*(\\d\\d):(\\d\\d)\\s*min").matcher(text);
-            if(m.matches()) {
+            if (m.matches()) {
                 int minutes = Integer.parseInt(m.group(1));
                 int seconds = Integer.parseInt(m.group(2));
                 video.setDuration(minutes * 60 + seconds);

@@ -51,32 +51,32 @@ public class ConfigServlet extends VchHttpServlet {
 
     @Requires
     private ConfigService cs;
-    
+
     private Preferences prefs;
-    
+
     @Requires
     private LogService logger;
-    
-    @Requires(filter="(instance.name=VCH RSS Parser)")
+
+    @Requires(filter = "(instance.name=vch.parser.rss)")
     private ResourceBundleProvider rbp;
-    
+
     @Requires
     private TemplateLoader templateLoader;
-    
+
     @Requires
     private HttpService httpService;
-    
-    @Requires(filter="(instance.name=VCH RSS Parser)")
+
+    @Requires(filter = "(instance.name=vch.parser.rss)")
     private IWebParser parser;
-    
+
     private BundleContext ctx;
-    
+
     private ServiceRegistration menuReg;
-    
+
     public ConfigServlet(BundleContext ctx) {
         this.ctx = ctx;
     }
-    
+
     @Override
     protected void get(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -112,8 +112,7 @@ public class ConfigServlet extends VchHttpServlet {
         }
 
         params.put("TITLE", rbp.getResourceBundle().getString("I18N_RSS_CONFIG"));
-        params.put("SERVLET_URI", req.getScheme() + "://" + req.getServerName() + ":" + req.getServerPort()
-                + req.getServletPath());
+        params.put("SERVLET_URI", req.getScheme() + "://" + req.getServerName() + ":" + req.getServerPort() + req.getServletPath());
         params.put("FEEDS", getFeeds());
         params.put("ACTION", PATH);
         params.put("NOTIFY_MESSAGES", getNotifyMessages(req));
@@ -174,14 +173,14 @@ public class ConfigServlet extends VchHttpServlet {
         }
         return result;
     }
-    
+
     @Validate
     public void start() throws ServletException, NamespaceException {
         prefs = cs.getUserPreferences(ctx.getBundle().getSymbolicName());
-        
+
         // register the servlet
         httpService.registerServlet(ConfigServlet.PATH, this, null, null);
-        
+
         registerMenu();
     }
 
@@ -189,11 +188,11 @@ public class ConfigServlet extends VchHttpServlet {
     public void stop() {
         // unregister the servlet
         httpService.unregister(ConfigServlet.PATH);
-        
+
         // unregister the menu
         menuReg.unregister();
     }
-    
+
     private void registerMenu() {
         // register web interface menu
         IWebMenuEntry menu = new WebMenuEntry(rbp.getResourceBundle().getString("I18N_BROWSE"));
@@ -214,25 +213,25 @@ public class ConfigServlet extends VchHttpServlet {
         entry.setChilds(childs);
         menuReg = ctx.registerService(IWebMenuEntry.class.getName(), menu, null);
     }
-    
+
     public void addFeed(String title, String uri) {
         Preferences feeds = prefs.node("feeds");
         String id = UUID.randomUUID().toString();
-        Preferences feed = feeds.node(id);        
+        Preferences feed = feeds.node(id);
         feed.put("title", title);
         feed.put("uri", uri);
     }
-    
+
     public void removeFeed(String id) {
         Preferences feeds = prefs.node("feeds");
-        Preferences feed = feeds.node(id);     
+        Preferences feed = feeds.node(id);
         try {
             feed.removeNode();
         } catch (BackingStoreException e) {
             logger.log(LogService.LOG_ERROR, "Couldn't remove feed", e);
         }
     }
-    
+
     public List<de.berlios.vch.parser.rss.Feed> getFeeds() {
         List<de.berlios.vch.parser.rss.Feed> feeds = new ArrayList<de.berlios.vch.parser.rss.Feed>();
         try {
