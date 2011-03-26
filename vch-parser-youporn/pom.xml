@@ -64,7 +64,7 @@
 				<extensions>true</extensions>
 				<configuration>
 					<instructions>
-						<Bundle-Activator>${pom.groupId}.${pom.artifactId}.YoupornParser</Bundle-Activator>
+						<Bundle-Activator>${project.groupId}.${project.artifactId}.YoupornParser</Bundle-Activator>
 					</instructions>
 				</configuration>
 			</plugin>

@@ -56,7 +56,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-Activator>${pom.groupId}.${pom.artifactId}.Activator</Bundle-Activator>
+                        <Bundle-Activator>${project.groupId}.${project.artifactId}.Activator</Bundle-Activator>
                         <Require-Bundle>org.apache.felix.upnp.basedriver;bundle-version="0.8.0"</Require-Bundle>
                     </instructions>
                 </configuration>

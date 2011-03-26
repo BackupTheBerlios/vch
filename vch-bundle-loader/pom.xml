@@ -22,7 +22,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-Activator>${pom.groupId}.bundleloader.BundleLoader</Bundle-Activator>
+                        <Bundle-Activator>${project.groupId}.bundleloader.BundleLoader</Bundle-Activator>
                     </instructions>
                 </configuration>
             </plugin>
