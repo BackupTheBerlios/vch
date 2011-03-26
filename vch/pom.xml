@@ -23,6 +23,7 @@
         <module>../vch-download-http</module>
         <module>../vch-download-mms</module>
         <module>../vch-download-rtmp</module>
+        <module>../vch-download-web</module>
         <module>../vch-feed-support</module>
         <module>../vch-httpclient</module>
         <module>../vch-i18n</module>
