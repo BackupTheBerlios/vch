@@ -36,27 +36,27 @@ import de.berlios.vch.i18n.Messages;
 import de.berlios.vch.parser.IVideoPage;
 
 public class DownloadManagerImpl implements DownloadManager, DownloadStateListener {
-    
+
     private LogService logger;
 
     private List<Download> downloads = new ArrayList<Download>();
-    
+
     private ExecutorService executor;
-    
+
     private Preferences prefs;
-    
+
     private File dataDir;
-    
+
     private Marshaller marshaller;
-    
+
     private Unmarshaller unmarshaller;
-    
+
     private ServiceTracker downloadFactoryTracker;
-    
+
     private BundleContext ctx;
-    
+
     public static List<SortStrategy> sortStrategies = new ArrayList<SortStrategy>();
-    
+
     public DownloadManagerImpl(BundleContext ctx, LogService logger, Messages messages) {
         this.logger = logger;
         this.ctx = ctx;
@@ -69,18 +69,15 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
     public void cancelDownload(String id) {
         stopDownload(id);
         Download d = getDownload(id);
-        if(d != null) {
+        if (d != null) {
             // cancel the download
             d.cancel();
-            
+
             // remove download from active downloads
             downloads.remove(d);
-            
-            // delete the info file
-            deleteInfoFile(new File(d.getLocalFile()));
-            
-            // delete the descriptor file
-            deleteDescritorFile(new File(d.getLocalFile()));
+
+            // delete all meta data files associated with the video file
+            deleteMetaData(new File(d.getLocalFile()));
         }
     }
 
@@ -90,52 +87,60 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
         List<DownloadDTO> finished = getFinishedDownloads();
         DownloadDTO download = null;
         for (DownloadDTO dto : finished) {
-            if(id.equals(dto.getId())) {
+            if (id.equals(dto.getId())) {
                 download = dto;
             }
         }
-        
-        if(download == null) {
+
+        if (download == null) {
             logger.log(LogService.LOG_WARNING, "Download does not exist " + id);
             return;
         }
-        
+
         // delete the video file
         File videoFile = download.getVideoFile();
-        if(videoFile != null && videoFile.exists()) {
+        if (videoFile != null && videoFile.exists()) {
             boolean deleted = videoFile.delete();
-            if(!deleted) {
+            if (deleted) {
+                // delete all meta data files associated with the video file
+                deleteMetaData(videoFile);
+            } else {
                 logger.log(LogService.LOG_WARNING, "Couldn't delete file " + videoFile.getAbsolutePath());
             }
         }
-        
+    }
+
+    private void deleteMetaData(File videoFile) {
         // delete the nfo file
-        deleteInfoFile(videoFile);
-        
+        deleteMetaFile(videoFile, "nfo");
+
         // delete the descriptor file
-        deleteDescritorFile(videoFile);
+        deleteMetaFile(videoFile, "vch");
+
+        // delete resume file
+        deleteMetaFile(videoFile, "resume");
     }
 
     @Override
-    public void downloadItem(IVideoPage page) throws InstantiationException, IOException, URISyntaxException, PlaylistFileFoundException  {
+    public void downloadItem(IVideoPage page) throws InstantiationException, IOException, URISyntaxException, PlaylistFileFoundException {
         // create download
         Download d = createDownload(page);
-        if(d == null) {
+        if (d == null) {
             throw new InstantiationException("No applicable downloader found");
         }
-        
+
         d.addDownloadStateListener(this);
         d.setDestinationDir(dataDir);
-        
+
         // add download to active downloads
         downloads.add(d);
-        
+
         // persist download information
         createDescriptorFile(d);
-        
+
         // start the download
         executor.submit(d);
-        
+
         // create the nfo file
         try {
             createInfoFile(new File(d.getLocalFile()), d.getVideoPage());
@@ -146,10 +151,10 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
 
     private Download createDownload(IVideoPage page) throws IOException, URISyntaxException, PlaylistFileFoundException {
         Object[] downloadFactories = downloadFactoryTracker.getServices();
-        if(downloadFactories != null) {
+        if (downloadFactories != null) {
             for (Object factoryObject : downloadFactories) {
                 DownloadFactory factory = (DownloadFactory) factoryObject;
-                if(factory.accept(page)) {
+                if (factory.accept(page)) {
                     return factory.createDownload(page);
                 }
             }
@@ -160,8 +165,8 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
     @Override
     public void startDownload(String id) {
         Download d = getDownload(id);
-        if(d != null) {
-            if(d.isStartable()) { // dont start a download twice
+        if (d != null) {
+            if (d.isStartable()) { // dont start a download twice
                 d.setStatus(Status.WAITING);
                 executor.submit(d);
             } else {
@@ -173,7 +178,7 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
     @Override
     public void startDownloads() {
         for (Download d : downloads) {
-            if(d.isStartable()) {
+            if (d.isStartable()) {
                 d.setStatus(Status.WAITING);
                 executor.submit(d);
             }
@@ -183,7 +188,9 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
     @Override
     public void stopDownload(String id) {
         Download d = getDownload(id);
-        if(d != null) d.stop();
+        if (d != null) {
+            d.stop();
+        }
     }
 
     @Override
@@ -191,7 +198,7 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
         executor.shutdownNow();
         executor = createExecutorService();
         for (Download d : downloads) {
-            if(!d.isStartable()) {
+            if (!d.isStartable()) {
                 d.stop();
             }
         }
@@ -206,39 +213,41 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
                 reconfigure();
             }
         });
-        
+
         reconfigure();
-        
+
         // set up jaxb stuff
         try {
             ClassLoader cl = getClass().getClassLoader();
             JAXBContext jaxbCtx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName(), cl);
             marshaller = jaxbCtx.createMarshaller();
-            marshaller.setProperty( Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE );
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
             unmarshaller = jaxbCtx.createUnmarshaller();
         } catch (Exception e) {
             logger.log(LogService.LOG_ERROR, "Couldn't create jaxb context", e);
         }
-        
+
         // create service tracker for download factories
         downloadFactoryTracker = new ServiceTracker(ctx, DownloadFactory.class.getName(), null);
         downloadFactoryTracker.open();
     }
-    
+
     private void reconfigure() {
         // shutdown the current executor after all downloads are finished
-        if(executor != null) executor.shutdown();
-        
+        if (executor != null) {
+            executor.shutdown();
+        }
+
         // create new thread pool
         executor = createExecutorService();
-        
+
         // create data directory
         dataDir = new File(prefs.get("data.dir", "data"));
-        if(!dataDir.exists()) {
+        if (!dataDir.exists()) {
             dataDir.mkdirs();
         }
     }
-    
+
     private ExecutorService createExecutorService() {
         int numberOfConcurrentDownloads = prefs.getInt("concurrent_downloads", 2);
         return Executors.newFixedThreadPool(numberOfConcurrentDownloads);
@@ -246,7 +255,7 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
 
     @Override
     public void stop() {
-        if(executor != null) {
+        if (executor != null) {
             executor.shutdownNow();
         }
     }
@@ -255,7 +264,7 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
     public List<Download> getActiveDownloads() {
         return downloads;
     }
-    
+
     @Override
     public synchronized List<DownloadDTO> getFinishedDownloads() {
         File[] descriptors = dataDir.listFiles(new FilenameFilter() {
@@ -268,19 +277,19 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
         for (File descriptor : descriptors) {
             String name = descriptor.getName();
             File videoFile = new File(descriptor.getParentFile(), name.substring(0, name.lastIndexOf('.')));
-            if(videoFile.exists()) {
+            if (videoFile.exists()) {
                 try {
                     DownloadDTO dto = (DownloadDTO) unmarshaller.unmarshal(descriptor);
                     dto.setVideoFile(videoFile);
                     boolean isFinished = true;
                     for (Iterator<Download> iterator = downloads.iterator(); iterator.hasNext();) {
                         Download d = iterator.next();
-                        if(d.getId().equals(dto.getId())) {
+                        if (d.getId().equals(dto.getId())) {
                             // this download is still active, don't add it to the list finished ones
                             isFinished = false;
                         }
                     }
-                    if(isFinished) {
+                    if (isFinished) {
                         finished.add(dto);
                     }
                 } catch (JAXBException e) {
@@ -288,101 +297,91 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
                 }
             }
         }
-        
+
         // sort the downloads
         String className = prefs.get("sort.strategy", ByTitle.class.getName());
         for (SortStrategy sortStrategy : sortStrategies) {
-            if(sortStrategy.getClass().getName().equals(className)) {
+            if (sortStrategy.getClass().getName().equals(className)) {
                 sortStrategy.sort(finished);
             }
         }
- 
-        
+
         return finished;
     }
-    
+
     private Download getDownload(String id) {
         for (Download d : downloads) {
-            if(d.getId().equals(id)) {
+            if (d.getId().equals(id)) {
                 return d;
             }
         }
-        
+
         return null;
     }
-    
+
     @Override
     public void downloadStateChanged(AbstractDownload download) {
-        if(download.getStatus() == Download.Status.FINISHED) {
+        if (download.getStatus() == Download.Status.FINISHED) {
             // remove download from active downloads
             downloads.remove(download);
         }
     }
-    
+
     private void createDescriptorFile(Download d) {
         // write the download information to the file
         File downloadFile = new File(d.getLocalFile());
         File data = new File(downloadFile.getParentFile(), downloadFile.getName() + ".vch");
-        if(!data.exists()) {
+        if (!data.exists()) {
             try {
                 DownloadDTO dto = new DownloadDTO();
                 dto.setDescription(d.getVideoPage().getDescription());
                 dto.setDuration(d.getVideoPage().getDuration());
                 dto.setId(d.getId());
-                if(d.getVideoPage().getPublishDate() != null) {
-                    dto.setPublishDate(DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar)d.getVideoPage().getPublishDate()));
+                if (d.getVideoPage().getPublishDate() != null) {
+                    dto.setPublishDate(DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar) d.getVideoPage().getPublishDate()));
                 }
-                if(d.getVideoPage().getThumbnail() != null) {
+                if (d.getVideoPage().getThumbnail() != null) {
                     dto.setThumbUri(d.getVideoPage().getThumbnail().toString());
                 }
                 dto.setTitle(d.getVideoPage().getTitle());
                 dto.setVideoUri(d.getVideoPage().getVideoUri().toString());
                 marshaller.marshal(dto, data);
-            } catch(Exception e) {
+            } catch (Exception e) {
                 logger.log(LogService.LOG_ERROR, "Coulnd't save download data. Download will be lost after the next restart", e);
-            } 
-        }
-    }
-    
-    private void deleteDescritorFile(File videoFile) {
-        if(videoFile != null) {
-            File descriptor = new File(videoFile.getParentFile(), videoFile.getName() + ".vch");
-            logger.log(LogService.LOG_DEBUG, "Trying to delete file " + descriptor);
-            if(descriptor != null && descriptor.exists()) {
-                boolean deleted = descriptor.delete();
-                if(!deleted) {
-                    logger.log(LogService.LOG_WARNING, "Couldn't delete file " + descriptor.getAbsolutePath());
-                }
             }
         }
     }
 
     /**
-     * Writes a .nfo file for a given video file and description. The nfo file will have
-     * the same name as the video file plus the file extension .nfo
-     * @param videoFile The video file to write the nfo file for
-     * @param desc The text to write into the nfo file
+     * Writes a .nfo file for a given video file and description. The nfo file will have the same name as the video file plus the file extension .nfo
+     * 
+     * @param videoFile
+     *            The video file to write the nfo file for
+     * @param desc
+     *            The text to write into the nfo file
      * @throws IOException
      */
     protected void createInfoFile(File videoFile, IVideoPage video) throws IOException {
-        if(video == null || video.getTitle() == null || video.getTitle().length() == 0) {
+        if (video == null || video.getTitle() == null || video.getTitle().length() == 0) {
             logger.log(LogService.LOG_INFO, "Video has no title. No .nfo file will be written");
         }
-        
-        if(videoFile != null) {
+
+        if (videoFile != null) {
             File nfoFile = new File(videoFile.getParentFile(), videoFile.getName() + ".nfo");
-            if(!nfoFile.exists()) {
+            if (!nfoFile.exists()) {
                 PrintWriter pw = null;
                 try {
-                    //pw = new PrintWriter(nfoFile, Config.getInstance().getProperty("default.encoding"));
+                    // pw = new PrintWriter(nfoFile, Config.getInstance().getProperty("default.encoding"));
                     pw = new PrintWriter(nfoFile, "UTF-8");
                     pw.write(video.getTitle() + "\n");
-                    if(video.getPublishDate() != null) pw.write(DateFormat.getDateTimeInstance().format(video.getPublishDate().getTime()) + "\n");
-                    if(video.getDescription() != null) {
+                    if (video.getPublishDate() != null) {
+                        pw.write(DateFormat.getDateTimeInstance().format(video.getPublishDate().getTime()) + "\n");
+                    }
+                    if (video.getDescription() != null) {
                         pw.write("\n" + video.getDescription());
                     }
                 } finally {
-                    if(pw != null) {
+                    if (pw != null) {
                         pw.close();
                     }
                 }
@@ -391,18 +390,22 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
             logger.log(LogService.LOG_INFO, "Video file is null. No .nfo file will be written");
         }
     }
-    
+
     /**
-     * Deletes a .nfo file for a given video file, if the nfo file exists
+     * Deletes a meta file for a given video file, if the meta file exists.
+     * 
      * @param videoFile
+     *            the video file of the meta data file
+     * @param metaFileExtension
+     *            an file extension. e.g. nfo, vch or resume
      */
-    protected void deleteInfoFile(File videoFile) {
-        if(videoFile != null) {
-            File nfoFile = new File(videoFile.getParentFile(), videoFile.getName() + ".nfo");
-            if(nfoFile != null && nfoFile.exists()) {
-                boolean deleted = nfoFile.delete();
-                if(!deleted) {
-                    logger.log(LogService.LOG_WARNING, "Couldn't delete file " + nfoFile.getAbsolutePath());
+    protected void deleteMetaFile(File videoFile, String metaFileExtension) {
+        if (videoFile != null) {
+            File metaFile = new File(videoFile.getParentFile(), videoFile.getName() + "." + metaFileExtension);
+            if (metaFile != null && metaFile.exists()) {
+                boolean deleted = metaFile.delete();
+                if (!deleted) {
+                    logger.log(LogService.LOG_WARNING, "Couldn't delete file " + metaFile.getAbsolutePath());
                 }
             }
         }
