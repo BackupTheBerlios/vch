@@ -106,11 +106,8 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
             // remove download from active downloads
             downloads.remove(d);
 
-            // delete the info file
-            deleteInfoFile(new File(d.getLocalFile()));
-
-            // delete the descriptor file
-            deleteDescritorFile(new File(d.getLocalFile()));
+            // delete all meta data files associated with the video file
+            deleteMetaData(new File(d.getLocalFile()));
         }
     }
 
@@ -134,21 +131,28 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
         File videoFile = download.getVideoFile();
         if (videoFile != null && videoFile.exists()) {
             boolean deleted = videoFile.delete();
-            if (!deleted) {
+            if (deleted) {
+                // delete all meta data files associated with the video file
+                deleteMetaData(videoFile);
+            } else {
                 logger.log(LogService.LOG_WARNING, "Couldn't delete file " + videoFile.getAbsolutePath());
             }
         }
+    }
 
+    private void deleteMetaData(File videoFile) {
         // delete the nfo file
-        deleteInfoFile(videoFile);
+        deleteMetaFile(videoFile, "nfo");
 
         // delete the descriptor file
-        deleteDescritorFile(videoFile);
+        deleteMetaFile(videoFile, "vch");
+
+        // delete resume file
+        deleteMetaFile(videoFile, "resume");
     }
 
     @Override
-    public void downloadItem(IVideoPage page) throws InstantiationException, IOException, URISyntaxException,
-            PlaylistFileFoundException {
+    public void downloadItem(IVideoPage page) throws InstantiationException, IOException, URISyntaxException, PlaylistFileFoundException {
         // create download
         Download d = createDownload(page);
         if (d == null) {
@@ -365,8 +369,7 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
                 dto.setDuration(d.getVideoPage().getDuration());
                 dto.setId(d.getId());
                 if (d.getVideoPage().getPublishDate() != null) {
-                    dto.setPublishDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(
-                            (GregorianCalendar) d.getVideoPage().getPublishDate()));
+                    dto.setPublishDate(DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar) d.getVideoPage().getPublishDate()));
                 }
                 if (d.getVideoPage().getThumbnail() != null) {
                     dto.setThumbUri(d.getVideoPage().getThumbnail().toString());
@@ -375,28 +378,13 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
                 dto.setVideoUri(d.getVideoPage().getVideoUri().toString());
                 marshaller.marshal(dto, data);
             } catch (Exception e) {
-                logger.log(LogService.LOG_ERROR,
-                        "Coulnd't save download data. Download will be lost after the next restart", e);
-            }
-        }
-    }
-
-    private void deleteDescritorFile(File videoFile) {
-        if (videoFile != null) {
-            File descriptor = new File(videoFile.getParentFile(), videoFile.getName() + ".vch");
-            logger.log(LogService.LOG_DEBUG, "Trying to delete file " + descriptor);
-            if (descriptor != null && descriptor.exists()) {
-                boolean deleted = descriptor.delete();
-                if (!deleted) {
-                    logger.log(LogService.LOG_WARNING, "Couldn't delete file " + descriptor.getAbsolutePath());
-                }
+                logger.log(LogService.LOG_ERROR, "Coulnd't save download data. Download will be lost after the next restart", e);
             }
         }
     }
 
     /**
-     * Writes a .nfo file for a given video file and description. The nfo file will have the same name as the video file
-     * plus the file extension .nfo
+     * Writes a .nfo file for a given video file and description. The nfo file will have the same name as the video file plus the file extension .nfo
      * 
      * @param videoFile
      *            The video file to write the nfo file for
@@ -435,17 +423,20 @@ public class DownloadManagerImpl implements DownloadManager, DownloadStateListen
     }
 
     /**
-     * Deletes a .nfo file for a given video file, if the nfo file exists
+     * Deletes a meta file for a given video file, if the meta file exists.
      * 
      * @param videoFile
+     *            the video file of the meta data file
+     * @param metaFileExtension
+     *            an file extension. e.g. nfo, vch or resume
      */
-    protected void deleteInfoFile(File videoFile) {
+    protected void deleteMetaFile(File videoFile, String metaFileExtension) {
         if (videoFile != null) {
-            File nfoFile = new File(videoFile.getParentFile(), videoFile.getName() + ".nfo");
-            if (nfoFile != null && nfoFile.exists()) {
-                boolean deleted = nfoFile.delete();
+            File metaFile = new File(videoFile.getParentFile(), videoFile.getName() + "." + metaFileExtension);
+            if (metaFile != null && metaFile.exists()) {
+                boolean deleted = metaFile.delete();
                 if (!deleted) {
-                    logger.log(LogService.LOG_WARNING, "Couldn't delete file " + nfoFile.getAbsolutePath());
+                    logger.log(LogService.LOG_WARNING, "Couldn't delete file " + metaFile.getAbsolutePath());
                 }
             }
         }
