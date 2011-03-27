@@ -53,7 +53,6 @@
                 <include>de.berlios.vch:osdserver</include>
                 <include>de.berlios.vch:parser</include>
                 <include>de.berlios.vch:parser.ard</include>
-                <include>de.berlios.vch:parser.console</include>
                 <include>de.berlios.vch:parser.dmax</include>
                 <include>de.berlios.vch:parser.dreisat</include>
                 <include>de.berlios.vch:parser.rss</include>
@@ -62,6 +61,7 @@
                 <include>de.berlios.vch:parser.youtube</include>
                 <include>de.berlios.vch:parser.zdf</include>
                 <include>de.berlios.vch:playlist</include>
+                <include>de.berlios.vch:playlist.web</include>
                 <include>de.berlios.vch:search</include>
                 <include>de.berlios.vch:search.ard</include>
                 <include>de.berlios.vch:search.web</include>
