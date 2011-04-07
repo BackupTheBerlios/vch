@@ -4,7 +4,7 @@
 	<artifactId>osdserver</artifactId>
 	<packaging>bundle</packaging>
 	<name>VCH osdserver</name>
-	<version>1.1.1</version>
+	<version>1.2.0-SNAPSHOT</version>
 	<description>This bundle provides an VDR osd menu with the help of the VDR osdserver-Plugin</description>
     
     <parent>

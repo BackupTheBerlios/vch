@@ -26,7 +26,7 @@ public class MessagesImpl implements Messages {
                 
                 if(msg != null) {
                     return MessageFormat.format(msg, args);
-                } 
+                }
             }
         }
         return "I18N_NOT_FOUND [" + key + "]";
