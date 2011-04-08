@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <iPOJO>
-	<instance component="de.berlios.vch.parser.sport1.Sport1Parser" name="VCH Sport1 Parser" />
+	<instance component="de.berlios.vch.parser.sport1.Sport1Parser" name="vch.parser.sport1" />
 </iPOJO>

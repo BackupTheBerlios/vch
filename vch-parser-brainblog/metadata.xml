@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <iPOJO>
-	<instance component="de.berlios.vch.parser.brainblog.BrainblogParser" name="VCH Brainblog Parser" />
+	<instance component="de.berlios.vch.parser.brainblog.BrainblogParser" name="vch.parser.brainblog" />
 </iPOJO>

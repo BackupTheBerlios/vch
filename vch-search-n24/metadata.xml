@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <iPOJO>
-    <instance component="de.berlios.vch.search.n24.N24SearchProvider" name="N24 Search Provider" />
+    <instance component="de.berlios.vch.search.n24.N24SearchProvider" name="vch.search.n24" />
 </iPOJO>

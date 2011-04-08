@@ -35,7 +35,7 @@ public class OrfSearchProvider implements ISearchProvider {
     protected static final String SEARCH_PAGE = BASE_URI + "/search?q=";
     protected static final String CHARSET = "UTF-8";
 
-    @Requires(filter = "(instance.name=VCH Orf Parser)")
+    @Requires(filter = "(instance.name=vch.parser.orf)")
     private IWebParser parser;
 
     @Override
