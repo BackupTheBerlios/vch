@@ -1,7 +1,7 @@
 #news li {
     list-style: none;
-    padding: 3px;
-    border-radius: 3px;
+    padding: 5px;
+    border-radius: 5px;
 }
 
 #news h3 {
@@ -9,5 +9,7 @@
 }
 
 #news .date {
+    margin: 0;
+    margin-top: 3px;
     font-size: 80%;	
 }

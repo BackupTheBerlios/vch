@@ -3,6 +3,7 @@ package de.berlios.vch.web.servlets;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -76,7 +77,7 @@ public class WelcomeServlet extends VchHttpServlet {
                             }
                             JSONObject json = new JSONObject();
                             json.put("title", entry.getTitle());
-                            json.put("date", entry.getPublishedDate());
+                            json.put("date", DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(entry.getPublishedDate()));
                             json.put("text", entry.getDescription().getValue());
                             json.put("link", entry.getLink());
                             resp.getWriter().print(json.toString());
