@@ -3,8 +3,10 @@ package de.berlios.vch.web.servlets;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -21,6 +23,7 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 
+import com.sun.syndication.feed.synd.SyndCategory;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.io.FeedException;
@@ -29,6 +32,7 @@ import com.sun.syndication.io.XmlReader;
 
 import de.berlios.vch.i18n.ResourceBundleProvider;
 import de.berlios.vch.web.TemplateLoader;
+import de.berlios.vch.web.WebInterface;
 import de.berlios.vch.web.menu.IWebMenuEntry;
 import de.berlios.vch.web.menu.WebMenuEntry;
 
@@ -60,17 +64,24 @@ public class WelcomeServlet extends VchHttpServlet {
                 SyndFeed feed = loadNewsFeed();
                 resp.setContentType("application/json; charset=utf-8");
                 resp.getWriter().print('[');
+                boolean first = true;
                 for (Iterator<?> iterator = feed.getEntries().iterator(); iterator.hasNext();) {
                     SyndEntry entry = (SyndEntry) iterator.next();
-                    if (entry.getCategories().contains("VCH")) {
-                        JSONObject json = new JSONObject();
-                        json.put("title", entry.getTitle());
-                        json.put("date", entry.getPublishedDate());
-                        json.put("text", entry.getDescription().getValue());
-                        json.put("link", entry.getLink());
-                        resp.getWriter().print(json.toString());
-                        if (iterator.hasNext()) {
-                            resp.getWriter().print(',');
+                    List<?> categories = entry.getCategories();
+                    for (Iterator<?> cats = categories.iterator(); cats.hasNext();) {
+                        SyndCategory category = (SyndCategory) cats.next();
+                        if ("vch".equalsIgnoreCase(category.getName())) {
+                            if (!first) {
+                                resp.getWriter().print(',');
+                            }
+                            JSONObject json = new JSONObject();
+                            json.put("title", entry.getTitle());
+                            json.put("date", entry.getPublishedDate());
+                            json.put("text", entry.getDescription().getValue());
+                            json.put("link", entry.getLink());
+                            resp.getWriter().print(json.toString());
+                            first = false;
+                            break;
                         }
                     }
                 }
@@ -82,6 +93,12 @@ public class WelcomeServlet extends VchHttpServlet {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("TITLE", rbp.getResourceBundle().getString("I18N_WELCOME"));
             params.put("SERVLET_URI", PATH);
+
+            // add additional css
+            List<String> css = new ArrayList<String>();
+            css.add(WebInterface.STATIC_PATH + "/news.css");
+            params.put("CSS_INCLUDES", css);
+
             String page = templateLoader.loadTemplate("welcome.ftl", params);
             resp.getWriter().print(page);
         }

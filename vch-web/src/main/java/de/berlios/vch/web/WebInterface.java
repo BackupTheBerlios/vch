@@ -37,7 +37,7 @@ public class WebInterface implements ResourceBundleProvider {
 
     private BundleContext ctx;
 
-    private static final String STATIC_PATH = "/static";
+    public static final String STATIC_PATH = "/static";
 
     private List<ServiceRegistration> menuRegs = new ArrayList<ServiceRegistration>();
 

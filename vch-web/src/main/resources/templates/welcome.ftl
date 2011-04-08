@@ -27,10 +27,10 @@ $.ajax({
                 var item = response[i];
     
                 var li = document.createElement('li');
+                li.setAttribute('class', i%2==0 ? 'odd' : 'even');
                 $(li).append('<h3>'+item.title+'</h3>');
-                $(li).append(' - '+item.date);
-                $(li).append('<p>'+item.text);
-                $(li).append(' <a href="'+item.link+'">${I18N_READ_MORE}</a></p>');
+                $(li).append('<p class="date">'+item.date+'</p>');
+                $(li).append('<p class="text">'+item.text+'</p><p><a href="'+item.link+'">${I18N_READ_MORE}</a></p>');
                 
                 $('#news ul').append($(li));    
             }
