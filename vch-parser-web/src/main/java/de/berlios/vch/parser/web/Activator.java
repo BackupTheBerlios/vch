@@ -58,7 +58,7 @@ public class Activator implements ResourceBundleProvider {
                 IWebParser parser = (IWebParser) ctx.getService(reference);
                 IWebMenuEntry parserEntry = new WebMenuEntry(getResourceBundle().getString("I18N_BROWSE"));
                 parserEntry.setLinkUri("#");
-                parserEntry.setPreferredPosition(Integer.MIN_VALUE);
+                parserEntry.setPreferredPosition(Integer.MIN_VALUE + 1);
                 SortedSet<IWebMenuEntry> childs = new TreeSet<IWebMenuEntry>();
                 IWebMenuEntry entry = new WebMenuEntry();
                 entry.setTitle(parser.getTitle());

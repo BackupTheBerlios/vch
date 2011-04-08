@@ -196,7 +196,7 @@ public class ConfigServlet extends VchHttpServlet {
     private void registerMenu() {
         // register web interface menu
         IWebMenuEntry menu = new WebMenuEntry(rbp.getResourceBundle().getString("I18N_BROWSE"));
-        menu.setPreferredPosition(Integer.MIN_VALUE);
+        menu.setPreferredPosition(Integer.MIN_VALUE + 1);
         menu.setLinkUri("#");
         SortedSet<IWebMenuEntry> childs = new TreeSet<IWebMenuEntry>();
         IWebMenuEntry entry = new WebMenuEntry();

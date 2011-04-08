@@ -30,6 +30,12 @@ public abstract class VchHttpServlet extends HttpServlet {
         }
     }
 
+    protected void unregisterServices() {
+        for (ServiceRegistration reg : serviceRegs) {
+            unregisterService(reg);
+        }
+    }
+
     @Override
     final protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("text/html;charset=UTF-8");

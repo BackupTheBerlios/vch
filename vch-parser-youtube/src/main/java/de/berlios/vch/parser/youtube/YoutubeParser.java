@@ -111,16 +111,14 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider, FeedCo
             IOverviewPage favorites = new OverviewPage();
             favorites.setParser(getId());
             favorites.setTitle(getResourceBundle().getString("I18N_FAVORITES"));
-            favorites.setUri(new URI("http://gdata.youtube.com/feeds/base/users/" + urlEncodedUser
-                    + "/favorites?alt=rss"));
+            favorites.setUri(new URI("http://gdata.youtube.com/feeds/base/users/" + urlEncodedUser + "/favorites?alt=rss"));
             userPage.getPages().add(favorites);
 
             // add playlists
             IOverviewPage playlists = new OverviewPage();
             playlists.setParser(getId());
             playlists.setTitle(getResourceBundle().getString("I18N_PLAYLISTS"));
-            playlists.setUri(new URI("http://gdata.youtube.com/feeds/base/users/" + urlEncodedUser
-                    + "/playlists?alt=rss"));
+            playlists.setUri(new URI("http://gdata.youtube.com/feeds/base/users/" + urlEncodedUser + "/playlists?alt=rss"));
             userPage.getPages().add(playlists);
 
             // add subscriptions
@@ -128,8 +126,7 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider, FeedCo
             subscriptions.setParser(getId());
             subscriptions.setTitle(getResourceBundle().getString("I18N_SUBSCRIPTIONS"));
             userPage.getPages().add(subscriptions);
-            subscriptions.setUri(new URI("http://gdata.youtube.com/feeds/api/users/" + urlEncodedUser
-                    + "/subscriptions?alt=rss"));
+            subscriptions.setUri(new URI("http://gdata.youtube.com/feeds/api/users/" + urlEncodedUser + "/subscriptions?alt=rss"));
 
             // add uploads
             IOverviewPage uploads = new OverviewPage();
@@ -154,12 +151,10 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider, FeedCo
         } else if (page instanceof IOverviewPage) {
             if ("youtube".equals(page.getUri().getScheme())) {
                 return page;
-            } else if (page.getUri().getPath().endsWith("playlists")
-                    || page.getUri().getPath().endsWith("subscriptions")) {
+            } else if (page.getUri().getPath().endsWith("playlists") || page.getUri().getPath().endsWith("subscriptions")) {
                 /*
-                 * We first parse the page as a normal feed, but we will get an IOverviewPage with IVideoPage childs.
-                 * But the playlists / subscriptions have children, too, so we have to transform the IVideoPages to
-                 * IOverviewPages
+                 * We first parse the page as a normal feed, but we will get an IOverviewPage with IVideoPage childs. But the playlists / subscriptions have
+                 * children, too, so we have to transform the IVideoPages to IOverviewPages
                  */
                 IOverviewPage feedPage = parseFeed(page.getUri());
                 feedPage.setTitle(page.getTitle());
@@ -174,8 +169,7 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider, FeedCo
                     newSubscriptions.setTitle(getResourceBundle().getString("I18N_NEW_SUBSCRIPTIONS"));
                     String user = prefs.get("user", "");
                     String urlEncodedUser = URLEncoder.encode(user, "UTF-8");
-                    newSubscriptions.setUri(new URI("http://gdata.youtube.com/feeds/base/users/" + urlEncodedUser
-                            + "/newsubscriptionvideos?alt=rss"));
+                    newSubscriptions.setUri(new URI("http://gdata.youtube.com/feeds/base/users/" + urlEncodedUser + "/newsubscriptionvideos?alt=rss"));
                     feedPage.getPages().add(0, newSubscriptions);
                 }
 
@@ -250,8 +244,7 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider, FeedCo
         feedPage.getPages().addAll(newPages);
     }
 
-    public IOverviewPage parseFeed(URI feedURI) throws IOException, ParserException, IllegalArgumentException,
-            FeedException, URISyntaxException {
+    public IOverviewPage parseFeed(URI feedURI) throws IOException, ParserException, IllegalArgumentException, FeedException, URISyntaxException {
         // RSS in das SyndFeed Object Parsen
         SyndFeed feed = RssParser.parseUri(feedURI.toString());
         String title = feed.getTitle();
@@ -321,8 +314,7 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider, FeedCo
                     if ("username".equals(element.getName()) && "yt".equals(element.getNamespacePrefix())) {
                         String username = element.getTextTrim().toLowerCase();
                         String urlEncodedUser = URLEncoder.encode(username, "UTF-8");
-                        URI uri = new URI("http://gdata.youtube.com/feeds/base/users/" + urlEncodedUser
-                                + "/uploads?alt=rss");
+                        URI uri = new URI("http://gdata.youtube.com/feeds/base/users/" + urlEncodedUser + "/uploads?alt=rss");
                         video.setUri(uri);
                     }
                 }
@@ -343,7 +335,7 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider, FeedCo
     private void registerMenu() {
         // register web interface menu
         IWebMenuEntry menu = new WebMenuEntry(getResourceBundle().getString("I18N_BROWSE"));
-        menu.setPreferredPosition(Integer.MIN_VALUE);
+        menu.setPreferredPosition(Integer.MIN_VALUE + 1);
         menu.setLinkUri("#");
         SortedSet<IWebMenuEntry> childs = new TreeSet<IWebMenuEntry>();
         IWebMenuEntry entry = new WebMenuEntry();
@@ -444,8 +436,7 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider, FeedCo
 
                 logger.log(LogService.LOG_DEBUG, "Found key value pair: " + key + "," + value);
                 if (parameters.containsKey(key)) {
-                    logger.log(LogService.LOG_DEBUG,
-                            "Key already exists. Assuming array of values. Will bes tored in a list");
+                    logger.log(LogService.LOG_DEBUG, "Key already exists. Assuming array of values. Will bes tored in a list");
                     Object o = parameters.get(key);
                     if (o instanceof List) {
                         @SuppressWarnings("unchecked")

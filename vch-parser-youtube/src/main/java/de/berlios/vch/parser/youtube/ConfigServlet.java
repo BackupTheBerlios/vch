@@ -86,9 +86,7 @@ public class ConfigServlet extends VchHttpServlet {
                 addNotify(req, new NotifyMessage(TYPE.INFO, rbp.getResourceBundle().getString("I18N_FEED_ADDED")));
             } catch (Exception e) {
                 logger.log(LogService.LOG_ERROR, rbp.getResourceBundle().getString("I18N_ERROR_COULDNT_PARSE_FEED"), e);
-                addNotify(req,
-                        new NotifyMessage(TYPE.ERROR, rbp.getResourceBundle()
-                                .getString("I18N_ERROR_COULDNT_PARSE_FEED"), e));
+                addNotify(req, new NotifyMessage(TYPE.ERROR, rbp.getResourceBundle().getString("I18N_ERROR_COULDNT_PARSE_FEED"), e));
             }
         } else if (req.getParameter("remove_feeds") != null) {
             String[] feeds = req.getParameterValues("feeds");
@@ -103,8 +101,7 @@ public class ConfigServlet extends VchHttpServlet {
         }
 
         params.put("TITLE", rbp.getResourceBundle().getString("I18N_YOUTUBE_CONFIG"));
-        params.put("SERVLET_URI",
-                req.getScheme() + "://" + req.getServerName() + ":" + req.getServerPort() + req.getServletPath());
+        params.put("SERVLET_URI", req.getScheme() + "://" + req.getServerName() + ":" + req.getServerPort() + req.getServletPath());
         params.put("FEEDS", feedConfig.getFeeds());
         params.put("ACTION", PATH);
         params.put("QUALITY", prefs.getInt("video.quality", 34));
@@ -133,7 +130,7 @@ public class ConfigServlet extends VchHttpServlet {
 
         // register web interface menu
         IWebMenuEntry menu = new WebMenuEntry(rbp.getResourceBundle().getString("I18N_BROWSE"));
-        menu.setPreferredPosition(Integer.MIN_VALUE);
+        menu.setPreferredPosition(Integer.MIN_VALUE + 1);
         menu.setLinkUri("#");
         SortedSet<IWebMenuEntry> childs = new TreeSet<IWebMenuEntry>();
         IWebMenuEntry entry = new WebMenuEntry();

@@ -46,22 +46,22 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
 
     @Requires
     private ConfigService cs;
-    
+
     private Preferences prefs;
-    
+
     @Requires
     private LogService logger;
-    
+
     private BundleContext ctx;
-    
+
     private ResourceBundle resourceBundle;
-    
+
     private ServiceRegistration menuReg;
-    
+
     public RssFeedParser(BundleContext ctx) {
         this.ctx = ctx;
     }
-    
+
     @Override
     public String getId() {
         return RssFeedParser.class.getName();
@@ -90,16 +90,16 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
 
     @Override
     public IWebPage parse(IWebPage page) throws Exception {
-        if(page instanceof VideoPage) {
+        if (page instanceof VideoPage) {
             return page;
         } else {
             String feedUri = page.getUri().toString();
             logger.log(LogService.LOG_INFO, "Parsing rss feed " + feedUri);
-            //String rss = HttpUtils.get(feedUri, null, "UTF-8");
+            // String rss = HttpUtils.get(feedUri, null, "UTF-8");
             SyndFeed feed = RssParser.parseUri(feedUri);
             feed.setLink(feedUri);
             feed.setTitle(page.getTitle());
-            
+
             OverviewPage feedPage = new OverviewPage();
             feedPage.setParser(getId());
             feedPage.setTitle(page.getTitle());
@@ -113,42 +113,43 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
                 Calendar pubCal = Calendar.getInstance();
                 pubCal.setTime(entry.getPublishedDate());
                 video.setPublishDate(pubCal);
-                video.setVideoUri( new URI( ((SyndEnclosure)entry.getEnclosures().get(0)).getUrl() ) );
-                if(entry.getLink() != null) {
+                video.setVideoUri(new URI(((SyndEnclosure) entry.getEnclosures().get(0)).getUrl()));
+                if (entry.getLink() != null) {
                     video.setUri(new URI(entry.getLink()));
                 } else {
                     video.setUri(video.getVideoUri());
                 }
-                
+
                 // look, if we have a duration in the foreign markup
                 @SuppressWarnings("unchecked")
-                List<Element> fm = (List<Element>)entry.getForeignMarkup();
+                List<Element> fm = (List<Element>) entry.getForeignMarkup();
                 for (Element element : fm) {
-                    if("duration".equals(element.getName())) {
+                    if ("duration".equals(element.getName())) {
                         try {
                             video.setDuration(Long.parseLong(element.getText()));
-                        } catch(Exception e) {}
+                        } catch (Exception e) {
+                        }
                     }
                 }
-                
+
                 // add the entry to the overview page
                 feedPage.getPages().add(video);
             }
             return feedPage;
         }
     }
-    
+
     @Validate
     public void start() {
         prefs = cs.getUserPreferences(ctx.getBundle().getSymbolicName());
         registerServlet();
     }
-    
+
     private void registerServlet() {
         try {
             // register web interface menu
             IWebMenuEntry menu = new WebMenuEntry(getResourceBundle().getString("I18N_BROWSE"));
-            menu.setPreferredPosition(Integer.MIN_VALUE);
+            menu.setPreferredPosition(Integer.MIN_VALUE + 1);
             menu.setLinkUri("#");
             SortedSet<IWebMenuEntry> childs = new TreeSet<IWebMenuEntry>();
             IWebMenuEntry entry = new WebMenuEntry();
@@ -161,11 +162,6 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
             open.setTitle(getResourceBundle().getString("I18N_OPEN"));
             open.setLinkUri(entry.getLinkUri());
             childs.add(open);
-            IWebMenuEntry config = new WebMenuEntry();
-            config.setTitle(getResourceBundle().getString("I18N_CONFIGURATION"));
-            config.setLinkUri(ConfigServlet.PATH);
-            config.setPreferredPosition(Integer.MAX_VALUE);
-            childs.add(config);
             entry.setChilds(childs);
             menuReg = ctx.registerService(IWebMenuEntry.class.getName(), menu, null);
         } catch (Exception e) {
@@ -176,9 +172,9 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
     @Invalidate
     public void stop() {
         prefs = null;
-        
+
         // unregister web menu
-        if(menuReg != null) {
+        if (menuReg != null) {
             menuReg.unregister();
         }
     }
@@ -200,10 +196,10 @@ public class RssFeedParser implements IWebParser, ResourceBundleProvider {
         Collections.sort(feeds);
         return feeds;
     }
-    
+
     @Override
     public ResourceBundle getResourceBundle() {
-        if(resourceBundle == null) {
+        if (resourceBundle == null) {
             try {
                 logger.log(LogService.LOG_DEBUG, "Loading resource bundle for " + getClass().getSimpleName());
                 resourceBundle = ResourceBundleLoader.load(ctx, Locale.getDefault());
