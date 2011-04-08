@@ -3,9 +3,11 @@ package de.berlios.vch.download.rtmp;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -40,7 +42,7 @@ public class RtmpDownload extends AbstractDownload {
 
     private BandwidthMeterHandler bandwidthMeterHandler;
 
-    public RtmpDownload(IVideoPage video, LogService logger) throws URISyntaxException {
+    public RtmpDownload(IVideoPage video, LogService logger) throws URISyntaxException, UnsupportedEncodingException {
         super(video);
         this.logger = logger;
 
@@ -58,11 +60,14 @@ public class RtmpDownload extends AbstractDownload {
         // host
         host = uri.getHost();
 
-        // app
+        // streamName
         streamName = (String) video.getUserData().get("streamName");
+        streamName = URLDecoder.decode(streamName, "UTF-8");
+        streamName = streamName.replace(' ', '+');
+
+        // app
         logger.log(LogService.LOG_INFO, "Stream Name: " + streamName);
-        app = uri.getPath() + (uri.getQuery() != null ? "?" + uri.getQuery() : "")
-                + (uri.getFragment() != null ? "#" + uri.getFragment() : "");
+        app = uri.getPath() + (uri.getQuery() != null ? "?" + uri.getQuery() : "") + (uri.getFragment() != null ? "#" + uri.getFragment() : "");
         app = app.substring(1); // cut off the leading /
         int pos = app.indexOf(streamName);
         if (streamName.startsWith("mp4:")) {
@@ -71,8 +76,8 @@ public class RtmpDownload extends AbstractDownload {
             }
         }
         app = app.substring(0, pos);
-        if(app.endsWith("/")) {
-            app = app.substring(0, app.length()-1);
+        if (app.endsWith("/")) {
+            app = app.substring(0, app.length() - 1);
         }
         logger.log(LogService.LOG_INFO, "app: " + app);
 
@@ -81,7 +86,7 @@ public class RtmpDownload extends AbstractDownload {
             swfUri = new URI(video.getUserData().get("swfUri").toString());
             logger.log(LogService.LOG_INFO, "swfUrl: " + swfUri);
         }
-        
+
         // pageUrl
         if (video.getUserData().get("pageUrl") != null) {
             pageUri = video.getUserData().get("pageUrl").toString();
@@ -212,9 +217,9 @@ public class RtmpDownload extends AbstractDownload {
                     logger.log(LogService.LOG_ERROR, "Couldn't initialize SWF verification", e);
                 }
             }
-            if(pageUri != null) {
+            if (pageUri != null) {
                 Map<String, Object> params = options.getParams();
-                if(params == null) {
+                if (params == null) {
                     params = new HashMap<String, Object>();
                     options.setParams(params);
                 }
@@ -222,8 +227,7 @@ public class RtmpDownload extends AbstractDownload {
             }
             options.setWriterToSave(writer);
             logger.log(LogService.LOG_INFO, "Starting download: " + host + " " + app + " " + streamName);
-            final ClientBootstrap bootstrap = getBootstrap(Executors.newCachedThreadPool(), bandwidthMeterHandler,
-                    options);
+            final ClientBootstrap bootstrap = getBootstrap(Executors.newCachedThreadPool(), bandwidthMeterHandler, options);
             final ChannelFuture future = bootstrap.connect(new InetSocketAddress(options.getHost(), options.getPort()));
             future.awaitUninterruptibly();
             if (!future.isSuccess()) {
@@ -245,8 +249,7 @@ public class RtmpDownload extends AbstractDownload {
         }
     }
 
-    public static ClientBootstrap getBootstrap(final Executor executor,
-            final BandwidthMeterHandler bandwidthMeterHandler, final ClientOptions options) {
+    public static ClientBootstrap getBootstrap(final Executor executor, final BandwidthMeterHandler bandwidthMeterHandler, final ClientOptions options) {
         final ChannelFactory factory = new NioClientSocketChannelFactory(executor, executor);
         final ClientBootstrap bootstrap = new ClientBootstrap(factory);
         bootstrap.setPipelineFactory(new RtmpPipelineFactory(bandwidthMeterHandler, options));

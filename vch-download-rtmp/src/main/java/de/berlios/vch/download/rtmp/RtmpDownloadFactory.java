@@ -1,5 +1,6 @@
 package de.berlios.vch.download.rtmp;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 
 import org.apache.felix.ipojo.annotations.Component;
@@ -28,16 +29,15 @@ public class RtmpDownloadFactory implements DownloadFactory {
 
     @Override
     public boolean accept(IVideoPage video) {
-        if(valid && video.getVideoUri() != null) {
-            return "rtmp".equals(video.getVideoUri().getScheme())
-            || "rtmpt".equals(video.getVideoUri().getScheme())
-            || "rtmpe".equals(video.getVideoUri().getScheme());
+        if (valid && video.getVideoUri() != null) {
+            return "rtmp".equals(video.getVideoUri().getScheme()) || "rtmpt".equals(video.getVideoUri().getScheme())
+                    || "rtmpe".equals(video.getVideoUri().getScheme());
         }
         return false;
     }
 
     @Override
-    public Download createDownload(IVideoPage page) throws URISyntaxException {
+    public Download createDownload(IVideoPage page) throws URISyntaxException, UnsupportedEncodingException {
         return new RtmpDownload(page, logger);
     }
 
