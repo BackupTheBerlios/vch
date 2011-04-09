@@ -36,7 +36,7 @@ import de.berlios.vch.uri.IVchUriResolver;
 @Provides
 public class ParserService implements IParserService, IVchUriResolver, ResourceBundleProvider {
 
-    private Cache<String, IWebPage> cache = new Cache<String, IWebPage>(1000, 5, TimeUnit.MINUTES);
+    private Cache<String, IWebPage> cache = new Cache<String, IWebPage>("Page Hierarchy Cache", 10000, 5, TimeUnit.MINUTES);
 
     @Requires
     private LogService logger;
@@ -104,8 +104,8 @@ public class ParserService implements IParserService, IVchUriResolver, ResourceB
                         cache.put(md5, subpage);
                     }
                 } else {
-                    logger.log(LogService.LOG_ERROR, "Page URI of page " + page.getTitle() + "/" + subpage.getTitle()
-                            + "[" + page.getParser() + "] is null. Please fix the parser.");
+                    logger.log(LogService.LOG_ERROR, "Page URI of page " + page.getTitle() + "/" + subpage.getTitle() + "[" + page.getParser()
+                            + "] is null. Please fix the parser.");
                 }
             }
         }
@@ -200,8 +200,7 @@ public class ParserService implements IParserService, IVchUriResolver, ResourceB
                             // now we can retrieve the desired page from the cache
                             page = cache.get(md5Uri);
                         } else {
-                            throw new Exception("Parent page " + md5Uri
-                                    + " is part of the path, but seems to be an IVideoPage");
+                            throw new Exception("Parent page " + md5Uri + " is part of the path, but seems to be an IVideoPage");
                         }
                     }
 
