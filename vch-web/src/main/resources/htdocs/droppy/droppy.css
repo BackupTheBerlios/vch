@@ -18,6 +18,6 @@
 
 /* Everything else is theming */
 
-.droppy { height: 24px; width: 50%; }
+.droppy { height: 24px; }
 .droppy a { font-size: 12px; padding: 6px; line-height: 1; }
   .droppy ul { top: 24px; }
