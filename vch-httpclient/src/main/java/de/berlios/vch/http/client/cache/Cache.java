@@ -12,31 +12,38 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Cache<K, V> implements Map<K, V> {
-    
+
     private static transient Logger logger = LoggerFactory.getLogger(Cache.class);
 
     private int maxSize;
-    
+
     private int expiringPeriod;
-    
+
     private TimeUnit timeUnit;
-    
+
+    private String name;
+
     private Hashtable<K, V> hashtable = new Hashtable<K, V>();
-    
+
     private Map<K, Long> insertTime = new HashMap<K, Long>();
-    
-    private Map<K, Long> lastUsed = new HashMap<K, Long>(); 
-    
+
+    private Map<K, Long> lastUsed = new HashMap<K, Long>();
+
     public Cache(int maxSize, int expiringPeriod, TimeUnit timeUnit) {
+        this("Unnamed Cache", maxSize, expiringPeriod, timeUnit);
+    }
+
+    public Cache(String name, int maxSize, int expiringPeriod, TimeUnit timeUnit) {
+        this.name = name;
         this.maxSize = maxSize;
         this.expiringPeriod = expiringPeriod;
         this.timeUnit = timeUnit;
     }
-    
+
     @Override
     public boolean containsKey(Object key) {
-        if(hashtable.containsKey(key)) {
-            if(isExpired(key)) {
+        if (hashtable.containsKey(key)) {
+            if (isExpired(key)) {
                 remove(key);
                 return false;
             } else {
@@ -50,9 +57,9 @@ public class Cache<K, V> implements Map<K, V> {
     @Override
     public boolean containsValue(Object value) {
         for (Entry<K, V> entry : entrySet()) {
-            if(entry.getValue().equals(value)) {
+            if (entry.getValue().equals(value)) {
                 K key = entry.getKey();
-                if(isExpired(key)) {
+                if (isExpired(key)) {
                     remove(key);
                     return false;
                 } else {
@@ -74,21 +81,21 @@ public class Cache<K, V> implements Map<K, V> {
         for (Iterator<Entry<K, V>> iterator = hashtable.entrySet().iterator(); iterator.hasNext();) {
             Entry<K, V> entry = iterator.next();
             K key = entry.getKey();
-            if( isExpired(key) ) {
-                logger.trace("Evicting {}. It got too old.", key);
+            if (isExpired(key)) {
+                logger.trace("[{}] Evicting {}. It got too old.", name, key);
                 iterator.remove();
                 lastUsed.remove(key);
                 insertTime.remove(key);
             }
         }
     }
-    
+
     private boolean isExpired(Object key) {
         long _insertTime = insertTime.get(key);
         long now = System.currentTimeMillis();
         return (now - _insertTime) > timeUnit.toMillis(expiringPeriod);
     }
-    
+
     @Override
     @SuppressWarnings("unchecked")
     public V get(Object key) {
@@ -98,7 +105,7 @@ public class Cache<K, V> implements Map<K, V> {
                 remove(key);
                 return null;
             } else {
-                lastUsed.put((K)key, System.currentTimeMillis());
+                lastUsed.put((K) key, System.currentTimeMillis());
                 return v;
             }
         } else {
@@ -118,13 +125,13 @@ public class Cache<K, V> implements Map<K, V> {
         insertTime.put(key, now);
         lastUsed.put(key, now);
         V v = hashtable.put(key, value);
-        if(hashtable.size() > maxSize) {
+        if (hashtable.size() > maxSize) {
             evict();
-            if(hashtable.size() > maxSize) {
+            if (hashtable.size() > maxSize) {
                 removeLRU();
             }
         }
-        return v; 
+        return v;
     }
 
     private void removeLRU() {
@@ -132,13 +139,13 @@ public class Cache<K, V> implements Map<K, V> {
         long lruTime = Long.MAX_VALUE;
         K lruKey = null;
         for (Entry<K, Long> entry : lastUsed.entrySet()) {
-            if(entry.getValue() < lruTime) {
+            if (entry.getValue() < lruTime) {
                 lruTime = entry.getValue();
                 lruKey = entry.getKey();
             }
         }
-        
-        logger.trace("Removing LRU {}.", lruKey);
+
+        logger.trace("[{}] Removing LRU {}.", name, lruKey);
         remove(lruKey);
     }
 
@@ -148,7 +155,7 @@ public class Cache<K, V> implements Map<K, V> {
             put(entry.getKey(), entry.getValue());
         }
     }
-    
+
     @Override
     public synchronized boolean isEmpty() {
         evict();

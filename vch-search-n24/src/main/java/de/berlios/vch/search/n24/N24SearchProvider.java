@@ -52,7 +52,7 @@ public class N24SearchProvider implements ISearchProvider {
 
     private List<String> supportedProtocols = new ArrayList<String>();
 
-    private Cache<String, IVideoPage> resultCache = new Cache<String, IVideoPage>(20, 5, TimeUnit.MINUTES);
+    private Cache<String, IVideoPage> resultCache = new Cache<String, IVideoPage>("N24 Search Result Cache", 20, 5, TimeUnit.MINUTES);
 
     @Override
     public String getName() {
