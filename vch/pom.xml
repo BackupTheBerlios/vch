@@ -42,6 +42,7 @@
         <module>../vch-parser-lindenstrasse</module>
         <module>../vch-parser-n24</module>
         <module>../vch-parser-orf</module>
+        <module>../vch-parser-prosieben</module>
         <module>../vch-parser-rss</module>
         <module>../vch-parser-service</module>
         <module>../vch-parser-servustv</module>
