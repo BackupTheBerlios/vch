@@ -34,9 +34,6 @@ public class ProsiebenParser implements IWebParser {
     private static final String BASE_URI = "http://pro7_api.cellmp.de";
     private static final String CATEGORY_URI = BASE_URI + "/2.0/getCategories.php?device=android";
     private static final String PROGRAM_URI = BASE_URI + "/2.0/getClips.php?device=android&category=";
-
-    // /2.0/getClips.php?device=android&category=25413
-
     public static Map<String, String> HTTP_HEADERS = new HashMap<String, String>();
     static {
         HTTP_HEADERS.put("User-Agent", "Apache-HttpClient/UNAVAILABLE (java 1.4)");
