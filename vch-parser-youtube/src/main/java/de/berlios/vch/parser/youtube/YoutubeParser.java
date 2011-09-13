@@ -246,6 +246,7 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider, FeedCo
 
     public IOverviewPage parseFeed(URI feedURI) throws IOException, ParserException, IllegalArgumentException, FeedException, URISyntaxException {
         // RSS in das SyndFeed Object Parsen
+        logger.log(LogService.LOG_DEBUG, "Trying to load page " + feedURI);
         SyndFeed feed = RssParser.parseUri(feedURI.toString());
         String title = feed.getTitle();
         feed.setTitle("Youtube - " + title);

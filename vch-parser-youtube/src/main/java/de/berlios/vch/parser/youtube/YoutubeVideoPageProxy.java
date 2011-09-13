@@ -1,5 +1,8 @@
 package de.berlios.vch.parser.youtube;
+
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,59 +17,57 @@ import org.osgi.service.log.LogService;
 import de.berlios.vch.http.client.HttpUtils;
 import de.berlios.vch.parser.VideoPage;
 
-
 public class YoutubeVideoPageProxy extends VideoPage {
-    
+
     private LogService logger;
-    
+
     private Preferences prefs;
-    
+
     public YoutubeVideoPageProxy(LogService logger, Preferences prefs) {
         this.logger = logger;
         this.prefs = prefs;
     }
-    
+
     @Override
     public URI getVideoUri() {
         String link = getUri().toString();
         return parseOnDemand(link);
     }
-    
-    private URI parseOnDemand (String videoLink) {
+
+    private URI parseOnDemand(String videoLink) {
         logger.log(LogService.LOG_DEBUG, "Getting video link for " + videoLink);
-        
+
         URI medialink = null;
         try {
             Map<String, String> params = new HashMap<String, String>();
             params.put("Accept-Encoding", "gzip");
             String pageContent = HttpUtils.get(videoLink, params, "UTF-8");
-            
+
             StringTokenizer st = new StringTokenizer(pageContent, "\n");
-            while(st.hasMoreTokens()) {
+            while (st.hasMoreTokens()) {
                 String line = st.nextToken();
-                if (line.contains("var swfConfig")) {
-//                    logger.log(LogService.LOG_DEBUG, line);
+                if (line.contains("PLAYER_CONFIG")) {
+                    // logger.log(LogService.LOG_DEBUG, line);
                     int openingBracket = line.indexOf('{');
                     String jsonObjectString = line.substring(openingBracket).trim();
                     JSONObject jsonObject = new JSONObject(jsonObjectString);
-//                    for (Iterator iterator = jsonObject.sortedKeys(); iterator.hasNext();) {
-//                        String key = (String) iterator.next();
-//                        System.out.println(key + " = " + jsonObject.get(key));
-//                    }
+                    // for (Iterator iterator = jsonObject.sortedKeys(); iterator.hasNext();) {
+                    // String key = (String) iterator.next();
+                    // System.out.println(key + " = " + jsonObject.get(key));
+                    // }
                     JSONObject args = (JSONObject) jsonObject.get("args");
                     List<Integer> formatList = getFormatList(args);
                     logger.log(LogService.LOG_DEBUG, "The following formats are available " + formatList);
                     int format = prefs.getInt("video.quality", 34);
-                    if(!formatList.contains(format)) {
-                        logger.log(LogService.LOG_INFO, "Video is not available in preferred format " + format
-                                + ". Using format " + formatList.get(0));
+                    if (!formatList.contains(format)) {
+                        logger.log(LogService.LOG_INFO, "Video is not available in preferred format " + format + ". Using format " + formatList.get(0));
                         format = formatList.get(0);
                     }
-                    
-                    Map<Integer, String> streamUris = getFormatStreamMap(args);
+
+                    Map<Integer, String> streamUris = getFormatStreamMap(formatList, args);
                     String streamUri = streamUris.get(format);
                     medialink = new URI(streamUri);
-                    
+
                     // parse duration
                     try {
                         long duration = args.getLong("length_seconds");
@@ -74,13 +75,15 @@ public class YoutubeVideoPageProxy extends VideoPage {
                     } catch (Exception e) {
                         logger.log(LogService.LOG_WARNING, "Couldn't parse video duration");
                     }
+
+                    break;
                 }
             }
         } catch (Exception e) {
-            logger.log(LogService.LOG_ERROR, "Couldn't parse Youtube video page", e);            
+            logger.log(LogService.LOG_ERROR, "Couldn't parse Youtube video page", e);
         }
 
-        return medialink; 
+        return medialink;
     }
 
     private List<Integer> getFormatList(JSONObject args) throws JSONException {
@@ -94,16 +97,19 @@ public class YoutubeVideoPageProxy extends VideoPage {
         }
         return result;
     }
-    
-    private Map<Integer, String> getFormatStreamMap(JSONObject args ) throws JSONException {
+
+    private Map<Integer, String> getFormatStreamMap(List<Integer> formatList, JSONObject args) throws JSONException, UnsupportedEncodingException {
         Map<Integer, String> result = new HashMap<Integer, String>();
-        String formatStreamMap = args.getString("fmt_stream_map");
+        String formatStreamMap = args.getString("url_encoded_fmt_stream_map");
         String[] formats = formatStreamMap.split(",");
-        for (String format : formats) {
-            String[] tokens = format.split("\\|");
-            String formatId = tokens[0];
-            String streamUri = tokens[1];
-            result.put(Integer.parseInt(formatId), streamUri);
+        for (int i = 0; i < formats.length; i++) {
+            String format = URLDecoder.decode(formats[i], "UTF-8");
+            String streamUri = format.substring(4);
+            if (streamUri.contains(";")) {
+                streamUri = streamUri.substring(0, streamUri.indexOf(';'));
+            }
+            logger.log(LogService.LOG_DEBUG, "Found stream uri " + streamUri);
+            result.put(formatList.get(i), streamUri);
         }
         return result;
     }
