@@ -5,8 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.URI;
-import java.util.UUID;
 
 import org.apache.mina.core.future.IoFuture;
 import org.apache.mina.core.future.IoFutureListener;
@@ -16,19 +16,13 @@ import org.apache.mina.core.session.IoSession;
 import org.hampelratte.net.mms.asf.io.ASFInputStream;
 import org.hampelratte.net.mms.asf.objects.ASFFilePropertiesObject;
 import org.hampelratte.net.mms.asf.objects.ASFToplevelHeader;
-import org.hampelratte.net.mms.client.MMSClient;
-import org.hampelratte.net.mms.client.MMSNegotiator;
+import org.hampelratte.net.mms.client.Client;
 import org.hampelratte.net.mms.client.listeners.MMSMessageListener;
 import org.hampelratte.net.mms.client.listeners.MMSPacketListener;
 import org.hampelratte.net.mms.data.MMSHeaderPacket;
 import org.hampelratte.net.mms.data.MMSMediaPacket;
 import org.hampelratte.net.mms.data.MMSPacket;
 import org.hampelratte.net.mms.messages.MMSMessage;
-import org.hampelratte.net.mms.messages.client.Connect;
-import org.hampelratte.net.mms.messages.client.ConnectFunnel;
-import org.hampelratte.net.mms.messages.client.OpenFile;
-import org.hampelratte.net.mms.messages.client.ReadBlock;
-import org.hampelratte.net.mms.messages.client.StreamSwitch;
 import org.hampelratte.net.mms.messages.server.ReportEndOfStream;
 import org.hampelratte.net.mms.messages.server.ReportStreamSwitch;
 import org.osgi.service.log.LogService;
@@ -46,9 +40,7 @@ public class MmsDownload extends AbstractDownload implements MMSMessageListener,
     private String file;
     private File localFile;
 
-    protected MMSClient client;
-
-    private MMSNegotiator negotiator;
+    protected Client client;
 
     private MMSHeaderPacket hp;
 
@@ -76,41 +68,6 @@ public class MmsDownload extends AbstractDownload implements MMSMessageListener,
         return progress;
     }
 
-    private MMSNegotiator createNegotiator() {
-        MMSNegotiator negotiator = new MMSNegotiator();
-
-        // connect
-        Connect connect = new Connect();
-        connect.setPlayerInfo("NSPlayer/7.0.0.1956");
-        connect.setGuid(UUID.randomUUID().toString());
-        connect.setHost(host);
-        negotiator.setConnect(connect);
-
-        // connect funnel
-        ConnectFunnel cf = new ConnectFunnel();
-        cf.setIpAddress("192.168.0.1");
-        cf.setProtocol("TCP");
-        cf.setPort("1037");
-        negotiator.setConnectFunnel(cf);
-
-        // open file
-        OpenFile of = new OpenFile();
-        of.setFileName(path + file);
-        negotiator.setOpenFile(of);
-
-        // read block
-        ReadBlock rb = new ReadBlock();
-        negotiator.setReadBlock(rb);
-
-        // stream switch
-        StreamSwitch ss = new StreamSwitch();
-        ss.addStreamSwitchEntry(ss.new StreamSwitchEntry(0xFFFF, 1, 0));
-        ss.addStreamSwitchEntry(ss.new StreamSwitchEntry(0xFFFF, 2, 0));
-        negotiator.setStreamSwitch(ss);
-
-        return negotiator;
-    }
-
     private void extractConnectInfo() {
         URI uri = getVideoPage().getVideoUri();
 
@@ -135,7 +92,7 @@ public class MmsDownload extends AbstractDownload implements MMSMessageListener,
 
     @Override
     public boolean isPauseSupported() {
-        return negotiator != null && negotiator.isResumeSupported();
+        return client != null && client.isPauseSupported();
     }
 
     @Override
@@ -157,13 +114,9 @@ public class MmsDownload extends AbstractDownload implements MMSMessageListener,
         setException(null);
         extractConnectInfo();
 
-        // create negotiator
-        negotiator = createNegotiator();
-
-        // create client
-        port = port < 1 ? 1755 : port;
-        client = new MMSClient(host, port, negotiator);
-        negotiator.setClient(client);
+        // create new client
+        connectExceptionCount = 0;
+        client = new Client(getVideoPage().getVideoUri());
 
         // register message listeners
         client.addMessageListener(this);
@@ -172,7 +125,7 @@ public class MmsDownload extends AbstractDownload implements MMSMessageListener,
 
         // open the connection
         try {
-            client.connect();
+            client.connect(null);
         } catch (Exception e1) {
             error("Couldn't connect to host", e1);
         }
@@ -246,7 +199,7 @@ public class MmsDownload extends AbstractDownload implements MMSMessageListener,
             long startPacket = 0;
 
             // check if resuming is supported
-            if (negotiator.isResumeSupported()) {
+            if (isPauseSupported()) {
                 startPacket = packetReadCount;
             }
 
@@ -339,11 +292,21 @@ public class MmsDownload extends AbstractDownload implements MMSMessageListener,
         return getDestinationDir() + File.separator + title + "_" + filename;
     }
 
+    private int connectExceptionCount = 0;
+
     @Override
-    public void exceptionCaught(IoSession arg0, Throwable t) throws Exception {
+    public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
+        // ignore the first connect exception, because the client will try another connection
+        // with the mms over http protocol
+        if (cause instanceof ConnectException) {
+            if (++connectExceptionCount < 2) {
+                return;
+            }
+        }
+
         stop();
         setStatus(Status.FAILED);
-        setException(t);
+        setException(cause);
     }
 
     @Override
