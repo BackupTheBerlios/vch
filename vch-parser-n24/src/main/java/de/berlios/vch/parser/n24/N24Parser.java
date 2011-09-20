@@ -4,6 +4,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -49,18 +50,18 @@ import de.berlios.vch.parser.n24.tvnext.TvNextCorePortType;
 public class N24Parser implements IWebParser {
 
     public static final String ID = N24Parser.class.getName();
-    
+
     public static final String STREAM_BASE = "rtmp://pssimn24fs.fplive.net:1935/pssimn24";
 
     @Requires
     private LogService logger;
-    
+
     private List<String> supportedProtocols = new ArrayList<String>();
-    
+
     private URL wsdlUrl;
     private QName serviceName;
     private TvNextCore service;
-    
+
     @Override
     public String getId() {
         return ID;
@@ -73,13 +74,13 @@ public class N24Parser implements IWebParser {
         page.setTitle(getTitle());
         page.setUri(new URI("vchpage://localhost/" + getId()));
 
-        final TvNextCorePortType port = (TvNextCorePortType) service.getPort(TvNextCorePortType.class);
+        final TvNextCorePortType port = service.getPort(TvNextCorePortType.class);
         ArrayOfN24Ressort array = port.getRessorts(10);
         List<N24Ressort> ressorts = array.getN24Ressort();
         ExecutorService executor = Executors.newFixedThreadPool(10);
         for (final N24Ressort ressort : ressorts) {
-            final URI ressortURI = new URI("http://www.n24.de/" + ressort.getTitle().getValue());
-            
+            final URI ressortURI = new URI("http://www.n24.de/" + URLEncoder.encode(ressort.getTitle().getValue(), "UTF-8"));
+
             executor.submit(new Runnable() {
                 @Override
                 public void run() {
@@ -88,7 +89,7 @@ public class N24Parser implements IWebParser {
                     ressortPage.setTitle(ressort.getTitle().getValue());
                     ressortPage.setUri(ressortURI);
                     page.getPages().add(ressortPage);
-                    
+
                     // feed.setDescription(ressort.getDescription() != null ? ressort.getDescription().getValue() : "");
 
                     List<TvNextClip> clips = port.getClipsByRessortId(ressort.getId().getValue(), 0, 100).getTvNextClip();
@@ -133,22 +134,22 @@ public class N24Parser implements IWebParser {
                             logger.log(LogService.LOG_ERROR, e.getMessage(), e);
                         }
                     }
-                    
+
                     // special case Magazine: we aggregate the videos by title and create sub pages
-                    if("Magazine".equals(ressortPage.getTitle())) {
+                    if ("Magazine".equals(ressortPage.getTitle())) {
                         Map<String, List<IWebPage>> magazine = new HashMap<String, List<IWebPage>>();
                         for (IWebPage page : ressortPage.getPages()) {
                             List<IWebPage> list = magazine.get(page.getTitle());
-                            if(list == null) {
+                            if (list == null) {
                                 list = new ArrayList<IWebPage>();
                                 magazine.put(page.getTitle(), list);
                             }
                             list.add(page);
                         }
-                        
+
                         // clear all videos from the ressort page. afterwards we can add subPages, which will contain the videos
                         ressortPage.getPages().clear();
-                        
+
                         List<String> subPageTitles = new ArrayList<String>(magazine.keySet());
                         Collections.sort(subPageTitles);
                         for (String title : subPageTitles) {
@@ -159,9 +160,9 @@ public class N24Parser implements IWebParser {
                                 subPage.setUri(new URI("dummy://" + UUID.randomUUID()));
                                 List<IWebPage> videos = magazine.get(title);
                                 for (IWebPage videoPage : videos) {
-                                    if(videoPage instanceof IVideoPage) {
+                                    if (videoPage instanceof IVideoPage) {
                                         IVideoPage vpage = (IVideoPage) videoPage;
-                                        if(vpage.getDescription() != null) {
+                                        if (vpage.getDescription() != null) {
                                             String[] lines = vpage.getDescription().split("\n");
                                             vpage.setTitle(lines[0]);
                                         }
@@ -181,7 +182,7 @@ public class N24Parser implements IWebParser {
         // wait for all threads to finish
         executor.shutdown();
         executor.awaitTermination(60, TimeUnit.SECONDS);
-        
+
         // sort ressorts by title
         Collections.sort(page.getPages(), new WebPageTitleComparator());
         return page;
@@ -194,17 +195,17 @@ public class N24Parser implements IWebParser {
 
     @Override
     public IWebPage parse(IWebPage page) throws Exception {
-        if(page instanceof IVideoPage) {
+        if (page instanceof IVideoPage) {
             IVideoPage vpage = (IVideoPage) page;
-            if(!supportedProtocols.contains(vpage.getVideoUri().getScheme())) {
+            if (!supportedProtocols.contains(vpage.getVideoUri().getScheme())) {
                 throw new NoSupportedVideoFoundException(vpage.getVideoUri().toString(), supportedProtocols);
             }
         }
         return page;
     }
-    
-// ############ ipojo stuff #########################################    
-    
+
+    // ############ ipojo stuff #########################################
+
     // validate and invalidate method seem to be necessary for the bind methods to work
     @Validate
     public void start() throws MalformedURLException {
@@ -212,16 +213,17 @@ public class N24Parser implements IWebParser {
         serviceName = new QName("http://schemas.exozet.com/tvnext/services/core/", "TvNextCore");
         service = new TvNextCore(wsdlUrl, serviceName);
     }
-    
+
     @Invalidate
-    public void stop() {}
+    public void stop() {
+    }
 
     @Bind(id = "supportedProtocols", aggregate = true)
     public synchronized void addProtocol(INetworkProtocol protocol) {
         supportedProtocols.addAll(protocol.getSchemes());
     }
-    
-    @Unbind(id="supportedProtocols", aggregate = true)
+
+    @Unbind(id = "supportedProtocols", aggregate = true)
     public synchronized void removeProtocol(INetworkProtocol protocol) {
         supportedProtocols.removeAll(protocol.getSchemes());
     }
