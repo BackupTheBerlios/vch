@@ -51,7 +51,7 @@ public class Osd implements IEventDispatcher {
     public void createMenu(Menu menu) throws IOException, OsdException {
         // add menu close action:
         // automatically remove a menu from the stack and
-        // delete it on the osdserver, if a close events happen
+        // delete it on the osdserver, if a close event happens
         menu.registerAction(new IOsdAction() {
             @Override
             public String getName() {
@@ -181,7 +181,7 @@ public class Osd implements IEventDispatcher {
 
         /*
          * show() must be called to update the osd after changes. To avoid having a wrong menu hierarchy, we have to make sure, that the menu on top of the
-         * stack is not given one
+         * stack is not the given one
          */
         if (menuStack.isEmpty() || menuStack.peek() != menu) {
             menuStack.push(menu);
