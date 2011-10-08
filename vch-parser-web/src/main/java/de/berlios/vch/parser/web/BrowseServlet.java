@@ -129,8 +129,7 @@ public class BrowseServlet extends VchHttpServlet {
                 logger.log(LogService.LOG_INFO, "Using " + parser.getTitle() + " parser [" + parserId + "]");
                 Map<String, Object> params = new HashMap<String, Object>();
                 params.put("TITLE", parser.getTitle());
-                params.put("SERVLET_URI", req.getScheme() + "://" + req.getServerName() + ":" + req.getServerPort()
-                        + req.getServletPath());
+                params.put("SERVLET_URI", req.getScheme() + "://" + req.getServerName() + ":" + req.getServerPort() + req.getServletPath());
                 params.put("PARSER", parserId);
 
                 // add css and javascript for the treeview and for log console
@@ -231,8 +230,7 @@ public class BrowseServlet extends VchHttpServlet {
         }
     }
 
-    private String actionsToJSON(List<IWebAction> webActions, IWebPage page) throws UnsupportedEncodingException,
-            URISyntaxException {
+    private String actionsToJSON(List<IWebAction> webActions, IWebPage page) throws UnsupportedEncodingException, URISyntaxException {
         if (!webActions.isEmpty()) {
             String json = "[";
             for (Iterator<IWebAction> iterator = webActions.iterator(); iterator.hasNext();) {
