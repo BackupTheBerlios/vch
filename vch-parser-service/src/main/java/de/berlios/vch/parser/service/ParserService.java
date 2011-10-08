@@ -292,14 +292,14 @@ public class ParserService implements IParserService, IVchUriResolver, ResourceB
     public void stop() {
     }
 
-    @Bind(id = "parsers", aggregate = true)
+    @Bind(id = "parsers", aggregate = true, optional = true)
     public synchronized void addParser(IWebParser parser) {
         logger.log(LogService.LOG_INFO, "Adding parser " + parser.getId());
         parsers.add(parser);
         logger.log(LogService.LOG_INFO, parsers.size() + " parsers available");
     }
 
-    @Unbind(id = "parsers", aggregate = true)
+    @Unbind(id = "parsers", aggregate = true, optional = true)
     public synchronized void removeParser(IWebParser parser) {
         logger.log(LogService.LOG_INFO, "Removing parser " + parser.getId());
         parsers.remove(parser);
