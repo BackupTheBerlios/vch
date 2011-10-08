@@ -4,7 +4,7 @@
     <parent>
         <artifactId>master</artifactId>
         <groupId>org.hampelratte</groupId>
-        <version>3</version>
+        <version>5</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -102,7 +102,7 @@
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.shell.remote</artifactId>
-            <version>1.0.2</version>
+            <version>1.1.2</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -187,7 +187,7 @@
             <dependency>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>org.apache.felix.shell</artifactId>
-                <version>1.4.1</version>
+                <version>1.4.2</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -291,7 +291,7 @@
             <dependency>
                 <groupId>de.berlios.vch</groupId>
                 <artifactId>parser.service</artifactId>
-                <version>1.1.0</version>
+                <version>1.1.1</version>
                 <type>bundle</type>
                 <scope>provided</scope>
             </dependency>
@@ -353,13 +353,13 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <version>2.0.0</version>
                 <extensions>true</extensions>
                 <configuration>
                     <remoteOBR>scp://shell.berlios.de/home/groups/vch/htdocs/repo/releases</remoteOBR>
                     <instructions>
                         <Embed-Transitive>true</Embed-Transitive>
                         <Embed-Dependency>*;scope=compile|runtime;inline=true</Embed-Dependency>
+                        <_nouses>true</_nouses>
                         <VCH-Bundle>true</VCH-Bundle>
                     </instructions>
                 </configuration>
@@ -385,6 +385,15 @@
                 <version>1.0-beta-7</version>
             </extension>
         </extensions>
+        <pluginManagement>
+        	<plugins>
+        		<plugin>
+        			<groupId>org.apache.felix</groupId>
+        			<artifactId>maven-bundle-plugin</artifactId>
+        			<version>2.3.5</version>
+        		</plugin>
+        	</plugins>
+        </pluginManagement>
     </build>
 
     <distributionManagement>
@@ -394,7 +403,7 @@
             <url>scp://shell.berlios.de/home/groups/vch/htdocs/repo/releases</url>
         </repository>
         <snapshotRepository>
-            <uniqueVersion>false</uniqueVersion>
+            <uniqueVersion>true</uniqueVersion>
             <id>berlios-vch</id>
             <name>VCH SNAPSHOT Plugin Repository</name>
             <url>scp://shell.berlios.de/home/groups/vch/htdocs/repo/snapshots</url>
