@@ -395,18 +395,4 @@
         	</plugins>
         </pluginManagement>
     </build>
-
-    <distributionManagement>
-        <repository>
-            <id>berlios-vch</id>
-            <name>VCH Plugin Repository</name>
-            <url>scp://shell.berlios.de/home/groups/vch/htdocs/repo/releases</url>
-        </repository>
-        <snapshotRepository>
-            <uniqueVersion>true</uniqueVersion>
-            <id>berlios-vch</id>
-            <name>VCH SNAPSHOT Plugin Repository</name>
-            <url>scp://shell.berlios.de/home/groups/vch/htdocs/repo/snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
 </project>
