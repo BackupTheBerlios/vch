@@ -355,7 +355,7 @@
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
                 <configuration>
-                    <!-- <remoteOBR>scp://shell.berlios.de/home/groups/vch/htdocs/repo/releases</remoteOBR> -->
+                    <remoteOBR>file:///var/www/hampelratte.org/htdocs/maven</remoteOBR>
                     <instructions>
                         <Embed-Transitive>true</Embed-Transitive>
                         <Embed-Dependency>*;scope=compile|runtime;inline=true</Embed-Dependency><!-- TODO use this directive only on plugins, which include 3rd party libs -->
