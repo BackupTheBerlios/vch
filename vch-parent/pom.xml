@@ -355,10 +355,10 @@
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
                 <configuration>
-                    <remoteOBR>scp://shell.berlios.de/home/groups/vch/htdocs/repo/releases</remoteOBR>
+                    <!-- <remoteOBR>scp://shell.berlios.de/home/groups/vch/htdocs/repo/releases</remoteOBR> -->
                     <instructions>
                         <Embed-Transitive>true</Embed-Transitive>
-                        <Embed-Dependency>*;scope=compile|runtime;inline=true</Embed-Dependency>
+                        <Embed-Dependency>*;scope=compile|runtime;inline=true</Embed-Dependency><!-- TODO use this directive only on plugins, which include 3rd party libs -->
                         <_nouses>true</_nouses>
                         <VCH-Bundle>true</VCH-Bundle>
                     </instructions>
