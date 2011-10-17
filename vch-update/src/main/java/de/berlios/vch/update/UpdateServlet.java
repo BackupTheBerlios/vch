@@ -571,9 +571,9 @@ public class UpdateServlet extends VchHttpServlet implements ObrManager {
         }
         Collections.sort(obrUris);
         if (obrUris.isEmpty()) {
-            addOBR("http://hampelratte.org/maven/");
+            addOBR("http://hampelratte.org/maven/repository.xml");
             addOBR(FELIX_OBR);
-            obrUris.add("http://hampelratte.org/maven/");
+            obrUris.add("http://hampelratte.org/maven/repository.xml");
             obrUris.add(FELIX_OBR);
         }
         return obrUris;
