@@ -50,7 +50,6 @@
 		</dependency>
 	</dependencies>
     
-    <!-- 
     <build>
         <plugins>
             <plugin>
@@ -59,6 +58,8 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
+                        <Embed-Transitive>true</Embed-Transitive>
+                        <Embed-Dependency>*;scope=compile|runtime;inline=true</Embed-Dependency>
                         <Import-Package>
                             !com.sun.msv.*,
                             !com.sun.org.apache.xerces.*,
@@ -73,5 +74,5 @@
             </plugin>
         </plugins>
     </build>
-     -->
+     
 </project>

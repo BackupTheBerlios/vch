@@ -1,86 +1,88 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<artifactId>parser.dmax</artifactId>
-	<packaging>bundle</packaging>
-	<version>1.1.4-SNAPSHOT</version>
-	<name>VCH DMAX Parser</name>
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>parser.dmax</artifactId>
+    <packaging>bundle</packaging>
+    <version>1.1.4-SNAPSHOT</version>
+    <name>VCH DMAX Parser</name>
     <description>Parser for the DMAX Videotheke. Only complete episodes are included.</description>
-    
+
     <parent>
         <artifactId>parent</artifactId>
         <groupId>de.berlios.vch</groupId>
         <version>1.0.0</version>
         <relativePath>../vch-parent/pom.xml</relativePath>
     </parent>
-    
-	<dependencies>
-		<dependency>
-			<groupId>de.berlios.vch</groupId>
-			<artifactId>parser</artifactId>
-			<type>bundle</type>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.berlios.vch</groupId>
-			<artifactId>httpclient</artifactId>
-			<type>bundle</type>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.htmlparser</groupId>
-			<artifactId>htmlparser</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.adobe.blazeds</groupId>
-			<artifactId>blazeds-core</artifactId>
-			<version>3.2.0.3978</version>
-			<type>jar</type>
-		</dependency>
-		<dependency>
-			<groupId>com.adobe.blazeds</groupId>
-			<artifactId>blazeds-common</artifactId>
-			<version>3.2.0.3978</version>
-			<type>jar</type>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.felix</groupId>
-			<artifactId>org.apache.felix.main</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.berlios.vch</groupId>
-			<artifactId>config</artifactId>
-			<type>bundle</type>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.berlios.vch</groupId>
-			<artifactId>i18n</artifactId>
-			<type>bundle</type>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.felix</groupId>
-			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
-			<scope>provided</scope>
-		</dependency>
-	</dependencies>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.felix</groupId>
-				<artifactId>maven-bundle-plugin</artifactId>
-				<extensions>true</extensions>
-				<configuration>
-					<instructions>
-						<Import-Package>!org.jgroups.*,!javax.jms.*,!org.apache.xpath.*,!sun.misc.*,*</Import-Package>
-					</instructions>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+    <dependencies>
+        <dependency>
+            <groupId>de.berlios.vch</groupId>
+            <artifactId>parser</artifactId>
+            <type>bundle</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>de.berlios.vch</groupId>
+            <artifactId>httpclient</artifactId>
+            <type>bundle</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.htmlparser</groupId>
+            <artifactId>htmlparser</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.adobe.blazeds</groupId>
+            <artifactId>blazeds-core</artifactId>
+            <version>3.2.0.3978</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.adobe.blazeds</groupId>
+            <artifactId>blazeds-common</artifactId>
+            <version>3.2.0.3978</version>
+            <type>jar</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.main</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>de.berlios.vch</groupId>
+            <artifactId>config</artifactId>
+            <type>bundle</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>de.berlios.vch</groupId>
+            <artifactId>i18n</artifactId>
+            <type>bundle</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.ipojo.annotations</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Embed-Transitive>true</Embed-Transitive>
+                        <Embed-Dependency>*;scope=compile|runtime;inline=true</Embed-Dependency>
+                        <Import-Package>!org.jgroups.*,!javax.jms.*,!org.apache.xpath.*,!sun.misc.*,*</Import-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

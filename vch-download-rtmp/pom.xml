@@ -72,6 +72,8 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
+                        <Embed-Transitive>true</Embed-Transitive>
+                        <Embed-Dependency>*;scope=compile|runtime;inline=true</Embed-Dependency>
                         <Import-Package>!org.jboss.*,!org.springframework.*,!com.google.*,!org.apache.log4j.*,*</Import-Package>
                     </instructions>
                 </configuration>
