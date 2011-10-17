@@ -14,7 +14,7 @@
     <name>VCH Parent</name>
     <version>1.0.0</version>
     <description>Parent POM for all VCH bundles</description>
-    <url>http://developer.berlios.de/projects/vch</url>
+    <url>https://github.com/hampelratte/VCH</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8
@@ -32,18 +32,17 @@
     </developers>
 
     <issueManagement>
-        <system>Berlios</system>
-        <url>http://developer.berlios.de/bugs/?group_id=9242</url>
+        <system>github</system>
+        <url>https://github.com/hampelratte/VCH/issues</url>
     </issueManagement>
 
     <scm>
-        <developerConnection>https://developername@svn.berlios.de/svnroot/repos/vch</developerConnection>
-        <url>http://svn.berlios.de/svnroot/repos/vch</url>
+        <url>https://github.com/hampelratte/VCH</url>
     </scm>
 
     <organization>
         <name>VCH Project</name>
-        <url>http://developer.berlios.de/projects/vch</url>
+        <url>https://github.com/hampelratte/VCH</url>
     </organization>
 
     <dependencies>
@@ -355,10 +354,10 @@
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
                 <configuration>
-                    <remoteOBR>file:///var/www/hampelratte.org/htdocs/maven</remoteOBR>
+                    <!-- <remoteOBR>file:///var/www/hampelratte.org/htdocs/maven</remoteOBR> -->
+                    <!-- <remoteOBR>scp://hampelratte.org/var/www/hampelratte.org/htdocs/maven</remoteOBR>  -->
+                    <prefixUrl>http://hampelratte.org/maven</prefixUrl>
                     <instructions>
-                        <Embed-Transitive>true</Embed-Transitive>
-                        <Embed-Dependency>*;scope=compile|runtime;inline=true</Embed-Dependency><!-- TODO use this directive only on plugins, which include 3rd party libs -->
                         <_nouses>true</_nouses>
                         <VCH-Bundle>true</VCH-Bundle>
                     </instructions>
@@ -390,7 +389,7 @@
         		<plugin>
         			<groupId>org.apache.felix</groupId>
         			<artifactId>maven-bundle-plugin</artifactId>
-        			<version>2.3.5</version>
+        			<version>2.4.0-SNAPSHOT</version>
         		</plugin>
         	</plugins>
         </pluginManagement>
