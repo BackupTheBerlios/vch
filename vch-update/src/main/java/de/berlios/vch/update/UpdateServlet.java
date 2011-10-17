@@ -70,8 +70,7 @@ public class UpdateServlet extends VchHttpServlet implements ObrManager {
 
     private final String FELIX_OBR = "http://felix.apache.org/obr/releases.xml";
 
-    private List<String> ignoreList = Arrays.asList(new String[] { "de.berlios.vch.slf4j-logger",
-            "de.berlios.vch.bundle-loader" });
+    private List<String> ignoreList = Arrays.asList(new String[] { "de.berlios.vch.slf4j-logger", "de.berlios.vch.bundle-loader" });
 
     boolean updateUpdateManager = false;
 
@@ -170,8 +169,7 @@ public class UpdateServlet extends VchHttpServlet implements ObrManager {
     private void updateBundles(HttpServletRequest req, HttpServletResponse resp) throws Exception {
         String[] bundleIds = req.getParameterValues("installed");
         if (bundleIds == null) {
-            addNotify(req, new NotifyMessage(TYPE.ERROR, rbp.getResourceBundle()
-                    .getString("info.no_extension_selected")));
+            addNotify(req, new NotifyMessage(TYPE.ERROR, rbp.getResourceBundle().getString("info.no_extension_selected")));
             return;
         }
 
@@ -223,8 +221,8 @@ public class UpdateServlet extends VchHttpServlet implements ObrManager {
         updateAvailableList();
     }
 
-    private void updateUpdateManager(HttpServletRequest req, HttpServletResponse resp, Resource resource)
-            throws MalformedURLException, ServiceUnavailableException, Exception {
+    private void updateUpdateManager(HttpServletRequest req, HttpServletResponse resp, Resource resource) throws MalformedURLException,
+            ServiceUnavailableException, Exception {
         boolean isFelixObrConfigured = false;
         if (getOBRs().contains(FELIX_OBR)) {
             isFelixObrConfigured = true;
@@ -249,8 +247,7 @@ public class UpdateServlet extends VchHttpServlet implements ObrManager {
     private void stopBundles(HttpServletRequest req, HttpServletResponse resp) {
         String[] bundleIds = req.getParameterValues("installed");
         if (bundleIds == null) {
-            addNotify(req, new NotifyMessage(TYPE.ERROR, rbp.getResourceBundle()
-                    .getString("info.no_extension_selected")));
+            addNotify(req, new NotifyMessage(TYPE.ERROR, rbp.getResourceBundle().getString("info.no_extension_selected")));
             return;
         }
         for (String bundleId : bundleIds) {
@@ -260,8 +257,7 @@ public class UpdateServlet extends VchHttpServlet implements ObrManager {
                 if (bundle != null) {
                     bundle.stop();
                 } else {
-                    String mesg = MessageFormat.format(
-                            rbp.getResourceBundle().getString("warning.bundle_does_not_exist"), _bundleId);
+                    String mesg = MessageFormat.format(rbp.getResourceBundle().getString("warning.bundle_does_not_exist"), _bundleId);
                     addNotify(req, new NotifyMessage(TYPE.WARNING, mesg));
                 }
             } catch (BundleException e) {
@@ -275,8 +271,7 @@ public class UpdateServlet extends VchHttpServlet implements ObrManager {
     private void startBundles(HttpServletRequest req, HttpServletResponse resp) {
         String[] bundleIds = req.getParameterValues("installed");
         if (bundleIds == null) {
-            addNotify(req, new NotifyMessage(TYPE.ERROR, rbp.getResourceBundle()
-                    .getString("info.no_extension_selected")));
+            addNotify(req, new NotifyMessage(TYPE.ERROR, rbp.getResourceBundle().getString("info.no_extension_selected")));
             return;
         }
         for (String bundleId : bundleIds) {
@@ -286,8 +281,7 @@ public class UpdateServlet extends VchHttpServlet implements ObrManager {
                 if (bundle != null) {
                     bundle.start();
                 } else {
-                    String mesg = MessageFormat.format(
-                            rbp.getResourceBundle().getString("warning.bundle_does_not_exist"), _bundleId);
+                    String mesg = MessageFormat.format(rbp.getResourceBundle().getString("warning.bundle_does_not_exist"), _bundleId);
                     addNotify(req, new NotifyMessage(TYPE.WARNING, mesg));
                 }
             } catch (BundleException e) {
@@ -342,8 +336,7 @@ public class UpdateServlet extends VchHttpServlet implements ObrManager {
     private void uninstall(HttpServletRequest req) {
         String[] bundleIds = req.getParameterValues("installed");
         if (bundleIds == null) {
-            addNotify(req, new NotifyMessage(TYPE.ERROR, rbp.getResourceBundle()
-                    .getString("info.no_extension_selected")));
+            addNotify(req, new NotifyMessage(TYPE.ERROR, rbp.getResourceBundle().getString("info.no_extension_selected")));
             return;
         }
         for (String bundleId : bundleIds) {
@@ -367,8 +360,7 @@ public class UpdateServlet extends VchHttpServlet implements ObrManager {
         List<Resource> available = downloadAvailableList();
         String[] symbolicNames = req.getParameterValues("available");
         if (symbolicNames == null) {
-            addNotify(req, new NotifyMessage(TYPE.ERROR, rbp.getResourceBundle()
-                    .getString("info.no_extension_selected")));
+            addNotify(req, new NotifyMessage(TYPE.ERROR, rbp.getResourceBundle().getString("info.no_extension_selected")));
             return;
         }
 
@@ -456,15 +448,12 @@ public class UpdateServlet extends VchHttpServlet implements ObrManager {
                 Resource r1 = filterMap.get(res[i].getSymbolicName());
                 Resource r2 = res[i];
                 if (compare(r1.getVersion(), r2.getVersion()) <= 0) {
-                    logger.log(LogService.LOG_DEBUG,
-                            "Bundle " + r1.getSymbolicName() + " with version " + r1.getVersion() + " will be dropped");
-                    logger.log(LogService.LOG_DEBUG, "Adding " + res[i].getPresentationName() + " with version "
-                            + res[i].getVersion());
+                    logger.log(LogService.LOG_DEBUG, "Bundle " + r1.getSymbolicName() + " with version " + r1.getVersion() + " will be dropped");
+                    logger.log(LogService.LOG_DEBUG, "Adding " + res[i].getPresentationName() + " with version " + res[i].getVersion());
                     filterMap.put(res[i].getSymbolicName(), r2);
                 }
             } else {
-                logger.log(LogService.LOG_DEBUG,
-                        "Adding " + res[i].getPresentationName() + " with version " + res[i].getVersion());
+                logger.log(LogService.LOG_DEBUG, "Adding " + res[i].getPresentationName() + " with version " + res[i].getVersion());
                 filterMap.put(res[i].getSymbolicName(), res[i]);
             }
         }
@@ -501,8 +490,7 @@ public class UpdateServlet extends VchHttpServlet implements ObrManager {
         installedBundles.clear();
         Bundle[] bundles = ctx.getBundles();
         for (Bundle bundle : bundles) {
-            if ("true".equalsIgnoreCase((String) bundle.getHeaders().get("VCH-Bundle"))
-                    && !ignoreList.contains(bundle.getSymbolicName())) {
+            if ("true".equalsIgnoreCase((String) bundle.getHeaders().get("VCH-Bundle")) && !ignoreList.contains(bundle.getSymbolicName())) {
                 BundleRepresentation br = new BundleRepresentation();
                 br.setBundleId(bundle.getBundleId());
                 br.setName(getBundleName(bundle));
@@ -583,9 +571,9 @@ public class UpdateServlet extends VchHttpServlet implements ObrManager {
         }
         Collections.sort(obrUris);
         if (obrUris.isEmpty()) {
-            addOBR("http://vch.berlios.de/repo/releases/repository.xml");
+            addOBR("http://hampelratte.org/maven/");
             addOBR(FELIX_OBR);
-            obrUris.add("http://vch.berlios.de/repo/releases/repository.xml");
+            obrUris.add("http://hampelratte.org/maven/");
             obrUris.add(FELIX_OBR);
         }
         return obrUris;
@@ -662,8 +650,7 @@ public class UpdateServlet extends VchHttpServlet implements ObrManager {
         error(res, code, msg, null, isAjaxRequest);
     }
 
-    protected void error(HttpServletResponse res, int code, String msg, Throwable t, boolean isAjaxRequest)
-            throws IOException {
+    protected void error(HttpServletResponse res, int code, String msg, Throwable t, boolean isAjaxRequest) throws IOException {
         if (isAjaxRequest) {
             res.setHeader("Content-Type", "text/plain; charset=utf-8");
             res.setStatus(code);
