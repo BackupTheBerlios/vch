@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>parser.n24</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<name>VCH N24 Parser</name>
 	<description>Parser for www.n24.de</description>
 
@@ -58,17 +58,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Embed-Transitive>true</Embed-Transitive>
-                        <Embed-Dependency>*;scope=compile|runtime;inline=true</Embed-Dependency>
-                        <Import-Package>
-                            !com.sun.msv.*,
-                            !com.sun.org.apache.xerces.*,
-                            !org.relaxng.*,
-                            !com.sun.xml.fastinfoset.*,
-                            !com.sun.net.httpserver.*,
-                            !org.jvnet.*,
-                            *
-                        </Import-Package>
+                        <Import-Package>*</Import-Package>
                     </instructions>
                 </configuration>
             </plugin>
