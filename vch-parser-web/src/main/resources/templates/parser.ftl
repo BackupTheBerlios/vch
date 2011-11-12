@@ -43,16 +43,21 @@
                         html += '<p><img src="'+attributes.vchthumb+'" alt="Preview" class="thumb ui-widget-content ui-corner-all"/></p>';
                     }
                     
+                    html += '<p><strong>';
+                    
                     // add the pubdate, if available
                     if(attributes.vchpubDate) {
                         var date = new Date();
                         date.setTime(attributes.vchpubDate);
-                        html += '<p><strong>' + date.toLocaleString();
+                        html += date.toLocaleString();
+                    }
+                    
+                    if(attributes.vchpubDate && attributes.vchduration) {
+                        html += ' - ';                    
                     }
                     
                     // add the duration, if available
                     if(attributes.vchduration) {
-                        html += ' - ';
                         var secs = parseInt(attributes.vchduration);
                         if(secs < 60) {
                             html += secs + ' ${I18N_SECONDS}';                        
