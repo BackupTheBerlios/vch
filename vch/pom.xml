@@ -41,6 +41,7 @@
         <module>../vch-parser-golem</module>
         <module>../vch-parser-lindenstrasse</module>
         <module>../vch-parser-msn</module>
+        <module>../vch-parser-myspass</module>
         <module>../vch-parser-n24</module>
         <module>../vch-parser-orf</module>
         <module>../vch-parser-prosieben</module>
