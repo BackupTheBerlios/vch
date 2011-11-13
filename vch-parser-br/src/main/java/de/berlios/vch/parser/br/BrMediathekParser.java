@@ -22,6 +22,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
+import org.osgi.service.log.LogService;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -39,9 +41,12 @@ import de.berlios.vch.parser.WebPageTitleComparator;
 public class BrMediathekParser implements IWebParser {
 
     public static final String ID = BrMediathekParser.class.getName();
-    public static final String XML_URI = "http://rd.gl-systemhaus.de/br/b7/archive/archive.xml.zip.adler32";
+    public static final String XML_URI = "http://rd.gl-systemhaus.de/br/b7/listra/archive/archive.xml.zip.adler32";
 
     private Map<String, IOverviewPage> sendungen = new HashMap<String, IOverviewPage>();
+
+    @Requires
+    private LogService logger;
 
     @Override
     public IOverviewPage getRoot() throws Exception {
@@ -158,8 +163,8 @@ public class BrMediathekParser implements IWebParser {
                 v.size = getAttribute(vid, "groesse");
                 v.host = getAttribute(vid, "host");
                 v.app = getAttribute(vid, "application");
-                String stream = getAttribute(vid, "stream");
-                if (stream.endsWith(".mp4")) {
+                String stream = getAttribute(vid, "stream").trim();
+                if (!stream.startsWith("mp4:") && stream.endsWith(".mp4")) {
                     stream = "mp4:" + stream;
                 }
                 v.stream = stream;
@@ -208,9 +213,14 @@ public class BrMediathekParser implements IWebParser {
     }
 
     private void parsePrograms(Document archive) throws URISyntaxException {
-        NodeList list = archive.getElementsByTagName("sendung");
+        NodeList parent = archive.getElementsByTagName("sendungen");
+        NodeList list = parent.item(0).getChildNodes();
         for (int i = 0; i < list.getLength(); i++) {
             Node n = list.item(i);
+            if (!"sendung".equals(n.getNodeName())) {
+                continue;
+            }
+
             IOverviewPage sendung = new OverviewPage();
             sendung.setParser(ID);
 
@@ -223,6 +233,7 @@ public class BrMediathekParser implements IWebParser {
             sendung.setTitle(name);
 
             sendungen.put(id, sendung);
+            logger.log(LogService.LOG_DEBUG, "Adding program " + name + " ID[" + id + "]");
         }
     }
 
