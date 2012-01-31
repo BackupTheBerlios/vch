@@ -46,8 +46,8 @@ public class YoutubeVideoPageProxy extends VideoPage {
             StringTokenizer st = new StringTokenizer(pageContent, "\n");
             while (st.hasMoreTokens()) {
                 String line = st.nextToken();
-                if (line.contains("PLAYER_CONFIG")) {
-                    // logger.log(LogService.LOG_DEBUG, line);
+                if (line.contains("yt.playerConfig")) {
+                    logger.log(LogService.LOG_DEBUG, line);
                     int openingBracket = line.indexOf('{');
                     String jsonObjectString = line.substring(openingBracket).trim();
                     JSONObject jsonObject = new JSONObject(jsonObjectString);
@@ -56,6 +56,7 @@ public class YoutubeVideoPageProxy extends VideoPage {
                     // System.out.println(key + " = " + jsonObject.get(key));
                     // }
                     JSONObject args = (JSONObject) jsonObject.get("args");
+
                     List<Integer> formatList = getFormatList(args);
                     logger.log(LogService.LOG_DEBUG, "The following formats are available " + formatList);
                     int format = prefs.getInt("video.quality", 34);
