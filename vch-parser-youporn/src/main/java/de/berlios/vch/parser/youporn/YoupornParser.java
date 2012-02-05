@@ -11,7 +11,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.htmlparser.Node;
-import org.htmlparser.Tag;
+import org.htmlparser.tags.ImageTag;
 import org.htmlparser.tags.LinkTag;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
@@ -32,56 +32,68 @@ import de.berlios.vch.parser.VideoPage;
 
 public class YoupornParser implements IWebParser, BundleActivator {
     private static transient Logger logger = LoggerFactory.getLogger(YoupornParser.class);
-    
+
     private final String CHARSET = "UTF-8";
-    
+
     private final String BASEURL = "http://www.youporn.com";
-    
+
     public static final String ID = YoupornParser.class.getName();
-    
-    private final static String COOKIE = "__utma=60671397.1341618993.1198254651.1198254651.1198254651.1; __utmb=60671397; __utmc=60671397; __utmz=60671397.1198254651.1.1.utmccn=(direct)|utmcsr=(direct)|utmcmd=(none); age_check=1";
-    
-    static Map<String,String> headers = new HashMap<String, String>();
+
+    private final static String COOKIE = "age_verified=1";
+
+    static Map<String, String> headers = new HashMap<String, String>();
     static {
         headers.put("Cookie", COOKIE);
     }
-    
+
     @Override
     public IOverviewPage getRoot() throws Exception {
         OverviewPage page = new OverviewPage();
         page.setParser(ID);
         page.setTitle(getTitle());
         page.setUri(new URI("vchpage://localhost/" + getId()));
-        
+
         String content = HttpUtils.get(BASEURL, headers, CHARSET);
 
         OverviewPage overview = new OverviewPage();
         overview.setParser(ID);
         overview.setTitle("Youporn");
         overview.setUri(new URI("http://www.youporn.com"));
-        
-        NodeList cells = HtmlParserUtils.getTags(content, CHARSET, "div#video-listing ul li");
+
+        NodeList cells = HtmlParserUtils.getTags(content, CHARSET, "div.videoList ul li.videoBox");
         for (NodeIterator iterator = cells.elements(); iterator.hasMoreNodes();) {
             Node cell = iterator.nextNode();
-            LinkTag link = (LinkTag) HtmlParserUtils.getTag(cell.toHtml(), CHARSET, "a");
-            String title = Translate.decode(HtmlParserUtils.getText(cell.toHtml(), CHARSET, "h1 a").trim());
-            String _duration = HtmlParserUtils.getText(cell.toHtml(), CHARSET, "div.duration_views h2").trim();
+            String cellContent = cell.toHtml();
+            LinkTag link = (LinkTag) HtmlParserUtils.getTag(cellContent, CHARSET, "a");
+            String title = Translate.decode(HtmlParserUtils.getText(cellContent, CHARSET, "h1 a").trim());
+
+            // try to parse the video duration
+            String _duration = HtmlParserUtils.getText(cellContent, CHARSET, ".duration").trim();
             long duration = 0;
             try {
                 String[] d = _duration.split(":");
                 int minutes = Integer.parseInt(d[0]);
                 int seconds = Integer.parseInt(d[1]);
                 duration = minutes * 60 + seconds;
-            } catch(Exception e) {
+            } catch (Exception e) {
                 logger.warn("Couldn't parse duration", e);
             }
-            
+
+            // try to get a thumbnail
+            URI thumbnail = null;
+            try {
+                ImageTag thumb = (ImageTag) HtmlParserUtils.getTag(cellContent, CHARSET, "a img.flipbook");
+                thumbnail = new URI(thumb.extractImageLocn());
+            } catch (Exception e) {
+                logger.warn("Couldn't find the thumbnail", e);
+            }
+
             VideoPage vpage = new VideoPage();
             vpage.setParser(ID);
             vpage.setTitle(title);
             vpage.setUri(new URI(BASEURL + link.extractLink()));
             vpage.setDuration(duration);
-            
+            vpage.setThumbnail(thumbnail);
             overview.getPages().add(vpage);
         }
         return overview;
@@ -94,7 +106,7 @@ public class YoupornParser implements IWebParser, BundleActivator {
 
     @Override
     public IWebPage parse(IWebPage page) throws Exception {
-        if(page instanceof VideoPage) {
+        if (page instanceof VideoPage) {
             VideoPage video = (VideoPage) page;
             parseVideoDetails(video);
             return page;
@@ -114,23 +126,23 @@ public class YoupornParser implements IWebParser, BundleActivator {
         }
 
         // parse enclosure
-        LinkTag download = (LinkTag) HtmlParserUtils.getTag(content, CHARSET, "div#download a");
+        LinkTag download = (LinkTag) HtmlParserUtils.getTag(content, CHARSET, "div#tab-general-download a");
 
         video.setVideoUri(new URI(download.getLink()));
 
         // parse description
-        String description = ((Tag) HtmlParserUtils.getTag(content, CHARSET, "div#details")).toPlainTextString().trim();
+        String description = HtmlParserUtils.getTag(content, CHARSET, "div#tab-general-details").toPlainTextString().trim();
         description = Translate.decode(description);
         description = description.replaceAll("[ \\t\\x0B\\f\\r]{2,}", " ");
         description = description.replaceAll("\\n\\s+\\n", "\\\n");
         description = description.replaceAll("^\\s+", "");
         video.setDescription(description.trim());
-        
+
         // parse pubDate
         Locale currentLocale = Locale.getDefault();
         try {
             String d = description.substring(description.indexOf("Date:") + 5).trim();
-            SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy", Locale.ENGLISH);
+            SimpleDateFormat sdf = new SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH);
             Date date = sdf.parse(d);
             Calendar pubDate = Calendar.getInstance();
             pubDate.setTime(date);
@@ -151,7 +163,7 @@ public class YoupornParser implements IWebParser, BundleActivator {
     @Override
     public void stop(BundleContext ctx) throws Exception {
     }
-    
+
     @Override
     public String getId() {
         return ID;
