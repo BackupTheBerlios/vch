@@ -141,6 +141,7 @@
                             }
                         ).click(function() {
                             var tableRow = $("#" + $(this).attr("id").replace(/delete_/, "tr_") );
+                            var exceptionRow = $("#" + $(this).attr("id").replace(/delete_/, "exception_") );
                             
                             // show process indicator and hide delete link
                             var link = $(this);
@@ -163,6 +164,7 @@
                                 },
                                 success: function(html){
                                     tableRow.fadeOut("slow");
+                                    exceptionRow.fadeOut("slow");
                                 }
                             });
                         });
@@ -236,7 +238,7 @@
                             }
                         ).click(function() {
                             var tableRow = $("#" + $(this).attr("id").replace(/delete_/, "tr_") );
-                            
+
                             // show process indicator and hide delete link
                             var link = $(this);
                             var indicator = $("#indicator_" + $(this).attr("id"));  
