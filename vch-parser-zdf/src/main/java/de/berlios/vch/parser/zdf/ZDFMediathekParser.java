@@ -135,8 +135,13 @@ public class ZDFMediathekParser implements IWebParser {
 
         // parse the video uri
         NodeList videoLinks = HtmlParserUtils.getTags(content, CHARSET, "ul.dslChoice li a");
-        LinkTag dsl2000 = (LinkTag) videoLinks.elementAt(1);
-        video.setVideoUri(new URI(dsl2000.extractLink()));
+        LinkTag wmvBestQuality = (LinkTag) videoLinks.elementAt(1);
+        String videoUri = wmvBestQuality.extractLink();
+        if (!videoUri.toLowerCase().endsWith("asx")) {
+            wmvBestQuality = (LinkTag) videoLinks.elementAt(0);
+            videoUri = wmvBestQuality.extractLink();
+        }
+        video.setVideoUri(new URI(videoUri));
 
         // parse the pubDate
         String datum = HtmlParserUtils.getText(content, CHARSET, "p.datum");
