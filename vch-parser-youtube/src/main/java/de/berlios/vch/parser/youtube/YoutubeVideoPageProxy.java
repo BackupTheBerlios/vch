@@ -2,11 +2,13 @@ package de.berlios.vch.parser.youtube;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.StringTokenizer;
 import java.util.prefs.Preferences;
 
@@ -67,7 +69,8 @@ public class YoutubeVideoPageProxy extends VideoPage {
 
                     Map<Integer, String> streamUris = getFormatStreamMap(formatList, args);
                     String streamUri = streamUris.get(format);
-                    medialink = new URI(streamUri);
+                    medialink = normalizeUri(new URI(streamUri));
+                    normalizeUri(medialink);
 
                     // parse duration
                     try {
@@ -85,6 +88,41 @@ public class YoutubeVideoPageProxy extends VideoPage {
         }
 
         return medialink;
+    }
+
+    /**
+     * Some URIs have duplicate parameters and youtube doesn't seem to like that. So we have to clean that up.
+     * 
+     * @param streamUri
+     * @throws URISyntaxException
+     */
+    private URI normalizeUri(URI streamUri) throws URISyntaxException {
+        // remove duplicate params by putting them into a map and
+        // rebuild the query string from this map
+        Map<String, String> params = new HashMap<String, String>();
+        String query = streamUri.getQuery();
+        String[] pairs = query.split("&");
+        for (String pair : pairs) {
+            String[] keyValue = pair.split("=");
+            params.put(keyValue[0], keyValue[1]);
+        }
+        StringBuilder queryBuilder = new StringBuilder();
+        for (Entry<String, String> entry : params.entrySet()) {
+            queryBuilder.append(entry.getKey()).append('=').append(entry.getValue()).append('&');
+        }
+        queryBuilder.deleteCharAt(queryBuilder.length() - 1);
+        query = queryBuilder.toString();
+
+        String scheme = streamUri.getScheme();
+        String auth = streamUri.getAuthority();
+        String path = streamUri.getPath();
+        String fragment = streamUri.getFragment();
+
+        // rebuild the uri with the clean query string
+        String uri = scheme + "://" + auth + path;
+        uri += (query != null && query.length() > 0) ? ('?' + query) : "";
+        uri += (fragment != null && fragment.length() > 0) ? ('#' + fragment) : "";
+        return new URI(uri);
     }
 
     private List<Integer> getFormatList(JSONObject args) throws JSONException {
@@ -109,7 +147,7 @@ public class YoutubeVideoPageProxy extends VideoPage {
             if (streamUri.contains(";")) {
                 streamUri = streamUri.substring(0, streamUri.indexOf(';'));
             }
-            logger.log(LogService.LOG_DEBUG, "Found stream uri " + streamUri);
+            logger.log(LogService.LOG_DEBUG, "Found stream uri " + URLDecoder.decode(streamUri, "UTF-8"));
             result.put(formatList.get(i), streamUri);
         }
         return result;
