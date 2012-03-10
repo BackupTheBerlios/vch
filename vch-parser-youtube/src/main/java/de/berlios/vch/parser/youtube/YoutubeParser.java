@@ -161,7 +161,7 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider, FeedCo
                 feedPage.setUri(page.getUri());
                 videoToOverview(feedPage);
 
-                // add new subscription videos, if it is the subscriptiosn page
+                // add new subscription videos, if it is the subscriptions page
                 if (page.getUri().getPath().endsWith("subscriptions")) {
                     // add new subscriptions
                     IOverviewPage newSubscriptions = new OverviewPage();
@@ -185,6 +185,8 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider, FeedCo
                     String uri = "http://gdata.youtube.com/feeds/api/playlists/" + playlistId;
                     page.setUri(new URI(uri));
                 }
+            } else if (page.getUri().toString().endsWith("/videos")) {
+
             }
 
             logger.log(LogService.LOG_INFO, "Parsing youtube rss feed " + page.getUri());
@@ -306,18 +308,13 @@ public class YoutubeParser implements IWebParser, ResourceBundleProvider, FeedCo
             // parse uri
             video.setUri(new URI(entry.getLink()));
 
-            // if we parse a subscription feed, we have to adjust the uri to point
-            // to the uploads page of yt:username
-            if (entry.getTitle().startsWith("Activity of : ")) {
-                @SuppressWarnings("unchecked")
-                List<Element> fm = (List<Element>) entry.getForeignMarkup();
-                for (Element element : fm) {
-                    if ("username".equals(element.getName()) && "yt".equals(element.getNamespacePrefix())) {
-                        String username = element.getTextTrim().toLowerCase();
-                        String urlEncodedUser = URLEncoder.encode(username, "UTF-8");
-                        URI uri = new URI("http://gdata.youtube.com/feeds/base/users/" + urlEncodedUser + "/uploads?alt=rss");
-                        video.setUri(uri);
-                    }
+            // if we parse a subscription feed, we have to adjust the uri to point to the uploads page of the user
+            @SuppressWarnings("unchecked")
+            List<Element> fm = (List<Element>) entry.getForeignMarkup();
+            for (Element element : fm) {
+                if ("feedLink".equals(element.getName()) && "gd".equals(element.getNamespacePrefix())) {
+                    URI uri = new URI(element.getAttribute("href").getValue());
+                    video.setUri(uri);
                 }
             }
 
