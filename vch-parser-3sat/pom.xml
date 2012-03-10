@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>parser.dreisat</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.0.3-SNAPSHOT</version>
+	<version>1.0.3</version>
 	<name>VCH 3sat Parser</name>
     <description>Parser for the 3sat-Mediathek. Parses all feeds on http://www.3sat.de/mediathek/mediathek.php?mode=rss</description>
     
