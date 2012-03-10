@@ -12,10 +12,11 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
-import org.htmlparser.Tag;
 import org.htmlparser.tags.ImageTag;
 import org.htmlparser.tags.LinkTag;
 import org.htmlparser.tags.TableRow;
@@ -24,9 +25,9 @@ import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 import org.htmlparser.util.Translate;
 import org.osgi.service.log.LogService;
+import org.xml.sax.SAXException;
 
 import de.berlios.vch.http.client.HttpUtils;
-import de.berlios.vch.parser.AsxParser;
 import de.berlios.vch.parser.HtmlParserUtils;
 import de.berlios.vch.parser.IOverviewPage;
 import de.berlios.vch.parser.IVideoPage;
@@ -47,8 +48,7 @@ public class DreisatSearchProvider implements ISearchProvider {
 
     public static Map<String, String> HTTP_HEADERS = new HashMap<String, String>();
     static {
-        HTTP_HEADERS.put("User-Agent",
-                "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.13) Gecko/20110108 Gentoo Firefox/3.6.13");
+        HTTP_HEADERS.put("User-Agent", "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.13) Gecko/20110108 Gentoo Firefox/3.6.13");
         HTTP_HEADERS.put("Accept-Language", "de-de,de;q=0.8,en-us;q=0.5,en;q=0.3");
     }
 
@@ -57,7 +57,7 @@ public class DreisatSearchProvider implements ISearchProvider {
 
     @Override
     public String getName() {
-        return "3sat Search Provider";
+        return "3sat";
     }
 
     @Override
@@ -144,7 +144,7 @@ public class DreisatSearchProvider implements ISearchProvider {
         return page;
     }
 
-    private void parseVideo(IVideoPage video) throws IOException, ParserException, URISyntaxException {
+    private void parseVideo(IVideoPage video) throws IOException, ParserException, URISyntaxException, SAXException, ParserConfigurationException {
         // parse the thumbnail
         String content = HttpUtils.get(video.getUri().toString(), HTTP_HEADERS, CHARSET);
         ImageTag thumb = (ImageTag) HtmlParserUtils.getTag(content, CHARSET, "div.media img.still");
@@ -161,12 +161,12 @@ public class DreisatSearchProvider implements ISearchProvider {
         video.setDescription(HtmlParserUtils.getText(content, CHARSET, "span.text"));
 
         // parse the video uri
-        Tag param = HtmlParserUtils.getTag(content, CHARSET, "param[name=\"src\"]");
-        String src = param.getAttribute("value");
-        if (src.toLowerCase().endsWith(".asx")) {
-            src = AsxParser.getUri(src);
-        }
-        video.setVideoUri(new URI(src));
+        int start = content.indexOf("playerBottomFlashvars.mediaURL = \"") + 34;
+        int stop = content.indexOf('"', start);
+        String smil = content.substring(start, stop);
+        logger.log(LogService.LOG_DEBUG, "SMIL URI is " + smil);
+        String smilContent = HttpUtils.get(smil, HTTP_HEADERS, CHARSET);
+        SmilParser.parseVideoUri(video, smilContent);
 
         // parse the pubdate
         String dateString = HtmlParserUtils.getText(content, CHARSET, "div.mediadetail span.right");
