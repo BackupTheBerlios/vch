@@ -50,6 +50,7 @@
         <module>../vch-parser-sat1</module>
         <module>../vch-parser-service</module>
         <module>../vch-parser-servustv</module>
+        <module>../vch-parser-sf</module>
         <module>../vch-parser-sport1</module>
         <module>../vch-parser-tivi</module>
         <module>../vch-parser-web</module>
