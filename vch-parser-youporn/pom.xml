@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>parser.youporn</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.0.2</version>
+	<version>1.0.3</version>
 	<name>VCH Youporn Parser</name>
     <description>Parser for öhöm... youporn.com.</description>
     

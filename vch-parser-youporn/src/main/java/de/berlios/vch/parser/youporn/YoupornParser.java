@@ -1,12 +1,16 @@
 package de.berlios.vch.parser.youporn;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -29,6 +33,7 @@ import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
 import de.berlios.vch.parser.VideoPage;
+import de.berlios.vch.parser.exceptions.NoSupportedVideoFoundException;
 
 public class YoupornParser implements IWebParser, BundleActivator {
     private static transient Logger logger = LoggerFactory.getLogger(YoupornParser.class);
@@ -44,6 +49,8 @@ public class YoupornParser implements IWebParser, BundleActivator {
     static Map<String, String> headers = new HashMap<String, String>();
     static {
         headers.put("Cookie", COOKIE);
+        headers.put("User-Agent", "Mozilla/5.0 (X11; Linux i686; rv:10.0.3) Gecko/20100101 Firefox/10.0.3");
+        headers.put("Accept", "*/*");
     }
 
     @Override
@@ -68,7 +75,7 @@ public class YoupornParser implements IWebParser, BundleActivator {
             String title = Translate.decode(HtmlParserUtils.getText(cellContent, CHARSET, "h1 a").trim());
 
             // try to parse the video duration
-            String _duration = HtmlParserUtils.getText(cellContent, CHARSET, ".duration").trim();
+            String _duration = HtmlParserUtils.getText(cellContent, CHARSET, "*[class~=duration]").trim();
             long duration = 0;
             try {
                 String[] d = _duration.split(":");
@@ -115,7 +122,7 @@ public class YoupornParser implements IWebParser, BundleActivator {
         }
     }
 
-    private void parseVideoDetails(VideoPage video) throws IOException, ParserException, URISyntaxException {
+    private void parseVideoDetails(VideoPage video) throws IOException, ParserException, URISyntaxException, NoSupportedVideoFoundException {
 
         String content = HttpUtils.get(video.getUri().toString(), headers, CHARSET);
 
@@ -125,13 +132,14 @@ public class YoupornParser implements IWebParser, BundleActivator {
             return;
         }
 
-        // parse enclosure
-        LinkTag download = (LinkTag) HtmlParserUtils.getTag(content, CHARSET, "div#tab-general-download a");
-
-        video.setVideoUri(new URI(download.getLink()));
+        // parse video uris
+        NodeList downloads = HtmlParserUtils.getTags(content, CHARSET, "div#downloadPopup ul.downloadList li a");
+        URI bestQualityVideo = getBestVideoLink(video.getUri(), downloads);
+        logger.debug("Best quality video: {}", bestQualityVideo.toString());
+        video.setVideoUri(bestQualityVideo);
 
         // parse description
-        String description = HtmlParserUtils.getTag(content, CHARSET, "div#tab-general-details").toPlainTextString().trim();
+        String description = HtmlParserUtils.getTag(content, CHARSET, "div#content ul.spaced").toPlainTextString().trim();
         description = Translate.decode(description);
         description = description.replaceAll("[ \\t\\x0B\\f\\r]{2,}", " ");
         description = description.replaceAll("\\n\\s+\\n", "\\\n");
@@ -152,6 +160,52 @@ public class YoupornParser implements IWebParser, BundleActivator {
             video.setPublishDate(Calendar.getInstance());
         } finally {
             Locale.setDefault(currentLocale);
+        }
+    }
+
+    private URI getBestVideoLink(URI sourcePage, NodeList downloads) throws URISyntaxException, NoSupportedVideoFoundException {
+        List<Video> videos = new ArrayList<Video>();
+
+        for (int i = 0; i < downloads.size(); i++) {
+            LinkTag link = (LinkTag) downloads.elementAt(i);
+
+            URI videoUri = new URI(Translate.decode(link.extractLink()));
+            logger.trace("Found video: {}", videoUri);
+
+            Video video = new Video();
+            video.setUri(videoUri);
+            File serverPath = new File(videoUri.getPath());
+            if (serverPath.getName().contains(".mp4")) {
+                video.setType("mp4");
+            } else if (serverPath.getName().contains(".mpg")) {
+                video.setType("mpg");
+            } else {
+                video.setType("unknown");
+            }
+
+            String quality = serverPath.getParentFile().getName();
+            try {
+                quality = quality.substring(0, quality.lastIndexOf('_'));
+                int height = Integer.parseInt(quality.substring(0, quality.indexOf('_') - 1));
+                int bitrate = Integer.parseInt(quality.substring(quality.indexOf('_') + 1, quality.length() - 1));
+                video.setHeight(height);
+                video.setBitrate(bitrate);
+            } catch (Exception e) {
+                logger.error("Couldn't determine video height and bitrate", e);
+            }
+
+            videos.add(video);
+        }
+
+        Collections.sort(videos, new VideoComparator());
+        if (videos.size() > 0) {
+            return videos.get(0).getUri();
+        } else {
+            List<String> formats = new ArrayList<String>(videos.size());
+            for (Video video : videos) {
+                formats.add(video.getType());
+            }
+            throw new NoSupportedVideoFoundException(sourcePage.toString(), formats);
         }
     }
 
