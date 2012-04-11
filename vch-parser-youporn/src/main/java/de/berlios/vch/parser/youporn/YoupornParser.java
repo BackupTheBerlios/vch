@@ -135,7 +135,6 @@ public class YoupornParser implements IWebParser, BundleActivator {
         // parse video uris
         NodeList downloads = HtmlParserUtils.getTags(content, CHARSET, "div#downloadPopup ul.downloadList li a");
         URI bestQualityVideo = getBestVideoLink(video.getUri(), downloads);
-        logger.debug("Best quality video: {}", bestQualityVideo.toString());
         video.setVideoUri(bestQualityVideo);
 
         // parse description
@@ -199,7 +198,10 @@ public class YoupornParser implements IWebParser, BundleActivator {
 
         Collections.sort(videos, new VideoComparator());
         if (videos.size() > 0) {
-            return videos.get(0).getUri();
+            Video vid = videos.get(0);
+            logger.debug("Best quality video is {} with a height of {} px and a bitrate of {} kbit/s",
+                    new Object[] { vid.getType(), vid.getHeight(), vid.getBitrate() });
+            return vid.getUri();
         } else {
             List<String> formats = new ArrayList<String>(videos.size());
             for (Video video : videos) {
