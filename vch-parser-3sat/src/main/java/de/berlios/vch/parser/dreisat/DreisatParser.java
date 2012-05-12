@@ -16,6 +16,8 @@ import org.apache.felix.ipojo.annotations.Validate;
 import org.htmlparser.Node;
 import org.htmlparser.tags.ImageTag;
 import org.htmlparser.tags.LinkTag;
+import org.htmlparser.tags.TableColumn;
+import org.htmlparser.tags.TableRow;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.Translate;
@@ -42,9 +44,7 @@ public class DreisatParser implements IWebParser {
 
     public static final String BASE_URL = "http://www.3sat.de";
 
-    public static final String MEDIATHEK_URL = BASE_URL + "/mediathek/";
-
-    private static final String LANDING_PAGE = MEDIATHEK_URL + "mediathek.php?mode=rss";
+    private static final String LANDING_PAGE = BASE_URL + "/page/?source=/specials/133576/index.html";
 
     public static final String CHARSET = "iso-8859-15";
 
@@ -52,7 +52,7 @@ public class DreisatParser implements IWebParser {
 
     public static Map<String, String> HTTP_HEADERS = new HashMap<String, String>();
     static {
-        HTTP_HEADERS.put("User-Agent", "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.1.2) Gecko/20090821 Gentoo Firefox/3.5.2");
+        HTTP_HEADERS.put("User-Agent", "Mozilla/5.0 (X11; Linux i686; rv:10.0.3) Gecko/20100101 Firefox/10.0.3");
         HTTP_HEADERS.put("Accept-Language", "de-de,de;q=0.8,en-us;q=0.5,en;q=0.3");
     }
 
@@ -70,19 +70,34 @@ public class DreisatParser implements IWebParser {
 
         // add all rss feeds to
         String landingPage = HttpUtils.get(LANDING_PAGE, HTTP_HEADERS, CHARSET);
-        NodeList links = HtmlParserUtils.getTags(landingPage, CHARSET, "div.rss a.link");
-        NodeIterator iter = links.elements();
+        NodeList tableRows = HtmlParserUtils.getTags(landingPage, CHARSET, "table.article_table_main_fix tr");
+        NodeIterator iter = tableRows.elements();
         while (iter.hasMoreNodes()) {
             Node child = iter.nextNode();
-            if (child instanceof LinkTag) {
-                LinkTag link = (LinkTag) child;
-                String pageUri = MEDIATHEK_URL + link.extractLink();
-                String title = Translate.decode(link.getLinkText()).trim().substring(1);
-                OverviewPage feedPage = new OverviewPage();
-                feedPage.setParser(ID);
-                feedPage.setTitle(title);
-                feedPage.setUri(new URI(pageUri.replaceAll(" ", "+")));
-                page.getPages().add(feedPage);
+            if (child instanceof TableRow) {
+                TableRow tr = (TableRow) child;
+                if (tr.getChildCount() < 10) {
+                    continue;
+                }
+
+                TableColumn td = (TableColumn) tr.childAt(1);
+                String title = Translate.decode(td.toPlainTextString());
+
+                td = (TableColumn) tr.childAt(7);
+                logger.log(LogService.LOG_DEBUG, td.toString());
+                if (td.getChild(0) instanceof LinkTag) {
+                    LinkTag rss = (LinkTag) td.getChild(0);
+                    String path = rss.extractLink();
+                    if (path.startsWith("/mediaplayer/rss/")) {
+                        OverviewPage feedPage = new OverviewPage();
+                        feedPage.setParser(ID);
+                        feedPage.setTitle(title);
+                        feedPage.setUri(new URI(BASE_URL + path));
+                        page.getPages().add(feedPage);
+                    }
+                } else {
+                    logger.log(LogService.LOG_DEBUG, title + " has no RSS feed");
+                }
             }
         }
 
@@ -90,7 +105,7 @@ public class DreisatParser implements IWebParser {
         OverviewPage feedPage = new OverviewPage();
         feedPage.setParser(ID);
         feedPage.setTitle("3sat-Mediathek allgemein");
-        feedPage.setUri(new URI(MEDIATHEK_URL + "rss/mediathek.xml"));
+        feedPage.setUri(new URI(BASE_URL + "/mediathek/rss/mediathek.xml"));
         page.getPages().add(feedPage);
         Collections.sort(page.getPages(), new WebPageTitleComparator());
         return page;
