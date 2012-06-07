@@ -34,10 +34,8 @@ public class VideoItemPageParser {
 
     private static transient Logger logger = LoggerFactory.getLogger(VideoItemPageParser.class);
 
-    public static VideoPage parse(VideoPage page, BundleContext ctx) throws IOException, ParserException,
-            URISyntaxException, NoSupportedVideoFoundException {
-        String content = HttpUtils.get(page.getUri().toString(), ARDMediathekParser.HTTP_HEADERS,
-                ARDMediathekParser.CHARSET);
+    public static VideoPage parse(VideoPage page, BundleContext ctx) throws IOException, ParserException, URISyntaxException, NoSupportedVideoFoundException {
+        String content = HttpUtils.get(page.getUri().toString(), ARDMediathekParser.HTTP_HEADERS, ARDMediathekParser.CHARSET);
 
         // create list of supported network protocols
         List<String> supportedProtocols = new ArrayList<String>();
@@ -69,8 +67,7 @@ public class VideoItemPageParser {
         if (bestVideo != null) {
             // set the video uri
             if (bestVideo.getUri().startsWith("http")) {
-                Map<String, List<String>> headers = HttpUtils.head(bestVideo.getUri(), ARDMediathekParser.HTTP_HEADERS,
-                        ARDMediathekParser.CHARSET);
+                Map<String, List<String>> headers = HttpUtils.head(bestVideo.getUri(), ARDMediathekParser.HTTP_HEADERS, ARDMediathekParser.CHARSET);
                 String contentType = HttpUtils.getHeaderField(headers, "Content-Type");
                 if ("video/x-ms-asf".equals(contentType)) {
                     bestVideo.uriPart2 = AsxParser.getUri(bestVideo.getUri());
@@ -113,8 +110,7 @@ public class VideoItemPageParser {
     }
 
     private static String parseTitle(String content) throws ParserException {
-        return Translate.decode(HtmlParserUtils
-                .getText(content, ARDMediathekParser.CHARSET, "div.mt-player_content h2"));
+        return Translate.decode(HtmlParserUtils.getText(content, ARDMediathekParser.CHARSET, "div.mt-player_content h2"));
     }
 
     private static Calendar parseDate(String content) throws ParserException, ParseException {
@@ -136,11 +132,18 @@ public class VideoItemPageParser {
 
     private static List<VideoType> parseAvailableVideos(String content) throws URISyntaxException {
         List<VideoType> videos = new ArrayList<VideoType>();
-        Pattern p = Pattern.compile("addMediaStream\\((\\d+), (\\d+), \"(.*)\", \"(.*)\"\\);");
+        Pattern p = Pattern.compile("addMediaStream\\((\\d+), (\\d+), \"(.*)\", \"(.*)\", \"(.*)\"\\);");
         Matcher m = p.matcher(content);
         while (m.find()) {
             String uriPart1 = m.group(3);
             String uriPart2 = m.group(4);
+
+            // this is a normal uri
+            if (uriPart1.trim().isEmpty()) {
+                uriPart1 = uriPart2;
+                uriPart2 = "";
+            }
+
             int format = Integer.parseInt(m.group(1));
             int quality = Integer.parseInt(m.group(2));
             VideoType vt = new VideoType(uriPart1, uriPart2, format, quality);
@@ -150,8 +153,7 @@ public class VideoItemPageParser {
     }
 
     /**
-     * Container class for the different video types and qualities. The URI is split into uriPart1 and uriPart2. This is
-     * needed for rtmp streams.
+     * Container class for the different video types and qualities. The URI is split into uriPart1 and uriPart2. This is needed for rtmp streams.
      */
     public static class VideoType {
         private String uriPart1;
