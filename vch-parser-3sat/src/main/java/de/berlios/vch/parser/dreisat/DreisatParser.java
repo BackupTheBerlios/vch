@@ -159,13 +159,22 @@ public class DreisatParser implements IWebParser {
                 video.setPublishDate(pubCal);
                 video.setVideoUri(new URI(((SyndEnclosure) entry.getEnclosures().get(0)).getUrl()));
 
-                // look, if we have a duration in the foreign markup
+                // check the foreign markup for additional info
                 @SuppressWarnings("unchecked")
                 List<Element> fm = (List<Element>) entry.getForeignMarkup();
                 for (Element element : fm) {
+                    // look, if we have a duration in the foreign markup
                     if ("duration".equals(element.getName())) {
                         try {
                             video.setDuration(Long.parseLong(element.getText()));
+                        } catch (Exception e) {
+                        }
+                    }
+
+                    // look, if we have a thumbnail in the foreign markup
+                    if ("thumbnail".equals(element.getName())) {
+                        try {
+                            video.setThumbnail(new URI(element.getText()));
                         } catch (Exception e) {
                         }
                     }
