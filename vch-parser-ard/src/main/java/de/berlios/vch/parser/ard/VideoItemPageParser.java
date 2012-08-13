@@ -137,6 +137,8 @@ public class VideoItemPageParser {
         while (m.find()) {
             String uriPart1 = m.group(3);
             String uriPart2 = m.group(4);
+            logger.debug("Uri part1: {}", uriPart1);
+            logger.debug("Uri part2: {}", uriPart2);
 
             // this is a normal uri
             if (uriPart1.trim().isEmpty()) {
