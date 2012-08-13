@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -42,6 +43,7 @@ public class BrMediathekParser implements IWebParser {
 
     public static final String ID = BrMediathekParser.class.getName();
     public static final String XML_URI = "http://rd.gl-systemhaus.de/br/b7/listra/archive/archive.xml.zip.adler32";
+    public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
 
     private Map<String, IOverviewPage> sendungen = new HashMap<String, IOverviewPage>();
 
@@ -75,6 +77,7 @@ public class BrMediathekParser implements IWebParser {
             IOverviewPage opage = entry.getValue();
             if (opage.getPages().size() <= 0) {
                 iterator.remove();
+                logger.log(LogService.LOG_DEBUG, "Removing " + opage.getTitle() + " because it has no episodes");
             }
         }
     }
@@ -100,6 +103,7 @@ public class BrMediathekParser implements IWebParser {
     }
 
     private void parseEpisodes(Document archive) throws Exception {
+        // parse "ausstrahlungen"
         NodeList list = archive.getElementsByTagName("ausstrahlung");
         for (int i = 0; i < list.getLength(); i++) {
             Node n = list.item(i);
@@ -118,25 +122,26 @@ public class BrMediathekParser implements IWebParser {
                 String desc = findChildWithTagName(n, "beschreibung").getTextContent();
                 video.setDescription(desc);
 
-                // parse the thumbnail
-                Node bild = findChildWithTagName(n, "bild");
-                if (bild != null) {
-                    String uri = bild.getTextContent();
-                    if (uri != null && uri.length() > 0) {
-                        video.setThumbnail(new URI(uri));
-                    }
-                }
-
                 // parse the video
                 parseVideo(n, video);
 
                 // parse the pubDate (2011-03-29T09:15:00)
                 String beginnPlan = findChildWithTagName(n, "beginnPlan").getTextContent();
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+                SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
                 Date pubDate = sdf.parse(beginnPlan);
                 Calendar cal = Calendar.getInstance();
                 cal.setTime(pubDate);
                 video.setPublishDate(cal);
+
+                // parse the endePlan to calculate the duration
+                String endePlan = findChildWithTagName(n, "endePlan").getTextContent();
+                if (endePlan != null && !endePlan.trim().isEmpty()) {
+                    pubDate = sdf.parse(endePlan);
+                    Calendar calEnde = Calendar.getInstance();
+                    calEnde.setTime(pubDate);
+                    long duration = (calEnde.getTimeInMillis() - cal.getTimeInMillis()) / 1000;
+                    video.setDuration(duration);
+                }
 
                 // parse the program id
                 String programId = findChildWithTagName(n, "sendung").getTextContent();
@@ -144,6 +149,20 @@ public class BrMediathekParser implements IWebParser {
                 // parse the episode id
                 String id = getAttribute(n, "id");
                 video.setUri(new URI("br://sendung/" + programId + "/episode/" + id));
+
+                // parse the thumbnail
+                Node bild = findChildWithTagName(n, "bild");
+                if (bild != null) {
+                    String uri = bild.getTextContent();
+                    if (uri != null && uri.length() > 0) {
+                        video.setThumbnail(new URI(uri));
+                    }
+                } else {
+                    // check if the program has thumbnail and use that instead
+                    if (sendungen.get(programId).getUserData().get("thumbnail") != null) {
+                        video.setThumbnail(new URI((String) sendungen.get(programId).getUserData().get("thumbnail")));
+                    }
+                }
 
                 // add this episode to the program
                 if (video.getVideoUri() != null) {
@@ -212,7 +231,7 @@ public class BrMediathekParser implements IWebParser {
         }
     }
 
-    private void parsePrograms(Document archive) throws URISyntaxException {
+    private void parsePrograms(Document archive) throws Exception {
         NodeList parent = archive.getElementsByTagName("sendungen");
         NodeList list = parent.item(0).getChildNodes();
         for (int i = 0; i < list.getLength(); i++) {
@@ -224,16 +243,104 @@ public class BrMediathekParser implements IWebParser {
             IOverviewPage sendung = new OverviewPage();
             sendung.setParser(ID);
 
+            // parse the website
+            String website = getAttribute(n, "website");
+
             // parse the id
-            String id = getAttribute(n, "id");
-            sendung.setUri(new URI("br://sendung/" + id));
+            String programId = getAttribute(n, "id");
+            if (website != null && !website.trim().isEmpty()) {
+                sendung.setUri(new URI(website));
+            } else {
+                sendung.setUri(new URI("br://sendung/" + programId));
+            }
 
             // parse the title
             String name = getAttribute(n, "name");
             sendung.setTitle(name);
 
-            sendungen.put(id, sendung);
-            logger.log(LogService.LOG_DEBUG, "Adding program " + name + " ID[" + id + "]");
+            // parse the thubmnail of the program, which is used, when the episodes don't have a thumbnail on their own
+            String bild = getAttribute(n, "bild");
+            if (bild != null && !bild.trim().isEmpty()) {
+                sendung.getUserData().put("thumbnail", bild);
+            }
+
+            sendungen.put(programId, sendung);
+            logger.log(LogService.LOG_DEBUG, "Adding program " + name + " ID[" + programId + "]");
+
+            // parse podcasts child, if existant
+            Node podcasts = findChildWithTagName(n, "podcasts");
+            if (podcasts != null) {
+                NodeList feeds = podcasts.getChildNodes();
+                for (int j = 0; j < feeds.getLength(); j++) {
+                    Node feed = feeds.item(j);
+                    Node image = findChildWithTagName(feed, "image");
+                    URI thumb = null;
+                    if (image != null) {
+                        thumb = new URI(image.getTextContent());
+                    }
+
+                    NodeList feedChilds = feed.getChildNodes();
+                    for (int k = 0; k < feedChilds.getLength(); k++) {
+                        Node child = feedChilds.item(k);
+                        if ("podcast".equals(child.getNodeName())) {
+                            IVideoPage video = new VideoPage();
+                            video.setParser(ID);
+
+                            // get podcast id to set a dummy uri
+                            String podcastId = getAttribute(child, "id");
+                            video.setUri(new URI("br://sendung/" + programId + "/episode/" + podcastId));
+
+                            // set the thumbnail if there is one
+                            if (thumb != null) {
+                                video.setThumbnail(thumb);
+                            } else {
+                                // check if the program has thumbnail and use that instead
+                                if (sendung.getUserData().get("thumbnail") != null) {
+                                    video.setThumbnail(new URI((String) sendung.getUserData().get("thumbnail")));
+                                }
+                            }
+
+                            // parse the title
+                            String title = findChildWithTagName(child, "title").getTextContent();
+                            video.setTitle(title);
+
+                            // parse the description
+                            String description = findChildWithTagName(child, "description").getTextContent();
+                            video.setDescription(description);
+
+                            // parse the publish date
+                            String date = findChildWithTagName(child, "pubdate").getTextContent();
+                            SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+                            try {
+                                Calendar cal = Calendar.getInstance();
+                                cal.setTime(sdf.parse(date));
+                                video.setPublishDate(cal);
+                            } catch (ParseException e) {
+                                logger.log(LogService.LOG_WARNING, "Couldn't parse pubdate " + date + " with format " + DATE_FORMAT);
+                            }
+
+                            // parse the duration
+                            String durationString = findChildWithTagName(child, "duration").getTextContent();
+                            String[] parts = durationString.split(":");
+                            try {
+                                long duration = Long.parseLong(parts[0]) * 3600 + Long.parseLong(parts[1]) * 60 + Long.parseLong(parts[2]);
+                                video.setDuration(duration);
+                            } catch (RuntimeException re) {
+                                logger.log(LogService.LOG_WARNING, "Couldn't parse duration " + durationString);
+                            }
+
+                            // parse the video
+                            String uri = findChildWithTagName(child, "enclosure").getTextContent();
+                            try {
+                                video.setVideoUri(new URI(uri));
+                                sendung.getPages().add(video);
+                            } catch (RuntimeException re) {
+                                logger.log(LogService.LOG_WARNING, "Couldn't parse video uri", re);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
