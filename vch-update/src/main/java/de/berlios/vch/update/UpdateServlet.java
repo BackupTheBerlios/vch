@@ -204,7 +204,8 @@ public class UpdateServlet extends VchHttpServlet implements ObrManager {
         }
 
         if (resolver.resolve()) {
-            resolver.deploy(true); // deploy and start (true means "start")
+            boolean andStartBundle = true;
+            resolver.deploy(andStartBundle); // deploy and start
             addNotify(req, new NotifyMessage(TYPE.INFO, rbp.getResourceBundle().getString("info.please_restart")));
         } else {
             String msg = rbp.getResourceBundle().getString("error.load_list");
@@ -232,7 +233,8 @@ public class UpdateServlet extends VchHttpServlet implements ObrManager {
         Resolver resolver = repoAdmin.resolver();
         resolver.add(resource);
         if (resolver.resolve()) {
-            resolver.deploy(true); // deploy and start (true means "start")
+            boolean andStartBundle = true;
+            resolver.deploy(andStartBundle); // deploy and start
         } else {
             String msg = rbp.getResourceBundle().getString("error.load_list");
             logger.log(LogService.LOG_ERROR, msg);
