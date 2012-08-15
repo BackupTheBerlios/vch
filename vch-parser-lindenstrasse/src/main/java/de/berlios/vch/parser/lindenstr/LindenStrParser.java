@@ -44,27 +44,27 @@ import de.berlios.vch.parser.exceptions.NoSupportedVideoFoundException;
 public class LindenStrParser implements IWebParser, ResourceBundleProvider {
 
     public static final String ID = LindenStrParser.class.getName();
-    
+
     public static final String STREAM_BASE = "rtmp://gffstream.fcod.llnwd.net:1935/a792/e2";
 
     public static final String BASE_URI = "http://www.lindenstrasse.de";
     private static final String START_PAGE = BASE_URI + "/Multimedia/Videos/folgen.jsp";
-    
+
     public static final String CHARSET = "iso-8859-1";
-    
+
     @Requires
     private LogService logger;
-    
+
     private List<String> supportedProtocols = new ArrayList<String>();
-    
+
     private ResourceBundle resourceBundle;
-    
+
     private BundleContext ctx;
-    
+
     public LindenStrParser(BundleContext ctx) {
         this.ctx = ctx;
     }
-    
+
     @Override
     public String getId() {
         return ID;
@@ -76,19 +76,19 @@ public class LindenStrParser implements IWebParser, ResourceBundleProvider {
         page.setParser(ID);
         page.setTitle(getTitle());
         page.setUri(new URI("vchpage://localhost/" + getId()));
-        
+
         String content = HttpUtils.get(START_PAGE, null, CHARSET);
         NodeList divs = HtmlParserUtils.getTags(content, CHARSET, "div[class=LinkeSpalte-Bildbox-Liste-164-Pixel]");
         logger.log(LogService.LOG_DEBUG, "Found " + divs.size() + " episodes");
-        
+
         NodeIterator iter = divs.elements();
-        while(iter.hasMoreNodes()) {
+        while (iter.hasMoreNodes()) {
             IOverviewPage opage = new OverviewPage();
             opage.setParser(ID);
-            
+
             Div div = (Div) iter.nextNode();
             String divContent = div.toHtml();
-            
+
             // parse the thumbnail
             ImageTag img = (ImageTag) HtmlParserUtils.getTag(divContent, CHARSET, "a img");
 
@@ -96,10 +96,10 @@ public class LindenStrParser implements IWebParser, ResourceBundleProvider {
             String episode = HtmlParserUtils.getText(divContent, CHARSET, "div[class=LinkeSpalte-Bildbox-Liste-164-Pixel-Bildueberschrift] a");
             LinkTag link = (LinkTag) HtmlParserUtils.getTag(divContent, CHARSET, "p[class=LinkeSpalte-Bildbox-Liste-164-Pixel-Bildueberschrift] a");
             String title = link.getLinkText();
-            title = title.substring(1, title.length()-1);
+            title = title.substring(1, title.length() - 1);
             title = episode + " - " + title;
             logger.log(LogService.LOG_DEBUG, "Title: " + title);
-            
+
             // parse the publish date
             String _pubdate = HtmlParserUtils.getText(divContent, CHARSET, "p[class=LinkeSpalte-Bildbox-Liste-164-Pixel-Text2]");
             String pattern = "dd.MM.yyyy";
@@ -112,21 +112,21 @@ public class LindenStrParser implements IWebParser, ResourceBundleProvider {
             } catch (Exception e) {
                 logger.log(LogService.LOG_WARNING, "Coulnd't parse publish date " + _pubdate + " with pattern " + pattern);
             }
-            
+
             // create page structure
             opage.setTitle(title);
             opage.setUri(new URI("linden://" + _pubdate));
             page.getPages().add(opage);
-            
+
             // add two vido pages. one for low and one for high quality
             IVideoPage low = new VideoPage();
             low.setParser(ID);
             low.setPublishDate(cal);
             low.setThumbnail(new URI(BASE_URI + img.getImageURL()));
             low.setTitle(title + " (" + getResourceBundle().getString("low_quality") + ")");
-            low.setUri(new URI(BASE_URI + link.extractLink()));
+            low.setUri(new URI(BASE_URI + link.extractLink() + "&startMedium=1"));
             opage.getPages().add(low);
-            
+
             IVideoPage high = new VideoPage();
             high.setParser(ID);
             high.setPublishDate(cal);
@@ -135,7 +135,7 @@ public class LindenStrParser implements IWebParser, ResourceBundleProvider {
             high.setUri(new URI(BASE_URI + link.extractLink() + "&q=L"));
             opage.getPages().add(high);
         }
-        
+
         return page;
     }
 
@@ -146,9 +146,9 @@ public class LindenStrParser implements IWebParser, ResourceBundleProvider {
 
     @Override
     public IWebPage parse(IWebPage page) throws Exception {
-        if(page instanceof IVideoPage) {
+        if (page instanceof IVideoPage) {
             IVideoPage vpage = (IVideoPage) page;
-            
+
             // parse the video uri
             String content = HttpUtils.get(page.getUri().toString(), null, CHARSET);
             Tag param = HtmlParserUtils.getTag(content, CHARSET, "param[name=\"flashvars\"]");
@@ -156,9 +156,9 @@ public class LindenStrParser implements IWebParser, ResourceBundleProvider {
             int start = flashvars.indexOf("dslSrc=") + 7;
             int stop = flashvars.indexOf('&', start);
             String _videoUri = flashvars.substring(start, stop);
-            String playPath = "mp4:" + _videoUri.substring(STREAM_BASE.length(), _videoUri.length()-4);
+            String playPath = "mp4:" + _videoUri.substring(STREAM_BASE.length(), _videoUri.length() - 4);
             URI videoUri = new URI(_videoUri);
-            if(supportedProtocols.contains(videoUri.getScheme())) {
+            if (supportedProtocols.contains(videoUri.getScheme())) {
                 vpage.setVideoUri(videoUri);
                 vpage.getUserData().put("streamName", playPath);
             } else {
@@ -167,10 +167,10 @@ public class LindenStrParser implements IWebParser, ResourceBundleProvider {
         }
         return page;
     }
-    
+
     @Override
     public ResourceBundle getResourceBundle() {
-        if(resourceBundle == null) {
+        if (resourceBundle == null) {
             try {
                 logger.log(LogService.LOG_DEBUG, "Loading resource bundle for " + getClass().getSimpleName());
                 resourceBundle = ResourceBundleLoader.load(ctx, Locale.getDefault());
@@ -180,9 +180,9 @@ public class LindenStrParser implements IWebParser, ResourceBundleProvider {
         }
         return resourceBundle;
     }
-    
-// ############ ipojo stuff #########################################    
-    
+
+    // ############ ipojo stuff #########################################
+
     // validate and invalidate method seem to be necessary for the bind methods to work
     @Validate
     public void start() {
@@ -196,8 +196,8 @@ public class LindenStrParser implements IWebParser, ResourceBundleProvider {
     public synchronized void addProtocol(INetworkProtocol protocol) {
         supportedProtocols.addAll(protocol.getSchemes());
     }
-    
-    @Unbind(id="supportedProtocols", aggregate = true)
+
+    @Unbind(id = "supportedProtocols", aggregate = true)
     public synchronized void removeProtocol(INetworkProtocol protocol) {
         supportedProtocols.removeAll(protocol.getSchemes());
     }
