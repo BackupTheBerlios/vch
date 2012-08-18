@@ -2,24 +2,12 @@ package de.berlios.vch.parser.n24;
 
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-import javax.xml.namespace.QName;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
@@ -28,22 +16,25 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.htmlparser.Tag;
+import org.htmlparser.nodes.TextNode;
+import org.htmlparser.tags.ImageTag;
+import org.htmlparser.tags.LinkTag;
+import org.htmlparser.util.NodeList;
+import org.htmlparser.util.Translate;
+import org.json.JSONObject;
 import org.osgi.service.log.LogService;
 
+import de.berlios.vch.http.client.HttpUtils;
 import de.berlios.vch.net.INetworkProtocol;
+import de.berlios.vch.parser.HtmlParserUtils;
 import de.berlios.vch.parser.IOverviewPage;
 import de.berlios.vch.parser.IVideoPage;
 import de.berlios.vch.parser.IWebPage;
 import de.berlios.vch.parser.IWebParser;
 import de.berlios.vch.parser.OverviewPage;
 import de.berlios.vch.parser.VideoPage;
-import de.berlios.vch.parser.WebPageTitleComparator;
 import de.berlios.vch.parser.exceptions.NoSupportedVideoFoundException;
-import de.berlios.vch.parser.n24.tvnext.ArrayOfN24Ressort;
-import de.berlios.vch.parser.n24.tvnext.N24Ressort;
-import de.berlios.vch.parser.n24.tvnext.TvNextClip;
-import de.berlios.vch.parser.n24.tvnext.TvNextCore;
-import de.berlios.vch.parser.n24.tvnext.TvNextCorePortType;
 
 @Component
 @Provides
@@ -51,16 +42,15 @@ public class N24Parser implements IWebParser {
 
     public static final String ID = N24Parser.class.getName();
 
+    public static final String CHARSET = "UTF-8";
+    public static final String BASE_URI = "http://www.n24.de";
+    public static final String START_PAGE = BASE_URI + "/mediathek/";
     public static final String STREAM_BASE = "rtmp://pssimn24fs.fplive.net:1935/pssimn24";
 
     @Requires
     private LogService logger;
 
     private List<String> supportedProtocols = new ArrayList<String>();
-
-    private URL wsdlUrl;
-    private QName serviceName;
-    private TvNextCore service;
 
     @Override
     public String getId() {
@@ -74,129 +64,105 @@ public class N24Parser implements IWebParser {
         page.setTitle(getTitle());
         page.setUri(new URI("vchpage://localhost/" + getId()));
 
-        final TvNextCorePortType port = service.getPort(TvNextCorePortType.class);
-        ArrayOfN24Ressort array = port.getRessorts(10);
-        List<N24Ressort> ressorts = array.getN24Ressort();
-        ExecutorService executor = Executors.newFixedThreadPool(10);
-        for (final N24Ressort ressort : ressorts) {
-            final URI ressortURI = new URI("http://www.n24.de/" + URLEncoder.encode(ressort.getTitle().getValue(), "UTF-8"));
-
-            executor.submit(new Runnable() {
-                @Override
-                public void run() {
-                    OverviewPage ressortPage = new OverviewPage();
-                    ressortPage.setParser(ID);
-                    ressortPage.setTitle(ressort.getTitle().getValue());
-                    ressortPage.setUri(ressortURI);
-                    page.getPages().add(ressortPage);
-
-                    // feed.setDescription(ressort.getDescription() != null ? ressort.getDescription().getValue() : "");
-
-                    List<TvNextClip> clips = port.getClipsByRessortId(ressort.getId().getValue(), 0, 100).getTvNextClip();
-                    for (TvNextClip clip : clips) {
-                        if (clip.getHeader() == null) {
-                            logger.log(LogService.LOG_WARNING, "Clip header is null");
-                            continue;
-                        }
-
-                        VideoPage video = new VideoPage();
-                        video.setParser(ID);
-
-                        // set the title
-                        video.setTitle(clip.getHeader().getValue());
-
-                        // set the description
-                        video.setDescription(clip.getTitle().getValue());
-
-                        // try to parse the publish date
-                        try {
-                            Date date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(clip.getCreatedTimestamp().getValue());
-                            Calendar publishDate = Calendar.getInstance();
-                            publishDate.setTime(date);
-                            video.setPublishDate(publishDate);
-                        } catch (ParseException e) {
-                            logger.log(LogService.LOG_WARNING, "Couldn't parse video pubDate", e);
-                        }
-
-                        // set the duration
-                        video.setDuration(clip.getFlvDuration().getValue());
-
-                        // set the video uri
-                        try {
-                            URI videoUri = new URI(STREAM_BASE + clip.getStreamPath().getValue().replaceAll(" ", "+"));
-                            video.setVideoUri(videoUri);
-                            video.getUserData().put("streamName", clip.getStreamPath().getValue().replaceAll(" ", "+"));
-                            // set a dummy uri, so that this page is identifyable
-                            video.setUri(new URI("n24://" + clip.getSource().getValue()));
-
-                            ressortPage.getPages().add(video);
-                        } catch (URISyntaxException e) {
-                            logger.log(LogService.LOG_ERROR, e.getMessage(), e);
-                        }
-                    }
-
-                    // special case Magazine: we aggregate the videos by title and create sub pages
-                    if ("Magazine".equals(ressortPage.getTitle())) {
-                        Map<String, List<IWebPage>> magazine = new HashMap<String, List<IWebPage>>();
-                        for (IWebPage page : ressortPage.getPages()) {
-                            List<IWebPage> list = magazine.get(page.getTitle());
-                            if (list == null) {
-                                list = new ArrayList<IWebPage>();
-                                magazine.put(page.getTitle(), list);
-                            }
-                            list.add(page);
-                        }
-
-                        // clear all videos from the ressort page. afterwards we can add subPages, which will contain the videos
-                        ressortPage.getPages().clear();
-
-                        List<String> subPageTitles = new ArrayList<String>(magazine.keySet());
-                        Collections.sort(subPageTitles);
-                        for (String title : subPageTitles) {
-                            try {
-                                IOverviewPage subPage = new OverviewPage();
-                                subPage.setParser(getId());
-                                subPage.setTitle(title);
-                                subPage.setUri(new URI("dummy://" + UUID.randomUUID()));
-                                List<IWebPage> videos = magazine.get(title);
-                                for (IWebPage videoPage : videos) {
-                                    if (videoPage instanceof IVideoPage) {
-                                        IVideoPage vpage = (IVideoPage) videoPage;
-                                        if (vpage.getDescription() != null) {
-                                            String[] lines = vpage.getDescription().split("\n");
-                                            vpage.setTitle(lines[0]);
-                                        }
-                                    }
-                                    subPage.getPages().add(videoPage);
-                                }
-                                ressortPage.getPages().add(subPage);
-                            } catch (Exception e) {
-                                logger.log(LogService.LOG_ERROR, "Couldn't create subpage " + title, e);
-                            }
-                        }
-                    }
-                }
-            });
+        String content = HttpUtils.get(START_PAGE, null, CHARSET);
+        NodeList naviLinks = HtmlParserUtils.getTags(content, CHARSET, "div#mediacenter_nav ul li a");
+        for (int i = 0; i < naviLinks.size(); i++) {
+            LinkTag link = (LinkTag) naviLinks.elementAt(i);
+            OverviewPage category = new OverviewPage();
+            category.setParser(ID);
+            category.setTitle(link.getLinkText());
+            String uri = link.extractLink();
+            if (uri.startsWith("/")) {
+                category.setUri(new URI(BASE_URI + uri));
+            } else {
+                category.setUri(new URI(uri));
+            }
+            logger.log(LogService.LOG_DEBUG, "Found category " + category.getUri().toString());
+            page.getPages().add(category);
         }
 
-        // wait for all threads to finish
-        executor.shutdown();
-        executor.awaitTermination(60, TimeUnit.SECONDS);
+        NodeList sections = HtmlParserUtils.getTags(content, CHARSET, "div#main div[class~=box][class~=std_box]");
+        for (int i = 0; i < sections.size(); i++) {
+            String sectionHtml = sections.elementAt(i).toHtml();
+            LinkTag link = (LinkTag) HtmlParserUtils.getTag(sectionHtml, CHARSET, "div.intro h2 a");
+            OverviewPage category = new OverviewPage();
+            category.setParser(ID);
+            category.setTitle(Translate.decode(link.getLinkText()));
 
-        // sort ressorts by title
-        Collections.sort(page.getPages(), new WebPageTitleComparator());
+            Tag hidden = HtmlParserUtils.getTag(sectionHtml, CHARSET, "input[type=hidden]");
+            String json = Translate.decode(hidden.getAttribute("value"));
+            JSONObject jo = new JSONObject(json);
+            String path = jo.getString("source_url");
+            String ressort = jo.getString("ressort");
+            category.setUri(new URI(BASE_URI + path + "?dataset_name=" + ressort + "&page=1&limit=40"));
+
+            page.getPages().add(category);
+        }
+
         return page;
     }
 
     @Override
     public String getTitle() {
-        return "N24 Mediencenter";
+        return "N24 Mediathek";
     }
 
     @Override
     public IWebPage parse(IWebPage page) throws Exception {
-        if (page instanceof IVideoPage) {
+        if (page instanceof IOverviewPage) {
+            IOverviewPage opage = (IOverviewPage) page;
+            String content = HttpUtils.get(page.getUri().toString(), null, CHARSET);
+            NodeList list = HtmlParserUtils.getTags(content, CHARSET, "ul.video_teaser_list li");
+            for (int i = 0; i < list.size(); i++) {
+                String itemHtml = list.elementAt(i).toHtml();
+                LinkTag a = (LinkTag) HtmlParserUtils.getTag(itemHtml, CHARSET, "a");
+                ImageTag img = (ImageTag) HtmlParserUtils.getTag(itemHtml, CHARSET, "a img");
+
+                TextNode n = (TextNode) HtmlParserUtils.getTag(itemHtml, CHARSET, "a strong").getNextSibling();
+                String title = n.getText();
+
+                String subtitle = HtmlParserUtils.getText(itemHtml, CHARSET, "h3");
+                if (subtitle != null && !subtitle.trim().isEmpty()) {
+                    title = title.concat(" - ").concat(subtitle);
+                }
+
+                IVideoPage video = new VideoPage();
+                video.setParser(ID);
+                video.setTitle(title.toString());
+                video.setThumbnail(new URI(START_PAGE + img.extractImageLocn()));
+                video.setUri(new URI(BASE_URI + a.extractLink()));
+                opage.getPages().add(video);
+            }
+        } else if (page instanceof IVideoPage) {
             IVideoPage vpage = (IVideoPage) page;
+            String content = HttpUtils.get(page.getUri().toString(), null, CHARSET);
+
+            // parse the description
+            String description = HtmlParserUtils.getText(content, CHARSET, "div.player_infos div.col1 p");
+            vpage.setDescription(description);
+
+            // parse the pub date
+            String dateString = HtmlParserUtils.getText(content, CHARSET, "div.player_infos span.date");
+            String format = "dd.MM.yyyy HH:mm:ss";
+            try {
+                Date date = new SimpleDateFormat(format).parse(dateString);
+                Calendar pubDate = Calendar.getInstance();
+                pubDate.setTime(date);
+                vpage.setPublishDate(pubDate);
+            } catch (ParseException e) {
+                logger.log(LogService.LOG_WARNING, "Couldn't parse date string " + dateString + " with format " + format);
+            }
+
+            // parse the video uri
+            Tag input = HtmlParserUtils.getTag(content, CHARSET, "div.player input[type=hidden][class~=jsb_flash_player]");
+            String playerjson = Translate.decode(input.getAttribute("value"));
+            JSONObject playerOptions = new JSONObject(playerjson);
+            String filename = playerOptions.getString("filename");
+            URI videoUri = new URI(STREAM_BASE + "/" + filename);
+            vpage.setVideoUri(videoUri);
+            vpage.getUserData().put("streamName", filename);
+
+            // check if the video format is supported
             if (!supportedProtocols.contains(vpage.getVideoUri().getScheme())) {
                 throw new NoSupportedVideoFoundException(vpage.getVideoUri().toString(), supportedProtocols);
             }
@@ -209,9 +175,6 @@ public class N24Parser implements IWebParser {
     // validate and invalidate method seem to be necessary for the bind methods to work
     @Validate
     public void start() throws MalformedURLException {
-        wsdlUrl = new URL("http://mediencenter.n24.de/index.php/service/wsdl");
-        serviceName = new QName("http://schemas.exozet.com/tvnext/services/core/", "TvNextCore");
-        service = new TvNextCore(wsdlUrl, serviceName);
     }
 
     @Invalidate
