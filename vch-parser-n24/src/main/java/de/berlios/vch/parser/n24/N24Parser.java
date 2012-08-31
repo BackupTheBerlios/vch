@@ -107,32 +107,36 @@ public class N24Parser implements IWebParser {
         return "N24 Mediathek";
     }
 
+    private void parseVideoTeaserList(IOverviewPage opage, NodeList teaserList) throws Exception {
+        for (int i = 0; i < teaserList.size(); i++) {
+            String itemHtml = teaserList.elementAt(i).toHtml();
+            LinkTag a = (LinkTag) HtmlParserUtils.getTag(itemHtml, CHARSET, "a");
+            ImageTag img = (ImageTag) HtmlParserUtils.getTag(itemHtml, CHARSET, "a img");
+
+            TextNode n = (TextNode) HtmlParserUtils.getTag(itemHtml, CHARSET, "a strong").getNextSibling();
+            String title = n.getText();
+
+            String subtitle = HtmlParserUtils.getText(itemHtml, CHARSET, "h3");
+            if (subtitle != null && !subtitle.trim().isEmpty()) {
+                title = title.concat(" - ").concat(subtitle);
+            }
+
+            IVideoPage video = new VideoPage();
+            video.setParser(ID);
+            video.setTitle(title.toString());
+            video.setThumbnail(new URI(START_PAGE + img.extractImageLocn()));
+            video.setUri(new URI(BASE_URI + a.extractLink()));
+            opage.getPages().add(video);
+        }
+    }
+
     @Override
     public IWebPage parse(IWebPage page) throws Exception {
         if (page instanceof IOverviewPage) {
             IOverviewPage opage = (IOverviewPage) page;
             String content = HttpUtils.get(page.getUri().toString(), null, CHARSET);
             NodeList list = HtmlParserUtils.getTags(content, CHARSET, "ul.video_teaser_list li");
-            for (int i = 0; i < list.size(); i++) {
-                String itemHtml = list.elementAt(i).toHtml();
-                LinkTag a = (LinkTag) HtmlParserUtils.getTag(itemHtml, CHARSET, "a");
-                ImageTag img = (ImageTag) HtmlParserUtils.getTag(itemHtml, CHARSET, "a img");
-
-                TextNode n = (TextNode) HtmlParserUtils.getTag(itemHtml, CHARSET, "a strong").getNextSibling();
-                String title = n.getText();
-
-                String subtitle = HtmlParserUtils.getText(itemHtml, CHARSET, "h3");
-                if (subtitle != null && !subtitle.trim().isEmpty()) {
-                    title = title.concat(" - ").concat(subtitle);
-                }
-
-                IVideoPage video = new VideoPage();
-                video.setParser(ID);
-                video.setTitle(title.toString());
-                video.setThumbnail(new URI(START_PAGE + img.extractImageLocn()));
-                video.setUri(new URI(BASE_URI + a.extractLink()));
-                opage.getPages().add(video);
-            }
+            parseVideoTeaserList(opage, list);
         } else if (page instanceof IVideoPage) {
             IVideoPage vpage = (IVideoPage) page;
             String content = HttpUtils.get(page.getUri().toString(), null, CHARSET);
@@ -161,6 +165,14 @@ public class N24Parser implements IWebParser {
             URI videoUri = new URI(STREAM_BASE + "/" + filename);
             vpage.setVideoUri(videoUri);
             vpage.getUserData().put("streamName", filename);
+
+            // parse the title
+            String title = HtmlParserUtils.getText(content, CHARSET, "div.player_infos div.col1 h2");
+            String subtitle = HtmlParserUtils.getText(content, CHARSET, "div.player_infos div.col1 h3");
+            if (subtitle != null && !subtitle.trim().isEmpty()) {
+                title = title.concat(" - ").concat(subtitle);
+            }
+            vpage.setTitle(title);
 
             // check if the video format is supported
             if (!supportedProtocols.contains(vpage.getVideoUri().getScheme())) {

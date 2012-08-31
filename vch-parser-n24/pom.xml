@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>parser.n24</artifactId>
 	<packaging>bundle</packaging>
-	<version>2.0.0</version>
+	<version>2.0.1</version>
 	<name>VCH N24 Parser</name>
 	<description>Parser for www.n24.de</description>
 
