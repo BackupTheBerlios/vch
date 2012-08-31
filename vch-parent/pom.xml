@@ -4,7 +4,7 @@
     <parent>
         <artifactId>master</artifactId>
         <groupId>org.hampelratte</groupId>
-        <version>6</version>
+        <version>7</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -355,7 +355,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <!-- <remoteOBR>file:///var/www/hampelratte.org/htdocs/maven</remoteOBR> -->
-                    <!-- <remoteOBR>scp://hampelratte.org/var/www/hampelratte.org/htdocs/maven</remoteOBR>  -->
+                    <remoteOBR>scp://hampelratte.org/var/www/hampelratte.org/htdocs/maven</remoteOBR>
                     <prefixUrl>http://hampelratte.org/maven</prefixUrl>
                     <instructions>
                         <_nouses>true</_nouses>
