@@ -89,8 +89,8 @@ public class RTMP implements INetworkProtocol {
         String port = ctx.getProperty("org.osgi.service.http.port");
         String uri = null;
         try {
-            uri = "http://" + servletHost + ":" + port + StreamBridge.PATH + "?host=" + host + "&app=" + app
-                    + "&stream=" + URLEncoder.encode(streamName, "UTF-8") + "&scheme=" + videoUri.getScheme();
+            uri = "http://" + servletHost + ":" + port + StreamBridge.PATH + "?host=" + host + "&app=" + URLEncoder.encode(app, "UTF-8") + "&stream="
+                    + URLEncoder.encode(streamName, "UTF-8") + "&scheme=" + videoUri.getScheme();
             if (connectionDetails.containsKey("swfUri")) {
                 uri += "&swfUri=" + URLEncoder.encode(connectionDetails.get("swfUri").toString(), "UTF-8");
             }
@@ -100,11 +100,12 @@ public class RTMP implements INetworkProtocol {
         } catch (UnsupportedEncodingException e) {
             logger.log(LogService.LOG_ERROR, "Couldn't create bridge uri", e);
         }
+        logger.log(LogService.LOG_DEBUG, "Bridge URI is " + uri);
         return new URI(uri);
     }
 
-    public static void initSwfVerification(ClientOptions options, URI swfUri) throws MalformedURLException,
-            IOException, InvalidKeyException, NoSuchAlgorithmException {
+    public static void initSwfVerification(ClientOptions options, URI swfUri) throws MalformedURLException, IOException, InvalidKeyException,
+            NoSuchAlgorithmException {
         InputStream in = swfUri.toURL().openStream();
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         SwfFile.decompressSwf(in, bos);
