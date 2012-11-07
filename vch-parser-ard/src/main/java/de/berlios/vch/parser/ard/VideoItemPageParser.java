@@ -175,7 +175,7 @@ public class VideoItemPageParser {
             String uri = "";
             if (uriPart1 != null && uriPart1.length() > 0) {
                 uri += uriPart1;
-                if (!(uriPart1.endsWith("/") || uriPart2.startsWith("/"))) {
+                if (!(uriPart1.endsWith("/") || uriPart2.startsWith("/")) && !uriPart2.isEmpty()) {
                     uriPart1 += "/";
                 }
             }
