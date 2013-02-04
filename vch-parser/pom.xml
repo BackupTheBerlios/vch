@@ -53,6 +53,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
+                        <Import-Package>!javax.swing.*,*</Import-Package>
                         <Export-Package>de.berlios.vch.parser.*,org.htmlparser.*</Export-Package>
                     </instructions>
                 </configuration>
