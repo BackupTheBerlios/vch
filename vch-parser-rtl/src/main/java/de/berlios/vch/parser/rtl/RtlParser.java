@@ -60,7 +60,7 @@ public class RtlParser implements IWebParser {
         for (int i = 0; i < entries.getLength(); i++) {
             Node entry = entries.item(i);
             IWebPage parsedPage = parseEntry(entry);
-            if (page != null) {
+            if (parsedPage != null && parsedPage.getUri() != null) {
                 page.getPages().add(parsedPage);
             }
         }
