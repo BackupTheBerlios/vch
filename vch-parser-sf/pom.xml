@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>parser.sf</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 	<name>VCH SF Parser</name>
 	<description>Parser for the SF Videoportal</description>
 
@@ -27,22 +27,6 @@
 			<type>bundle</type>
 			<scope>provided</scope>
 		</dependency>
-        <dependency>
-            <groupId>de.berlios.vch</groupId>
-            <artifactId>json.support</artifactId>
-            <type>bundle</type>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <scope>provided</scope>
-        </dependency>
-		<dependency>
-			<groupId>org.htmlparser</groupId>
-			<artifactId>htmlparser</artifactId>
-			<scope>provided</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
@@ -52,6 +36,20 @@
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.main</artifactId>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.htmlparser</groupId>
+		    <artifactId>htmlparser</artifactId>
+		    <scope>provided</scope>
+		</dependency>
+		<dependency>
+		    <groupId>de.berlios.vch</groupId>
+		    <artifactId>feedsupport</artifactId>
+		    <type>bundle</type>
+		</dependency>
+		<dependency>
+		    <groupId>rome</groupId>
+		    <artifactId>rome</artifactId>
 		</dependency>
 	</dependencies>
 </project>
