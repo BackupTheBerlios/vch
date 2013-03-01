@@ -1,5 +1,8 @@
 package de.berlios.vch.parser.zdf;
 
+import static java.util.regex.Pattern.DOTALL;
+import static java.util.regex.Pattern.MULTILINE;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -17,7 +20,6 @@ import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.htmlparser.tags.Div;
-import org.htmlparser.tags.ImageTag;
 import org.htmlparser.tags.LinkTag;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
@@ -76,8 +78,8 @@ public class ZDFMediathekParser implements IWebParser {
         page.getPages().add(rubriken);
 
         OverviewPage abz = new OverviewPage();
-        abz.setTitle("Sendungen A-Z");
         abz.setParser(ID);
+        abz.setTitle("Sendungen A-Z");
         abz.setUri(new URI(OVERVIEW_ABZ));
         page.getPages().add(abz);
 
@@ -130,8 +132,10 @@ public class ZDFMediathekParser implements IWebParser {
         video.setDescription(Translate.decode(HtmlParserUtils.getText(content, CHARSET, "div.beitrag p.kurztext")));
 
         // parse the thumbnail image
-        ImageTag img = (ImageTag) HtmlParserUtils.getTag(content, CHARSET, "div.beitrag img");
-        video.setThumbnail(new URI(BASE_URI + img.getImageURL()));
+        Matcher m = Pattern.compile("#playerContainer\\s*\\{\\s*background-image: url\\(([^\\)]*)\\);", MULTILINE | DOTALL).matcher(content);
+        if (m.find()) {
+            video.setThumbnail(new URI(BASE_URI + m.group(1)));
+        }
 
         // parse the video uri
         NodeList videoLinks = HtmlParserUtils.getTags(content, CHARSET, "ul.dslChoice li a");
@@ -152,7 +156,7 @@ public class ZDFMediathekParser implements IWebParser {
         video.setPublishDate(cal);
 
         // parse the duration
-        Matcher m = Pattern.compile("VIDEO,\\s+(\\d+):(\\d+)").matcher(content);
+        m = Pattern.compile("VIDEO,\\s+(\\d+):(\\d+)").matcher(content);
         if (m.find()) {
             int minutes = Integer.parseInt(m.group(1));
             int seconds = Integer.parseInt(m.group(2));
