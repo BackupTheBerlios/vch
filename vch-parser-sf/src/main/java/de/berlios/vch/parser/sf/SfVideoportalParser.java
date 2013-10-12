@@ -1,6 +1,7 @@
 package de.berlios.vch.parser.sf;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
@@ -76,15 +77,18 @@ public class SfVideoportalParser implements IWebParser {
                 if (podcast == null) {
                     continue;
                 }
-                String uri = podcast.getAttribute("value");
+                String uri = podcast.getAttribute("value").trim();
 
-                OverviewPage programPage = new OverviewPage();
-                programPage.setParser(ID);
-                programPage.setTitle(name);
-                programPage.setUri(new URI(uri));
-                sectionPage.getPages().add(programPage);
-
-                logger.log(LogService.LOG_DEBUG, "Program URI is " + programPage.getUri());
+                try {
+                    OverviewPage programPage = new OverviewPage();
+                    programPage.setParser(ID);
+                    programPage.setTitle(name);
+                    programPage.setUri(new URI(uri));
+                    sectionPage.getPages().add(programPage);
+                    logger.log(LogService.LOG_DEBUG, "Program URI is " + programPage.getUri());
+                } catch (URISyntaxException use) {
+                    logger.log(LogService.LOG_ERROR, "Couldn't add page " + name + "[" + uri + "]", use);
+                }
             }
 
             if (!sectionPage.getPages().isEmpty()) {
