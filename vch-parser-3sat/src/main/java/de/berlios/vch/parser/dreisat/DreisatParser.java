@@ -84,7 +84,6 @@ public class DreisatParser implements IWebParser {
                 String title = Translate.decode(td.toPlainTextString());
 
                 td = (TableColumn) tr.childAt(7);
-                logger.log(LogService.LOG_DEBUG, td.toString());
                 if (td.getChild(0) instanceof LinkTag) {
                     LinkTag rss = (LinkTag) td.getChild(0);
                     String path = rss.extractLink();
