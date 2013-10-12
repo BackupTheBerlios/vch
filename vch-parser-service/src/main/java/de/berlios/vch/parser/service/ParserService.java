@@ -154,7 +154,11 @@ public class ParserService implements IParserService, IVchUriResolver, ResourceB
     private IWebPage parsePage(IWebPage page) throws Exception {
         IWebParser parser = getParser(page.getParser());
         IWebPage parsedPage = null;
-        if (parser.getId().equalsIgnoreCase(page.getUri().getPath())) {
+        String path = page.getUri().getPath();
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        if (parser.getId().equalsIgnoreCase(path)) {
             parsedPage = parser.getRoot();
         } else {
             parsedPage = parser.parse(page);
