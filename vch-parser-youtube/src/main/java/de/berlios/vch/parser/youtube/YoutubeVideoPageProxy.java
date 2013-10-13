@@ -46,10 +46,12 @@ public class YoutubeVideoPageProxy extends VideoPage {
             StringTokenizer st = new StringTokenizer(pageContent, "\n");
             while (st.hasMoreTokens()) {
                 String line = st.nextToken();
-                if (line.contains("yt.playerConfig")) {
-                    logger.log(LogService.LOG_DEBUG, line);
-                    int openingBracket = line.indexOf('{');
-                    String jsonObjectString = line.substring(openingBracket).trim();
+                if (line.contains("ytplayer.config")) {
+                    // logger.log(LogService.LOG_DEBUG, "HTML line: " + line);
+                    int openingBracket = line.indexOf("ytplayer.config = {") + 18;
+                    int closingBracket = line.lastIndexOf('}');
+                    String jsonObjectString = line.substring(openingBracket, closingBracket + 1).trim();
+                    // logger.log(LogService.LOG_DEBUG, "JSON string: " + jsonObjectString);
                     JSONObject jsonObject = new JSONObject(jsonObjectString);
                     // for (Iterator iterator = jsonObject.sortedKeys(); iterator.hasNext();) {
                     // String key = (String) iterator.next();
@@ -109,15 +111,25 @@ public class YoutubeVideoPageProxy extends VideoPage {
         String[] formatTuples = formatStreamMap.split(",");
         for (int i = 0; i < formatTuples.length; i++) {
             String formatTuple[] = formatTuples[i].split("&");
-            String format = formatTuple[1];
-            String signature = formatTuple[4].substring(4);
-            String streamUri = URLDecoder.decode(format.substring(4), "UTF-8");
-            streamUri += "&signature=" + signature;
-            if (streamUri.contains(";")) {
-                streamUri = streamUri.substring(0, streamUri.indexOf(';'));
+            Map<String, String> params = new HashMap<String, String>();
+            for (String tuple : formatTuple) {
+                int equals = tuple.indexOf('=');
+                String key = tuple.substring(0, equals);
+                String value = tuple.substring(equals + 1);
+                params.put(key, value);
             }
-            logger.log(LogService.LOG_DEBUG, "Found stream uri " + URLDecoder.decode(streamUri, "UTF-8"));
-            result.put(formatList.get(i), streamUri);
+
+            int format = Integer.parseInt(params.get("itag"));
+            String signature = params.get("sig");
+            String url = URLDecoder.decode(params.get("url"), "UTF-8");
+
+            String streamUri = url + "&signature=" + signature;
+            // if (streamUri.contains(";")) {
+            // streamUri = streamUri.substring(0, streamUri.indexOf(';'));
+            // }
+
+            logger.log(LogService.LOG_DEBUG, "Found stream uri " + streamUri);
+            result.put(format, streamUri);
         }
         return result;
     }
